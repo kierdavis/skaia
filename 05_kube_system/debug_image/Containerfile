@@ -1,0 +1,12 @@
+FROM nixos/nix@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769
+RUN nix-env -i \
+  -A nixpkgs.curl \
+  -A nixpkgs.dumb-init \
+  -A nixpkgs.iproute \
+  -A nixpkgs.iptables-legacy \
+  -A nixpkgs.nettools \
+  -A nixpkgs.tailscale \
+  -A nixpkgs.tcpdump \
+  -A nixpkgs.util-linux
+ENTRYPOINT ["/root/.nix-profile/bin/dumb-init"]
+CMD ["/root/.nix-profile/bin/sleep", "infinity"]

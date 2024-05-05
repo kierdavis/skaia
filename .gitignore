@@ -1,0 +1,4 @@
+kubeconfig
+talosconfig
+.terraform
+terraform.tfstate*.backup

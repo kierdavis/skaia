@@ -1,0 +1,52 @@
+terraform -chdir=00_becquerel apply
+terraform -chdir=01_tailnet apply
+Confirm headscale is running:
+  ssh root@becquerel.skaia.cloud headscale users list
+
+Join coloris to tailscale:
+  terraform -chdir=01_tailnet output -json workstation_pre_auth_keys | jq -r .coloris | sudo tee /etc/skaia-headscale-auth-key
+  sudo systemctl stop tailscaled tailscaled-autoconnect
+  sudo systemctl start tailscaled tailscaled-autoconnect
+  ssh root@becquerel.skaia.cloud headscale nodes list
+
+terraform -chdir=02_talos_image apply
+
+terraform -chdir=03_talos_linodes apply
+
+Re-image bare metal nodes:
+  Get script URL:
+    terraform -chdir=02_talos_image output bare_metal_script_url
+  Boot any LiveOS (e.g. nixos) from USB
+  bash <(curl URL) -- /dev/nvme0n1
+
+Confirm Talos api up on all nodes:
+  curl https://192.168.178.154:50000
+  curl https://192.168.178.164:50000
+  curl https://peixes.skaia.cloud:50000
+
+First Talos apply (configures tailscale):
+  terraform -chdir=04_talos apply
+Confirm nodes registered to headscale:
+  ssh root@becquerel.skaia.cloud headscale nodes list
+  tailscale ping vantas
+  tailscale ping ampora
+  tailscale ping peixes
+
+Comment out the firewall rule allowing direct (non-tailscale) access to the Talos api server
+terraform -chdir=03_talos_linodes apply
+
+Second Talos apply (changes the endpoints from bootstrap IPs to tailscale IPs, should bring up kube-apiservers):
+  terraform -chdir=04_talos apply
+
+terraform -chdir=04_talos output -raw talosconfig > talosconfig
+terraform -chdir=04_talos output -raw kubeconfig > kubeconfig
+Confirm nodes all present (not Ready yet though):
+  kubectl --kubeconfig=kubeconfig get node
+
+terraform -chdir=05_kube_system apply
+Confirm nodes all Ready:
+  kubectl --kubeconfig=kubeconfig get node
+Confirm coredns gets scheduled:
+  kubectl --kubeconfig=kubeconfig -n kube-system get pod
+Confirm pod & service routes are advertised:
+  ssh root@becquerel.skaia.cloud headscale routes list
