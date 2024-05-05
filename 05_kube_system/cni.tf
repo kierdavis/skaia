@@ -63,6 +63,7 @@ resource "kubernetes_cluster_role_binding" "cni" {
 
 # TODO: resources
 resource "kubernetes_daemonset" "cni" {
+  wait_for_rollout = false
   metadata {
     name      = "cni"
     namespace = kubernetes_namespace.system.metadata[0].name

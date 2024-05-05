@@ -116,78 +116,81 @@ data "talos_machine_configuration" "main" {
   machine_secrets  = talos_machine_secrets.main.machine_secrets
   machine_type     = each.value.role
   talos_version    = "v${local.api_contract_version}"
-  config_patches = [yamlencode({
-    cluster = {
-      allowSchedulingOnControlPlanes = true
-      apiServer = {
-        certSANs                 = ["kubeapi.skaia.cloud"]
-        disablePodSecurityPolicy = true
-      }
-      controllerManager = {
-        extraArgs = {
-          "node-cidr-mask-size-ipv4" = local.globals.kubernetes.pod_net.node_prefix_len.ipv4
-          "node-cidr-mask-size-ipv6" = local.globals.kubernetes.pod_net.node_prefix_len.ipv6
+  config_patches = [
+    yamlencode({
+      cluster = {
+        allowSchedulingOnControlPlanes = true
+        apiServer = {
+          certSANs                 = ["kubeapi.skaia.cloud"]
+          disablePodSecurityPolicy = true
+        }
+        controllerManager = {
+          extraArgs = {
+            "node-cidr-mask-size-ipv4" = local.globals.kubernetes.pod_net.node_prefix_len.ipv4
+            "node-cidr-mask-size-ipv6" = local.globals.kubernetes.pod_net.node_prefix_len.ipv6
+          }
+        }
+        discovery = { enabled = false }
+        etcd = {
+          advertisedSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+          listenSubnets     = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+        }
+        network = {
+          cni            = { name = "none" }
+          dnsDomain      = "kube.skaia.cloud"
+          podSubnets     = [local.globals.kubernetes.pod_net.ipv4, local.globals.kubernetes.pod_net.ipv6]
+          serviceSubnets = [local.globals.kubernetes.svc_net.ipv4, local.globals.kubernetes.svc_net.ipv6]
+        }
+        proxy = {
+          disabled = false
         }
       }
-      discovery = { enabled = false }
-      etcd = {
-        advertisedSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
-        listenSubnets     = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
-      }
-      network = {
-        cni            = { name = "none" }
-        dnsDomain      = "kube.skaia.cloud"
-        podSubnets     = [local.globals.kubernetes.pod_net.ipv4, local.globals.kubernetes.pod_net.ipv6]
-        serviceSubnets = [local.globals.kubernetes.svc_net.ipv4, local.globals.kubernetes.svc_net.ipv6]
-      }
-      proxy = {
-        disabled = false
-      }
-    }
-    machine = {
-      certSANs = [each.key, "${each.key}.skaia.cloud"]
-      features = {
-        kubernetesTalosAPIAccess = {
-          enabled                     = true
-          allowedRoles                = ["os:admin"]
-          allowedKubernetesNamespaces = ["system"]
+      machine = {
+        certSANs = [each.key, "${each.key}.skaia.cloud"]
+        features = {
+          kubernetesTalosAPIAccess = {
+            enabled                     = true
+            allowedRoles                = ["os:admin"]
+            allowedKubernetesNamespaces = ["system"]
+          }
+          rbac = true
         }
-        rbac = true
-      }
-      kubelet = {
-        nodeIP = {
-          validSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+        kubelet = {
+          nodeIP = {
+            validSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+          }
+        }
+        install = {
+          disk = each.value.boot_disk
+          wipe = false
+        }
+        network = {
+          hostname = each.key
+          extraHostEntries = [
+            for node_name, endpoint in local.node_endpoints :
+            { ip = endpoint, aliases = [node_name, "${node_name}.skaia.cloud", "kubeapi.skaia.cloud"] }
+          ]
+          nameservers = ["1.1.1.1", "1.0.0.1"]
+        }
+        nodeLabels = each.value.labels
+        sysctls = {
+          "net.ipv4.ip_forward"          = "1"
+          "net.ipv6.conf.all.forwarding" = "1"
         }
       }
-      install = {
-        disk = each.value.boot_disk
-        wipe = false
-      }
-      network = {
-        hostname = each.key
-        extraHostEntries = [
-          for node_name, endpoint in local.node_endpoints :
-          { ip = endpoint, aliases = [node_name, "${node_name}.skaia.cloud", "kubeapi.skaia.cloud"] }
-        ]
-        nameservers = ["1.1.1.1", "1.0.0.1"]
-      }
-      nodeLabels = each.value.labels
-      sysctls = {
-        "net.ipv4.ip_forward"          = "1"
-        "net.ipv6.conf.all.forwarding" = "1"
-      }
-    }
-    }), yamlencode({
-    apiVersion = "v1alpha1"
-    kind       = "ExtensionServiceConfig"
-    name       = "tailscale"
-    environment = [
-      "TS_AUTHKEY=${headscale_pre_auth_key.main[each.key].key}",
-      "TS_EXTRA_ARGS=--accept-routes --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
-      "TS_HOSTNAME=${each.key}",
-      "TS_USERSPACE=false",
-    ]
-  })]
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "ExtensionServiceConfig"
+      name       = "tailscale"
+      environment = [
+        "TS_AUTHKEY=${headscale_pre_auth_key.main[each.key].key}",
+        "TS_EXTRA_ARGS=--accept-routes --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
+        "TS_HOSTNAME=${each.key}",
+        "TS_USERSPACE=false",
+      ]
+    }),
+  ]
 }
 
 resource "talos_machine_configuration_apply" "main" {

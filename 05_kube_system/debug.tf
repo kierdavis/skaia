@@ -7,6 +7,7 @@ module "debug_image" {
 
 # TODO: resources
 resource "kubernetes_daemonset" "node_debug" {
+  wait_for_rollout = false
   metadata {
     name      = "node-debug"
     namespace = kubernetes_namespace.system.metadata[0].name

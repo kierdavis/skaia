@@ -14,42 +14,13 @@ variable "cluster_namespace" {
   type = string
 }
 
-variable "crush_rule" {
-  type    = string
-  default = "skaia_gp0"
+variable "fs_name" {
+  type = string
 }
 
-resource "kubernetes_manifest" "fs" {
-  manifest = {
-    apiVersion = "ceph.rook.io/v1"
-    kind       = "CephFilesystem"
-    metadata = {
-      name      = var.name
-      namespace = var.cluster_namespace
-    }
-    spec = {
-      metadataPool = {
-        replicated = { size = 2 }
-        parameters = {
-          crush_rule = "skaia_gp0"
-          pg_num_min = "1"
-          bulk       = "0"
-        }
-      }
-      dataPools = [{
-        replicated = { size = 2 }
-        parameters = {
-          crush_rule = var.crush_rule
-          pg_num_min = "1"
-          bulk       = "1"
-        }
-      }]
-      metadataServer = {
-        activeCount       = 1 # Controls sharding, not redundancy.
-        priorityClassName = "system-cluster-critical"
-      }
-    }
-  }
+variable "fs_data_pool_name" {
+  type    = string
+  default = "gp0"
 }
 
 resource "kubernetes_storage_class" "main" {
@@ -62,8 +33,8 @@ resource "kubernetes_storage_class" "main" {
   allow_volume_expansion = true
   parameters = {
     clusterID                                               = var.cluster_namespace
-    fsName                                                  = kubernetes_manifest.fs.object.metadata.name
-    pool                                                    = "${kubernetes_manifest.fs.object.metadata.name}-data0"
+    fsName                                                  = var.fs_name
+    pool                                                    = "${var.fs_name}-${var.fs_data_pool_name}"
     "csi.storage.k8s.io/provisioner-secret-name"            = "rook-csi-cephfs-provisioner"
     "csi.storage.k8s.io/provisioner-secret-namespace"       = var.cluster_namespace
     "csi.storage.k8s.io/controller-expand-secret-name"      = "rook-csi-cephfs-provisioner"
