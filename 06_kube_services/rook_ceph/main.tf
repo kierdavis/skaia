@@ -16,6 +16,39 @@ locals {
   rook_version = "1.14.3"
   ceph_version = "18.2.2"
 
+  meta_pool_spec = {
+    replicated    = { size = 2 }
+    failureDomain = "osd"
+    parameters = {
+      pg_num_min = "1"
+      bulk       = "0"
+    }
+  }
+
+  data_classes = {
+    gp0 = {
+      pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "osd"
+        parameters = {
+          pg_num_min = "4"
+          bulk       = "1"
+        }
+      }
+    }
+    media0 = {
+      pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "osd"
+        crushRoot     = "z-adw"
+        parameters = {
+          pg_num_min = "4"
+          bulk       = "1"
+        }
+      }
+    }
+  }
+
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 

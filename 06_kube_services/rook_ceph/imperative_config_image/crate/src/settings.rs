@@ -6,14 +6,13 @@ pub fn configure() -> Result<(), Error> {
   Namespace::Global.ensure_with_context("osd_pool_default_size", "2")?;
   Namespace::Global.ensure_with_context("osd_scrub_max_interval", "3024000.000000")?;
   Namespace::Global.ensure_with_context("osd_scrub_min_interval", "1814400.000000")?;
-  Namespace::Pool(".mgr").ensure_with_context("crush_rule", "skaia_gp0")?;
   Ok(())
 }
 
 #[derive(Clone, Copy, Debug)]
 enum Namespace {
   Global,
-  Pool(&'static str),
+  // Pool(&'static str),
 }
 
 impl Namespace {
@@ -42,7 +41,7 @@ impl Namespace {
   fn get(self, key: &str) -> Result<String, Error> {
     let (ns_args, cmd_label) = match self {
       Self::Global => (vec!["config", "show", "mgr.a"], "ceph config show mgr.a"),
-      Self::Pool(pool) => (vec!["osd", "pool", "get", pool], "ceph osd pool get"),
+      // Self::Pool(pool) => (vec!["osd", "pool", "get", pool], "ceph osd pool get"),
     };
     let out = Command::new("ceph")
       .args(ns_args)
@@ -70,7 +69,7 @@ impl Namespace {
   fn set(self, key: &str, value: &str) -> Result<(), Error> {
     let (ns_args, cmd_label) = match self {
       Self::Global => (vec!["config", "set", "global"], "ceph config set global"),
-      Self::Pool(pool) => (vec!["osd", "pool", "set", pool], "ceph osd pool set"),
+      // Self::Pool(pool) => (vec!["osd", "pool", "set", pool], "ceph osd pool set"),
     };
     let status = Command::new("ceph")
       .args(ns_args)

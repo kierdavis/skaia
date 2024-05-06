@@ -1,6 +1,5 @@
 locals {
-  fs_name    = "fs"
-  fs_classes = toset(["gp0", "media0"])
+  fs_name = "fs"
 }
 
 resource "kubectl_manifest" "fs" {
@@ -13,25 +12,10 @@ resource "kubectl_manifest" "fs" {
       namespace = local.namespace
     }
     spec = {
-      metadataPool = {
-        replicated = { size = 2 }
-        parameters = {
-          crush_rule = "skaia_gp0"
-          pg_num_min = "1"
-          bulk       = "0"
-        }
-      }
+      metadataPool = local.meta_pool_spec
       dataPools = [
-        for class in local.fs_classes :
-        {
-          name       = "data-${class}"
-          replicated = { size = 2 }
-          parameters = {
-            crush_rule = "skaia_${class}"
-            pg_num_min = "4"
-            bulk       = "1"
-          }
-        }
+        for name, info in local.data_classes :
+        merge(info.pool_spec, { name = "data-${name}" })
       ]
       metadataServer = {
         activeCount       = 1 # Controls sharding, not redundancy.
@@ -57,7 +41,7 @@ resource "kubectl_manifest" "fs" {
 }
 
 resource "kubernetes_storage_class" "fs" {
-  for_each = local.fs_classes
+  for_each = local.data_classes
   metadata {
     name   = "fs-${each.key}"
     labels = { "skaia.cloud/type" = "rook-ceph-fs" }
