@@ -31,6 +31,7 @@ resource "kubernetes_daemonset" "node_debug" {
         automount_service_account_token  = false
         enable_service_links             = false
         host_network                     = true
+        host_pid                         = true
         priority_class_name              = "system-node-critical"
         restart_policy                   = "Always"
         termination_grace_period_seconds = 1

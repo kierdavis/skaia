@@ -54,6 +54,16 @@ provider "helm" {
   }
 }
 
+module "generic_device_plugin" {
+  source = "./generic_device_plugin"
+}
+
+# TODO
+#module "prometheus" {
+#  depends_on = [module.rook_ceph]
+#  source     = "./prometheus"
+#}
+
 module "rook_ceph" {
   source = "./rook_ceph"
 }

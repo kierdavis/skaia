@@ -74,3 +74,10 @@ resource "kubernetes_persistent_volume_claim" "media" {
     }
   }
 }
+
+module "jellyfin" {
+  source             = "./jellyfin"
+  namespace          = kubernetes_namespace.main.metadata[0].name
+  media_pvc_name     = kubernetes_persistent_volume_claim.media.metadata[0].name
+  downloads_pvc_name = kubernetes_persistent_volume_claim.downloads.metadata[0].name
+}
