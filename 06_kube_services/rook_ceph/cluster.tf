@@ -1,5 +1,6 @@
-resource "kubernetes_manifest" "cluster" {
-  manifest = {
+resource "kubectl_manifest" "cluster" {
+  depends_on = [helm_release.operator]
+  yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephCluster"
     metadata = {
@@ -60,51 +61,5 @@ resource "kubernetes_manifest" "cluster" {
         useAllNodes   = true
       }
     }
-  }
-}
-
-resource "kubernetes_manifest" "fs" {
-  manifest = {
-    apiVersion = "ceph.rook.io/v1"
-    kind       = "CephFilesystem"
-    metadata = {
-      name      = "fs"
-      namespace = local.namespace
-    }
-    spec = {
-      metadataPool = {
-        replicated = { size = 2 }
-        parameters = {
-          crush_rule = "skaia_gp0"
-          pg_num_min = "1"
-          bulk       = "0"
-        }
-      }
-      dataPools = [
-        {
-          name       = "data-gp0"
-          replicated = { size = 2 }
-          parameters = {
-            crush_rule = "skaia_gp0"
-            pg_num_min = "1"
-            bulk       = "1"
-          }
-        },
-        {
-          name       = "data-media0"
-          replicated = { size = 2 }
-          parameters = {
-            crush_rule = "skaia_media0"
-            pg_num_min = "1"
-            bulk       = "1"
-          }
-        },
-      ]
-      metadataServer = {
-        activeCount       = 1 # Controls sharding, not redundancy.
-        priorityClassName = "system-cluster-critical"
-      }
-    }
-  }
-  depends_on = [kubernetes_job.imperative_config]
+  })
 }

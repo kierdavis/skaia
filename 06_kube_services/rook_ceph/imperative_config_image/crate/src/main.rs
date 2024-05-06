@@ -1,6 +1,7 @@
 use crate::error::Error;
 use std::process::ExitCode;
 
+mod auth;
 mod crush_map;
 mod error;
 mod settings;
@@ -23,7 +24,8 @@ fn main() -> ExitCode {
 }
 
 fn app() -> Result<(), Error> {
-  settings::configure().map_err(Error::with_context("failed to configure settings"))?;
   crush_map::configure().map_err(Error::with_context("failed to configure CRUSH map"))?;
+  settings::configure().map_err(Error::with_context("failed to configure settings"))?;
+  auth::configure().map_err(Error::with_context("failed to configure auth"))?;
   Ok(())
 }

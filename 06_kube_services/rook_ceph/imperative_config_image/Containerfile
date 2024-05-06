@@ -9,11 +9,12 @@ RUN \
   cd /crate && \
   mkdir src && \
   echo 'fn main() { unreachable!() }' > src/main.rs && \
+  cargo build --locked && \
   cargo build --locked --release && \
   rm -rf src && \
   find target | xargs touch -t 197001010000.00
 ADD crate/src /crate/src
-RUN cd /crate && cargo build --locked --release
+RUN cd /crate && cargo test --locked && cargo build --locked --release
 
 FROM $rook_image
 USER root

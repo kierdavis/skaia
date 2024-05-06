@@ -1,14 +1,13 @@
 module "imperative_config_image" {
-  source         = "../modules/container_image"
+  source         = "../../modules/container_image"
   repo_name      = "skaia-rook-ceph-imperative-config"
   repo_namespace = local.globals.docker_hub.namespace
   src            = "${path.module}/imperative_config_image"
-  args = {
-    rook_image = "docker.io/${data.terraform_remote_state.operator.outputs.image}"
-  }
+  args           = { rook_image = local.rook_image }
 }
 
 resource "kubernetes_job" "imperative_config" {
+  depends_on = [kubectl_manifest.cluster]
   metadata {
     name      = "imperative-config"
     namespace = local.namespace
@@ -90,5 +89,4 @@ resource "kubernetes_job" "imperative_config" {
     create = "2m"
     update = "2m"
   }
-  depends_on = [kubernetes_manifest.cluster]
 }

@@ -4,6 +4,7 @@ RUN nix-env -i \
   -A nixpkgs.dumb-init \
   -A nixpkgs.iproute \
   -A nixpkgs.iptables-legacy \
+  -A nixpkgs.iputils \
   -A nixpkgs.nettools \
   -A nixpkgs.tailscale \
   -A nixpkgs.tcpdump \

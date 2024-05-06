@@ -1,5 +1,5 @@
 resource "kubernetes_deployment" "toolbox" {
-  depends_on = [kubernetes_manifest.cluster]
+  depends_on = [kubectl_manifest.cluster]
   metadata {
     name      = "rook-ceph-tools"
     namespace = local.namespace
@@ -28,7 +28,7 @@ resource "kubernetes_deployment" "toolbox" {
         termination_grace_period_seconds = 1
         container {
           name    = "main"
-          image   = data.terraform_remote_state.operator.outputs.image
+          image   = local.rook_image
           command = ["/usr/local/bin/toolbox.sh"]
           env {
             name = "ROOK_CEPH_USERNAME"
