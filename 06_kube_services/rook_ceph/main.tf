@@ -20,8 +20,8 @@ locals {
     replicated    = { size = 2 }
     failureDomain = "osd"
     parameters = {
-      pg_num_min = "1"
-      bulk       = "0"
+      pg_num = "2"
+      bulk   = "0"
     }
   }
 
@@ -31,8 +31,8 @@ locals {
         replicated    = { size = 2 }
         failureDomain = "osd"
         parameters = {
-          pg_num_min = "4"
-          bulk       = "1"
+          pg_num = "8"
+          bulk   = "1"
         }
       }
     }
@@ -42,8 +42,8 @@ locals {
         failureDomain = "osd"
         crushRoot     = "z-adw"
         parameters = {
-          pg_num_min = "4"
-          bulk       = "1"
+          pg_num = "16"
+          bulk   = "1"
         }
       }
     }
