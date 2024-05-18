@@ -18,6 +18,17 @@ variable "downloads_pvc_name" {
   type = string
 }
 
+locals {
+  globals = yamldecode(file("${path.module}/../../globals.yaml"))
+}
+
+module "image" {
+  source         = "../../modules/container_image"
+  repo_name      = "skaia-jellyfin"
+  repo_namespace = local.globals.docker_hub.namespace
+  src            = "${path.module}/image"
+}
+
 resource "kubernetes_stateful_set" "main" {
   wait_for_rollout = false
   metadata {
@@ -56,7 +67,7 @@ resource "kubernetes_stateful_set" "main" {
         }
         container {
           name  = "main"
-          image = "docker.io/linuxserver/jellyfin@sha256:8e2c0ce0156eae6cba0487d5d1bc03d821e0b3f6a51a72d966517ec8aa9e90d4"
+          image = module.image.tag
           env {
             name  = "TZ"
             value = "Europe/London"
