@@ -126,8 +126,9 @@ data "talos_machine_configuration" "main" {
         }
         controllerManager = {
           extraArgs = {
-            "node-cidr-mask-size-ipv4" = local.globals.kubernetes.pod_net.node_prefix_len.ipv4
-            "node-cidr-mask-size-ipv6" = local.globals.kubernetes.pod_net.node_prefix_len.ipv6
+            bind-address             = "0.0.0.0" # so Prometheus can scrape
+            node-cidr-mask-size-ipv4 = local.globals.kubernetes.pod_net.node_prefix_len.ipv4
+            node-cidr-mask-size-ipv6 = local.globals.kubernetes.pod_net.node_prefix_len.ipv6
           }
         }
         discovery = { enabled = false }
@@ -142,7 +143,14 @@ data "talos_machine_configuration" "main" {
           serviceSubnets = [local.globals.kubernetes.svc_net.ipv4, local.globals.kubernetes.svc_net.ipv6]
         }
         proxy = {
-          disabled = false
+          extraArgs = {
+            metrics-bind-address = "0.0.0.0:10249" # so Prometheus can scrape
+          }
+        }
+        scheduler = {
+          extraArgs = {
+            bind-address = "0.0.0.0" # so Prometheus can scrape
+          }
         }
       }
       machine = {
@@ -245,4 +253,13 @@ output "kubernetes" {
 
 output "node_endpoints" {
   value = local.node_endpoints
+}
+
+output "etcd_ca_cert" {
+  value = base64decode(talos_machine_secrets.main.machine_secrets.certs.etcd.cert)
+}
+
+output "etcd_ca_key" {
+  value     = base64decode(talos_machine_secrets.main.machine_secrets.certs.etcd.key)
+  sensitive = true
 }

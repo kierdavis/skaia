@@ -6,6 +6,16 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    tls = {
+      source = "hashicorp/tls"
+    }
+  }
+}
+
+data "terraform_remote_state" "talos" {
+  backend = "local"
+  config = {
+    path = "${path.module}/../../04_talos/terraform.tfstate"
   }
 }
 
@@ -13,18 +23,53 @@ resource "kubernetes_namespace" "main" {
   metadata {
     name = "prometheus"
     labels = {
-      "pod-security.kubernetes.io/audit"           = "baseline"
+      # Need privileged due to node-exporter's use of hostPaths.
+      "pod-security.kubernetes.io/audit"           = "privileged"
       "pod-security.kubernetes.io/audit-version"   = "latest"
-      "pod-security.kubernetes.io/enforce"         = "baseline"
+      "pod-security.kubernetes.io/enforce"         = "privileged"
       "pod-security.kubernetes.io/enforce-version" = "latest"
-      "pod-security.kubernetes.io/warn"            = "baseline"
+      "pod-security.kubernetes.io/warn"            = "privileged"
       "pod-security.kubernetes.io/warn-version"    = "latest"
     }
   }
 }
 
 locals {
-  namespace = kubernetes_namespace.main.metadata[0].name
+  namespace         = kubernetes_namespace.main.metadata[0].name
+  node_endpoint_set = toset([for _, addr in data.terraform_remote_state.talos.outputs.node_endpoints : addr])
+}
+
+resource "tls_private_key" "etcd_client" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P256"
+}
+
+resource "tls_cert_request" "etcd_client" {
+  private_key_pem = tls_private_key.etcd_client.private_key_pem
+  subject {
+    common_name = "prometheus"
+  }
+}
+
+resource "tls_locally_signed_cert" "etcd_client" {
+  ca_cert_pem           = data.terraform_remote_state.talos.outputs.etcd_ca_cert
+  ca_private_key_pem    = data.terraform_remote_state.talos.outputs.etcd_ca_key
+  cert_request_pem      = tls_cert_request.etcd_client.cert_request_pem
+  validity_period_hours = 2 * 365 * 24
+  early_renewal_hours   = 365 * 24
+  allowed_uses          = ["client_auth", "digital_signature", "key_encipherment"]
+}
+
+resource "kubernetes_secret" "etcd" {
+  metadata {
+    name      = "etcd"
+    namespace = local.namespace
+  }
+  data = {
+    "ca.crt"     = data.terraform_remote_state.talos.outputs.etcd_ca_cert
+    "client.crt" = tls_locally_signed_cert.etcd_client.cert_pem
+    "client.key" = tls_private_key.etcd_client.private_key_pem
+  }
 }
 
 resource "helm_release" "main" {
@@ -48,7 +93,7 @@ resource "helm_release" "main" {
             spec = {
               accessModes      = ["ReadWriteOnce"]
               storageClassName = "blk-gp0"
-              resources        = { requests = { storage : "2Gi" } }
+              resources        = { requests = { storage = "2Gi" } }
             }
           }
         }
@@ -66,7 +111,26 @@ resource "helm_release" "main" {
         type             = "sts"
       }
     }
-    "kube-state-metrics" = {
+    kubeControllerManager = {
+      service = { selector = { k8s-app = "kube-controller-manager" } }
+    }
+    kubeEtcd = {
+      endpoints = local.node_endpoint_set
+      service   = { port = 2379, targetPort = 2379 }
+      serviceMonitor = {
+        caFile   = "/etc/prometheus/secrets/${kubernetes_secret.etcd.metadata[0].name}/ca.crt"
+        certFile = "/etc/prometheus/secrets/${kubernetes_secret.etcd.metadata[0].name}/client.crt"
+        keyFile  = "/etc/prometheus/secrets/${kubernetes_secret.etcd.metadata[0].name}/client.key"
+        scheme   = "https"
+      }
+    }
+    kubeProxy = {
+      service = { selector = { k8s-app = "kube-proxy" } }
+    }
+    kubeScheduler = {
+      service = { selector = { k8s-app = "kube-scheduler" } }
+    }
+    kube-state-metrics = {
       fullnameOverride = "kube-state-metrics"
     }
     prometheus = {
@@ -79,12 +143,13 @@ resource "helm_release" "main" {
           }
         }
         retentionSize = "15GiB"
+        secrets       = [kubernetes_secret.etcd.metadata[0].name]
         storageSpec = {
           volumeClaimTemplate = {
             spec = {
               accessModes      = ["ReadWriteOnce"]
               storageClassName = "blk-gp0"
-              resources        = { requests = { storage : "16Gi" } }
+              resources        = { requests = { storage = "16Gi" } }
             }
           }
         }
@@ -92,6 +157,9 @@ resource "helm_release" "main" {
     }
     prometheusOperator = {
       fullnameOverride = "operator"
+    }
+    prometheus-node-exporter = {
+      fullnameOverride = "node-exporter"
     }
   })]
 }

@@ -12,6 +12,9 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    tls = {
+      source = "hashicorp/tls"
+    }
   }
 }
 
@@ -58,11 +61,10 @@ module "generic_device_plugin" {
   source = "./generic_device_plugin"
 }
 
-# TODO
-#module "prometheus" {
-#  depends_on = [module.rook_ceph]
-#  source     = "./prometheus"
-#}
+module "prometheus" {
+  depends_on = [module.rook_ceph]
+  source     = "./prometheus"
+}
 
 module "rook_ceph" {
   source = "./rook_ceph"
