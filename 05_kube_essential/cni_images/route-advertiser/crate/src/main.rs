@@ -299,7 +299,12 @@ fn compute_service_routes(
       svc_ref.name,
       svc_addrs,
     );
-    result.extend(svc_addrs.iter().map(addr_to_cidr));
+    result.extend(
+      svc_addrs
+        .iter()
+        .filter(|a| a.as_str() != "None")
+        .map(addr_to_cidr),
+    );
   }
   log::debug!("compute_service_routes: result={:?}", result);
   result
