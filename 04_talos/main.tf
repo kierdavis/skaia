@@ -185,7 +185,7 @@ data "talos_machine_configuration" "main" {
       name       = "tailscale"
       environment = [
         "TS_AUTHKEY=${headscale_pre_auth_key.main[each.key].key}",
-        "TS_EXTRA_ARGS=--accept-routes --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
+        "TS_EXTRA_ARGS=--accept-routes --advertise-routes= --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
         "TS_HOSTNAME=${each.key}",
         "TS_USERSPACE=false",
       ]
