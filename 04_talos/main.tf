@@ -11,7 +11,7 @@ terraform {
 }
 
 locals {
-  api_contract_version = "1.6"
+  api_contract_version = "1.7"
 
   nodes = {
     vantas = {
