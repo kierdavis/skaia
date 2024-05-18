@@ -18,7 +18,9 @@ enum Namespace {
 impl Namespace {
   fn ensure_with_context(self, key: &str, value: &str) -> Result<(), Error> {
     let context = format!("failed to ensure {}={} on {:?}", key, value, self).leak();
-    self.ensure(key, value).map_err(Error::with_context(context))
+    self
+      .ensure(key, value)
+      .map_err(Error::with_context(context))
   }
 
   fn ensure(self, key: &str, desired_value: &str) -> Result<(), Error> {
