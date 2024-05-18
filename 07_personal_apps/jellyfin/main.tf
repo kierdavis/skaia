@@ -42,13 +42,13 @@ resource "kubernetes_stateful_set" "main" {
         termination_grace_period_seconds = 30
         affinity {
           node_affinity {
-            preferred_during_scheduling_ignored_during_execution {
-              weight = 1
-              preference {
+            # This node has a Skylake CPU while pyrope has a Broadwell.
+            required_during_scheduling_ignored_during_execution {
+              node_selector_term {
                 match_expressions {
-                  key      = "topology.kubernetes.io/region"
+                  key      = "kubernetes.io/hostname"
                   operator = "In"
-                  values   = ["r-man"]
+                  values   = ["vantas"]
                 }
               }
             }
