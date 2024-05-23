@@ -134,6 +134,7 @@ resource "linode_stackscript" "main" {
       fi
       rm -f /etc/ssh/$x
       ln -sfT /persistent/ssh/$x /etc/ssh/$x
+      chmod 0600 /persistent/ssh/$x /etc/ssh/$x
       ssh-keygen -y -f /etc/ssh/$x > /etc/ssh/$x.pub
     done
     systemctl restart sshd
@@ -141,7 +142,7 @@ resource "linode_stackscript" "main" {
     mkdir -p /persistent/headscale
     ln -sfT /persistent/headscale /var/lib/headscale
     useradd --create-home --home-dir /var/lib/headscale/ --system --user-group --shell /usr/sbin/nologin headscale
-    chown headscale:headscale /var/lib/headscale/
+    chown -R headscale:headscale /var/lib/headscale/
 
     pushd /bin
     curl --silent --show-error --fail --location \
