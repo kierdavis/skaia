@@ -4,6 +4,8 @@ authorized_ssh:
     ipv6: []
   public_keys:
   - REDACTED
+  - REDACTED
+  - REDACTED
 
 b2:
   account_id: REDACTED

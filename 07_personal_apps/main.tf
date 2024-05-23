@@ -68,3 +68,9 @@ module "jellyfin" {
   media_pvc_name     = module.storage.media_pvc_name
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
+
+module "git" {
+  source              = "./git"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.storage.archive_secret_name
+}
