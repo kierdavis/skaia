@@ -3,6 +3,9 @@ terraform {
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
+    kubectl = {
+      source = "gavinbunney/kubectl"
+    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -23,6 +26,13 @@ data "terraform_remote_state" "talos" {
 provider "dockerhub" {
   username = local.globals.docker_hub.username
   password = local.globals.docker_hub.password
+}
+
+provider "kubectl" {
+  host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
+  cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
+  client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
+  client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
 provider "kubernetes" {
@@ -47,37 +57,14 @@ resource "kubernetes_namespace" "main" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "downloads" {
-  metadata {
-    name      = "torrent-downloads"
-    namespace = kubernetes_namespace.main.metadata[0].name
-  }
-  spec {
-    access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-media0"
-    resources {
-      requests = { storage = "750Gi" }
-    }
-  }
-}
-
-resource "kubernetes_persistent_volume_claim" "media" {
-  metadata {
-    name      = "media"
-    namespace = kubernetes_namespace.main.metadata[0].name
-  }
-  spec {
-    access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-media0"
-    resources {
-      requests = { storage = "100Gi" }
-    }
-  }
+module "storage" {
+  source    = "./storage"
+  namespace = kubernetes_namespace.main.metadata[0].name
 }
 
 module "jellyfin" {
   source             = "./jellyfin"
   namespace          = kubernetes_namespace.main.metadata[0].name
-  media_pvc_name     = kubernetes_persistent_volume_claim.media.metadata[0].name
-  downloads_pvc_name = kubernetes_persistent_volume_claim.downloads.metadata[0].name
+  media_pvc_name     = module.storage.media_pvc_name
+  downloads_pvc_name = module.storage.downloads_pvc_name
 }

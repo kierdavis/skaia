@@ -5,6 +5,13 @@ authorized_ssh:
   public_keys:
   - REDACTED
 
+b2:
+  account_id: REDACTED
+  account_key: REDACTED
+  archive:
+    bucket: redactedbucket
+    restic_password: REDACTED
+
 cloudflare:
   token: REDACTED
   zone_id: REDACTED
