@@ -48,6 +48,7 @@ locals {
       "group:admins" = ["kier"]
     }
     acls = [
+      # Allow communications within the cluster, and allow group:admins to connect to the cluster.
       {
         action = "accept"
         src = [
@@ -67,6 +68,12 @@ locals {
           "${local.globals.kubernetes.svc_net.ipv4}:*",
           #"${local.globals.kubernetes.svc_net.ipv6}:*",
         ]
+      },
+      # Allow communications within group:admins.
+      {
+        action = "accept"
+        src    = ["group:admins"]
+        dst    = ["group:admins:*"]
       },
     ]
     autoApprovers = {
