@@ -98,6 +98,14 @@ resource "kubernetes_stateful_set" "main" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker"],
+      metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker-kind"],
+      spec[0].template[0].metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker-hash"],
+      spec[0].template[0].spec[0].container[1],
+    ]
+  }
 }
 
 resource "kubernetes_service" "main" {
