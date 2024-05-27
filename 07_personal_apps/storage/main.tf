@@ -112,6 +112,14 @@ resource "kubectl_manifest" "media_backup_config" {
         keepYearly  = 1000
         prune       = true
       }
+      runtimeSettings = {
+        container = {
+          securityContext = {
+            runAsUser  = local.globals.shared_fs_uid
+            runAsGroup = local.globals.shared_fs_uid
+          }
+        }
+      }
       schedule = "0 2 * * 2"
       target = {
         exclude = ["lost+found", ".nobackup"]
