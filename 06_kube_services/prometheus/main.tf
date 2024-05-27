@@ -3,6 +3,9 @@ terraform {
     helm = {
       source = "hashicorp/helm"
     }
+    kubectl = {
+      source = "gavinbunney/kubectl"
+    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -162,4 +165,47 @@ resource "helm_release" "main" {
       fullnameOverride = "node-exporter"
     }
   })]
+}
+
+resource "kubectl_manifest" "rules" {
+  depends_on = [helm_release.main]
+  yaml_body = yamlencode({
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "PrometheusRule"
+    metadata = {
+      name      = "skaia"
+      namespace = local.namespace
+    }
+    spec = {
+      groups = [
+        {
+          name = "scheduling-sanity.rules"
+          rules = [
+            {
+              alert  = "NoCPURequest"
+              expr   = <<-EOF
+                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}
+              EOF
+              labels = { severity = "warning" }
+              annotations = {
+                summary     = "Container doesn't define a CPU resource request."
+                description = "Container {{$labels.container}} in pod {{$labels.pod}} in namespace {{$labels.namespace}} doesn't define a CPU resource request, so it may be scheduled onto a node with insufficient available CPU time."
+              }
+            },
+            {
+              alert  = "NoMemoryRequest"
+              expr   = <<-EOF
+                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="memory"}
+              EOF
+              labels = { severity = "warning" }
+              annotations = {
+                summary     = "Container doesn't define a memory resource request."
+                description = "Container {{$labels.container}} in pod {{$labels.pod}} in namespace {{$labels.namespace}} doesn't define a memory resource request, so it may be scheduled onto a node with insufficient available memory."
+              }
+            },
+          ]
+        },
+      ]
+    }
+  })
 }
