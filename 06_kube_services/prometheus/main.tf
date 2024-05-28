@@ -138,15 +138,24 @@ resource "helm_release" "main" {
     }
     prometheus = {
       prometheusSpec = {
-        replicas = 1
+        podMonitorNamespaceSelector         = { any = true }
+        podMonitorSelector                  = {}
+        podMonitorSelectorNilUsesHelmValues = false
+        replicas                            = 1
         resources = {
           requests = {
             cpu    = "250m"
             memory = "1Gi"
           }
         }
-        retentionSize = "15GiB"
-        secrets       = [kubernetes_secret.etcd.metadata[0].name]
+        retentionSize                           = "15GiB"
+        ruleNamespaceSelector                   = { any = true }
+        ruleSelector                            = {}
+        ruleSelectorNilUsesHelmValues           = false
+        secrets                                 = [kubernetes_secret.etcd.metadata[0].name]
+        serviceMonitorNamespaceSelector         = { any = true }
+        serviceMonitorSelector                  = {}
+        serviceMonitorSelectorNilUsesHelmValues = false
         storageSpec = {
           volumeClaimTemplate = {
             spec = {
@@ -174,7 +183,7 @@ resource "kubectl_manifest" "rules" {
     kind       = "PrometheusRule"
     metadata = {
       name      = "skaia"
-      namespace = local.namespace
+      namespace = "system"
     }
     spec = {
       groups = [
