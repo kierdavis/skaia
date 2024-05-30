@@ -212,6 +212,17 @@ resource "kubectl_manifest" "rules" {
                 description = "Container {{$labels.container}} in pod {{$labels.pod}} in namespace {{$labels.namespace}} doesn't define a memory resource request, so it may be scheduled onto a node with insufficient available memory."
               }
             },
+            {
+              alert  = "NoMemoryLimit"
+              expr   = <<-EOF
+                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_limits{resource="memory"}
+              EOF
+              labels = { severity = "warning" }
+              annotations = {
+                summary     = "Container doesn't define a memory resource limit."
+                description = "Container {{$labels.container}} in pod {{$labels.pod}} in namespace {{$labels.namespace}} doesn't define a memory resource limit, so it may disrupt colocated pods and take down the hosting node if its memory use grows unbounded."
+              }
+            },
           ]
         },
       ]

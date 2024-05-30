@@ -116,6 +116,15 @@ resource "kubernetes_daemonset" "cni" {
             name       = "cni-config"
             mount_path = "/dest"
           }
+          resources {
+            requests = {
+              cpu    = "1m"
+              memory = "2Mi"
+            }
+            limits = {
+              memory = "100Mi"
+            }
+          }
         }
         container {
           name  = "route-advertiser"
@@ -140,6 +149,15 @@ resource "kubernetes_daemonset" "cni" {
           volume_mount {
             name       = "tailscale-socket"
             mount_path = "/var/run/tailscale/tailscaled.sock"
+          }
+          resources {
+            requests = {
+              cpu    = "1m"
+              memory = "20Mi"
+            }
+            limits = {
+              memory = "200Mi"
+            }
           }
         }
         volume {

@@ -35,6 +35,15 @@ resource "kubectl_manifest" "fs" {
         #    }
         #  }]
         #}
+        resources = {
+          requests = {
+            cpu    = "30m"
+            memory = "80Mi"
+          }
+          limits = {
+            memory = "200Mi"
+          }
+        }
       }
     }
   })

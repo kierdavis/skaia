@@ -49,6 +49,15 @@ resource "kubernetes_daemonset" "node_debug" {
             name       = "tailscale-socket"
             mount_path = "/var/run/tailscale/tailscaled.sock"
           }
+          resources {
+            requests = {
+              cpu    = "1m"
+              memory = "20Mi"
+            }
+            limits = {
+              memory = "4Gi"
+            }
+          }
         }
         volume {
           name = "host"

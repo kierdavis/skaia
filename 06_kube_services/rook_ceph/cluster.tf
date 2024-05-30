@@ -51,6 +51,26 @@ resource "kubectl_manifest" "cluster" {
         enabled = false # TODO
       }
       removeOSDsIfOutAndSafeToRemove = false
+      resources = {
+        mon = {
+          requests = {
+            cpu    = "90m"
+            memory = "450Mi"
+          }
+          limits = {
+            memory = "1Gi"
+          }
+        }
+        mgr = {
+          requests = {
+            cpu    = "100m"
+            memory = "590Mi"
+          }
+          limits = {
+            memory = "1200Mi"
+          }
+        }
+      }
       storage = {
         devices = [
           { name = "/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNX0J113462W" },
