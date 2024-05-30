@@ -1,15 +1,25 @@
 FROM nixos/nix@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769
 RUN nix-env -i \
+  -A nixpkgs.coreutils \
   -A nixpkgs.curl \
   -A nixpkgs.dumb-init \
+  -A nixpkgs.fping \
   -A nixpkgs.htop \
+  -A nixpkgs.iftop \
   -A nixpkgs.iproute \
   -A nixpkgs.iptables-legacy \
   -A nixpkgs.iputils \
+  -A nixpkgs.jnettop \
+  -A nixpkgs.lsof \
   -A nixpkgs.nettools \
+  -A nixpkgs.nmap \
+  -A nixpkgs.pciutils \
   -A nixpkgs.procps \
+  -A nixpkgs.psmisc \
+  -A nixpkgs.sysstat \
   -A nixpkgs.tailscale \
   -A nixpkgs.tcpdump \
+  -A nixpkgs.usbutils \
   -A nixpkgs.util-linux
 ENTRYPOINT ["/root/.nix-profile/bin/dumb-init"]
 CMD ["/root/.nix-profile/bin/sleep", "infinity"]
