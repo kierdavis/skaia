@@ -75,11 +75,33 @@ resource "helm_release" "main" {
   values = [yamlencode({
     fullnameOverride  = "stash"
     licenseSecretName = kubernetes_secret.license.metadata[0].name
+    operator = {
+      resources = {
+        requests = {
+          cpu    = "1m"
+          memory = "55Mi"
+        }
+        limits = {
+          memory = "200Mi"
+        }
+      }
+    }
     monitoring = {
       agent    = "prometheus.io/operator"
       backup   = true
       operator = true
     }
     nameOverride = "stash"
+    pushgateway = {
+      resources = {
+        requests = {
+          cpu    = "1m"
+          memory = "20Mi"
+        }
+        limits = {
+          memory = "200Mi"
+        }
+      }
+    }
   })]
 }

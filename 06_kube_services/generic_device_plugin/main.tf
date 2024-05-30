@@ -56,8 +56,11 @@ resource "kubernetes_daemonset" "main" {
           ]
           resources {
             requests = {
-              cpu    = "50m"
-              memory = "10Mi"
+              cpu    = "1m"
+              memory = "20Mi"
+            }
+            limits = {
+              memory = "200Mi"
             }
           }
           port {
