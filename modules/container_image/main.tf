@@ -17,6 +17,15 @@ variable "repo_namespace" {
   type = string
 }
 
+variable "builder" {
+  type    = string
+  default = "podman"
+  validation {
+    condition     = contains(["nix", "podman"], var.builder)
+    error_message = "`builder` must be either \"nix\" or \"podman\""
+  }
+}
+
 variable "src" {
   type = string
 }
@@ -33,12 +42,10 @@ resource "dockerhub_repository" "main" {
 }
 
 data "external" "build" {
-  program = ["${path.module}/build.sh"]
+  program = ["${path.module}/build.${var.builder}.sh"]
   query = {
-    args = join(" ", concat(
-      [for name, value in var.args : "--build-arg=${name}=${value}"],
-      [var.src],
-    ))
+    src  = var.src
+    args = jsonencode(var.args)
   }
 }
 
