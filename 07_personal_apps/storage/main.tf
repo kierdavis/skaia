@@ -40,7 +40,7 @@ resource "kubernetes_persistent_volume_claim" "media" {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-media0"
     resources {
-      requests = { storage = "100Gi" }
+      requests = { storage = "150Gi" }
     }
   }
 }
