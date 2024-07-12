@@ -92,6 +92,7 @@ resource "kubectl_manifest" "cluster" {
       }
       storage = {
         devices = [
+          { name = "/dev/disk/by-id/ata-Crucial_CT512M550SSD1_14290DF38BDB" },
           { name = "/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNX0J113462W" },
           { name = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi-disk-1" },
           { name = "/dev/disk/by-partlabel/OSD0" },
