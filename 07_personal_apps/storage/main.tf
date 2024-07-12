@@ -45,6 +45,20 @@ resource "kubernetes_persistent_volume_claim" "media" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "projects" {
+  metadata {
+    name      = "projects"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = "fs-gp0"
+    resources {
+      requests = { storage = "100Gi" }
+    }
+  }
+}
+
 resource "kubernetes_secret" "archive" {
   metadata {
     name      = "archive"
@@ -141,6 +155,10 @@ output "downloads_pvc_name" {
 
 output "media_pvc_name" {
   value = kubernetes_persistent_volume_claim.media.metadata[0].name
+}
+
+output "projects_pvc_name" {
+  value = kubernetes_persistent_volume_claim.projects.metadata[0].name
 }
 
 output "archive_secret_name" {

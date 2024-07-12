@@ -18,6 +18,10 @@ variable "downloads_pvc_name" {
   type = string
 }
 
+variable "projects_pvc_name" {
+  type = string
+}
+
 variable "archive_secret_name" {
   type = string
 }
@@ -74,6 +78,10 @@ resource "kubernetes_deployment" "main" {
             name       = "downloads"
             mount_path = "/net/skaia/torrent-downloads"
           }
+          volume_mount {
+            name       = "projects"
+            mount_path = "/net/skaia/projects"
+          }
         }
         volume {
           name = "media"
@@ -85,6 +93,12 @@ resource "kubernetes_deployment" "main" {
           name = "downloads"
           persistent_volume_claim {
             claim_name = var.downloads_pvc_name
+          }
+        }
+        volume {
+          name = "projects"
+          persistent_volume_claim {
+            claim_name = var.projects_pvc_name
           }
         }
       }
