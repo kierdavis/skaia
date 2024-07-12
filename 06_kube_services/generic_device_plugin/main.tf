@@ -50,8 +50,8 @@ resource "kubernetes_daemonset" "main" {
                   { path = "/dev/dri/card0" },
                   { path = "/dev/dri/renderD128" },
                 ]
+                count = 4 # allow same device to be attached to up to N pods
               }]
-              count = 4 # allow same device to be attached to up to N pods
             }),
           ]
           resources {
