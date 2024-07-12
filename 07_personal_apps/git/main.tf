@@ -1,8 +1,5 @@
 terraform {
   required_providers {
-    kubectl = {
-      source = "gavinbunney/kubectl"
-    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -49,7 +46,6 @@ resource "kubernetes_stateful_set" "main" {
         labels = { "app.kubernetes.io/name" = "git" }
       }
       spec {
-        automount_service_account_token  = true # necessary for stash
         enable_service_links             = false
         restart_policy                   = "Always"
         termination_grace_period_seconds = 30
@@ -98,14 +94,6 @@ resource "kubernetes_stateful_set" "main" {
       }
     }
   }
-  lifecycle {
-    ignore_changes = [
-      metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker"],
-      metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker-kind"],
-      spec[0].template[0].metadata[0].annotations["stash.appscode.com/last-applied-backup-invoker-hash"],
-      spec[0].template[0].spec[0].container[1],
-    ]
-  }
 }
 
 resource "kubernetes_service" "main" {
@@ -122,78 +110,4 @@ resource "kubernetes_service" "main" {
       target_port = "ssh"
     }
   }
-}
-
-resource "kubectl_manifest" "backup_repo" {
-  yaml_body = yamlencode({
-    apiVersion = "stash.appscode.com/v1alpha1"
-    kind       = "Repository"
-    metadata = {
-      name      = "git-repositories"
-      namespace = var.namespace
-    }
-    spec = {
-      backend = {
-        b2 = {
-          bucket = local.globals.b2.archive.bucket
-          prefix = "/skaia/stash-0/personal/git-repositories"
-        }
-        storageSecretName = var.archive_secret_name
-      }
-      wipeOut = false
-      usagePolicy = {
-        allowedNamespaces = {
-          from = "Selector"
-          selector = {
-            matchExpressions = [{
-              key      = "kubernetes.io/metadata.name"
-              operator = "In"
-              values   = [var.namespace]
-            }]
-          }
-        }
-      }
-    }
-  })
-}
-
-resource "kubectl_manifest" "backup_config" {
-  yaml_body = yamlencode({
-    apiVersion = "stash.appscode.com/v1beta1"
-    kind       = "BackupConfiguration"
-    metadata = {
-      name      = "git-repositories"
-      namespace = var.namespace
-    }
-    spec = {
-      driver = "Restic"
-      repository = {
-        name      = "git-repositories"
-        namespace = var.namespace
-      }
-      retentionPolicy = {
-        name        = "personal-git-repositories"
-        keepDaily   = 7
-        keepWeekly  = 5
-        keepMonthly = 12
-        keepYearly  = 1000
-        prune       = true
-      }
-      schedule = "0 2 * * 4"
-      target = {
-        exclude = ["lost+found", ".nobackup"]
-        ref = {
-          apiVersion = "apps/v1"
-          kind       = "StatefulSet"
-          name       = kubernetes_stateful_set.main.metadata[0].name
-        }
-        paths = ["/repositories"]
-        volumeMounts = [{
-          name      = "repositories"
-          mountPath = "/repositories"
-        }]
-      }
-      timeOut = "6h"
-    }
-  })
 }

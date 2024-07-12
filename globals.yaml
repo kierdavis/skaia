@@ -46,10 +46,3 @@ kubernetes:
     ipv6: fdf3:6160:0143:2::/108
 
 shared_fs_uid: 2000
-
-stash:
-  # https://github.com/appscode-cloud/offline-license-server?tab=readme-ov-file#api-reference
-  license:
-    name: Kier Davis
-    email: redacted@example.net
-    api_token: REDACTED

@@ -69,7 +69,3 @@ module "prometheus" {
 module "rook_ceph" {
   source = "./rook_ceph"
 }
-
-module "stash" {
-  source = "./stash"
-}

@@ -3,9 +3,6 @@ terraform {
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
-    kubectl = {
-      source = "gavinbunney/kubectl"
-    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -26,13 +23,6 @@ data "terraform_remote_state" "talos" {
 provider "dockerhub" {
   username = local.globals.docker_hub.username
   password = local.globals.docker_hub.password
-}
-
-provider "kubectl" {
-  host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
-  cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
-  client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
-  client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
 provider "kubernetes" {
