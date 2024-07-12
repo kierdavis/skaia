@@ -28,7 +28,7 @@ locals {
 
 module "image" {
   source         = "../../modules/container_image"
-  repo_name      = "skaia-personal-shell"
+  repo_name      = "skaia-personal-devenv"
   repo_namespace = local.globals.docker_hub.namespace
   src            = "${path.module}/image"
 }
@@ -36,18 +36,18 @@ module "image" {
 resource "kubernetes_deployment" "main" {
   wait_for_rollout = false
   metadata {
-    name      = "shell"
+    name      = "devenv"
     namespace = var.namespace
-    labels    = { "app.kubernetes.io/name" = "shell" }
+    labels    = { "app.kubernetes.io/name" = "devenv" }
   }
   spec {
     replicas = 1
     selector {
-      match_labels = { "app.kubernetes.io/name" = "shell" }
+      match_labels = { "app.kubernetes.io/name" = "devenv" }
     }
     template {
       metadata {
-        labels = { "app.kubernetes.io/name" = "shell" }
+        labels = { "app.kubernetes.io/name" = "devenv" }
       }
       spec {
         automount_service_account_token  = false
