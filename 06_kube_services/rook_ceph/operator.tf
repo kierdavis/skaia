@@ -6,14 +6,16 @@ resource "helm_release" "operator" {
   namespace  = local.namespace
   values = [yamlencode({
     csi = {
-      clusterName         = "skaia"
+      clusterName = "skaia"
+      #enableGrpcMetrics = true
+      #enableLiveness = true
       provisionerReplicas = 1
       serviceMonitor = {
-        enabled = false # TODO
+        enabled = true
       }
     }
     monitoring = {
-      enabled = false # TODO
+      enabled = true
     }
   })]
 }

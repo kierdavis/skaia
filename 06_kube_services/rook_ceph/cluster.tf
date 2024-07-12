@@ -39,7 +39,7 @@ resource "kubectl_manifest" "cluster" {
         count = 1
         modules = [
           { name = "pg_autoscaler", enabled = true },
-          #{ name = "prometheus",    enabled = true }, # TODO
+          { name = "prometheus", enabled = true },
           { name = "rook", enabled = true },
         ]
       }
@@ -48,7 +48,8 @@ resource "kubectl_manifest" "cluster" {
         count                = 3
       }
       monitoring = {
-        enabled = false # TODO
+        enabled         = true
+        metricsDisabled = false
       }
       removeOSDsIfOutAndSafeToRemove = false
       resources = {
