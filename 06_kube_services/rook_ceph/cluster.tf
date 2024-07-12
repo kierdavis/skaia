@@ -52,13 +52,13 @@ resource "kubectl_manifest" "cluster" {
       }
       removeOSDsIfOutAndSafeToRemove = false
       resources = {
-        mon = {
+        exporter = {
           requests = {
-            cpu    = "90m"
-            memory = "450Mi"
+            cpu    = "10m"
+            memory = "20Mi"
           }
           limits = {
-            memory = "1Gi"
+            memory = "100Mi"
           }
         }
         mgr = {
@@ -68,6 +68,24 @@ resource "kubectl_manifest" "cluster" {
           }
           limits = {
             memory = "1200Mi"
+          }
+        }
+        mon = {
+          requests = {
+            cpu    = "90m"
+            memory = "450Mi"
+          }
+          limits = {
+            memory = "1Gi"
+          }
+        }
+        osd = {
+          requests = {
+            cpu    = "90m"
+            memory = "1Gi"
+          }
+          limits = {
+            memory = "2Gi"
           }
         }
       }

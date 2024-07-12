@@ -87,8 +87,11 @@ resource "helm_release" "main" {
         replicas = 1
         resources = {
           requests = {
-            cpu    = "1m"
-            memory = "25Mi"
+            cpu    = "2m"
+            memory = "40Mi"
+          }
+          limits = {
+            memory = "120Mi"
           }
         }
         storage = {
@@ -113,6 +116,26 @@ resource "helm_release" "main" {
         storageClassName = "blk-gp0"
         type             = "sts"
       }
+      resources = {
+        requests = {
+          cpu    = "5m"
+          memory = "120Mi"
+        }
+        limits = {
+          memory = "300Mi"
+        }
+      }
+      sidecar = {
+        resources = {
+          requests = {
+            cpu    = "5m"
+            memory = "80Mi"
+          }
+          limits = {
+            memory = "200Mi"
+          }
+        }
+      }
     }
     kubeControllerManager = {
       service = { selector = { k8s-app = "kube-controller-manager" } }
@@ -135,6 +158,15 @@ resource "helm_release" "main" {
     }
     kube-state-metrics = {
       fullnameOverride = "kube-state-metrics"
+      resources = {
+        requests = {
+          cpu    = "1m"
+          memory = "25Mi"
+        }
+        limits = {
+          memory = "75Mi"
+        }
+      }
     }
     prometheus = {
       prometheusSpec = {
@@ -146,6 +178,9 @@ resource "helm_release" "main" {
           requests = {
             cpu    = "250m"
             memory = "1Gi"
+          }
+          limits = {
+            memory = "2Gi"
           }
         }
         retentionSize                           = "15GiB"
@@ -169,9 +204,38 @@ resource "helm_release" "main" {
     }
     prometheusOperator = {
       fullnameOverride = "operator"
+      prometheusConfigReloader = {
+        resources = {
+          requests = {
+            cpu    = "1m"
+            memory = "20Mi"
+          }
+          limits = {
+            memory = "60Mi"
+          }
+        }
+      }
+      resources = {
+        requests = {
+          cpu    = "2m"
+          memory = "40Mi"
+        }
+        limits = {
+          memory = "120Mi"
+        }
+      }
     }
     prometheus-node-exporter = {
       fullnameOverride = "node-exporter"
+      resources = {
+        requests = {
+          cpu    = "4m"
+          memory = "20Mi"
+        }
+        limits = {
+          memory = "60Mi"
+        }
+      }
     }
   })]
 }
@@ -193,7 +257,9 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoCPURequest"
               expr   = <<-EOF
-                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}
+                kube_pod_container_info
+                unless on (namespace, pod) kube_pod_completion_time
+                unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}
               EOF
               labels = { severity = "warning" }
               annotations = {
@@ -204,7 +270,9 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoMemoryRequest"
               expr   = <<-EOF
-                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="memory"}
+                kube_pod_container_info
+                unless on (namespace, pod) kube_pod_completion_time
+                unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="memory"}
               EOF
               labels = { severity = "warning" }
               annotations = {
@@ -215,7 +283,9 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoMemoryLimit"
               expr   = <<-EOF
-                kube_pod_container_info unless on (namespace, pod, container) kube_pod_container_resource_limits{resource="memory"}
+                kube_pod_container_info
+                unless on (namespace, pod) kube_pod_completion_time
+                unless on (namespace, pod, container) kube_pod_container_resource_limits{resource="memory"}
               EOF
               labels = { severity = "warning" }
               annotations = {

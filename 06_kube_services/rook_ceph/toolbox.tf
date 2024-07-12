@@ -52,6 +52,15 @@ resource "kubernetes_deployment" "toolbox" {
             mount_path = "/var/lib/rook-ceph-mon"
             read_only  = true
           }
+          resources {
+            requests = {
+              cpu    = "2m"
+              memory = "5Mi"
+            }
+            limits = {
+              memory = "4Gi"
+            }
+          }
         }
         volume {
           name = "ceph-config"
