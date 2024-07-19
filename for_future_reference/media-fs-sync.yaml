@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: media-fs-sync
+  namespace: personal
+  labels:
+    app: media-fs-sync
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: media-fs-sync
+    spec:
+      nodeName: maryam
+      restartPolicy: Never
+      priorityClassName: best-effort
+      volumes:
+      - name: src
+        persistentVolumeClaim:
+          claimName: media
+      - name: dest
+        persistentVolumeClaim:
+          claimName: media1
+      containers:
+      - name: main
+        image: eeacms/rsync
+        command: [rsync, -av, --numeric-ids, /src/, /dest/]
+        volumeMounts:
+        - name: src
+          mountPath: /src
+          readOnly: true
+        - name: dest
+          mountPath: /dest
+          readOnly: false

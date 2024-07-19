@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restic-tools
+  namespace: stash
+spec:
+  selector:
+    matchLabels:
+      app: restic-tools
+  template:
+    metadata:
+      labels:
+        app: restic-tools
+    spec:
+      containers:
+      - name: main
+        image: instrumentisto/restic
+        command: ["sleep", "infinity"]
+        envFrom:
+        - secretRef:
+            name: b2

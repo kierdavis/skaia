@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: archive-to-object-store
+  namespace: personal
+  labels:
+    app: archive-to-object-store
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: archive-to-object-store
+    spec:
+      nodeName: maryam
+      restartPolicy: Never
+      priorityClassName: best-effort
+      volumes:
+      - name: src
+        persistentVolumeClaim:
+          claimName: archive-tmp
+      - name: config
+        configMap:
+          name: archive-to-object-store
+      containers:
+      - name: main
+        image: rclone/rclone
+        args: [sync, --verbose, /src/data, dest:archive]
+        envFrom:
+        - secretRef:
+            name: archive  # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+        volumeMounts:
+        - name: src
+          mountPath: /src
+          readOnly: true
+        - name: config
+          mountPath: /config/rclone
+          readOnly: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: archive-to-object-store
+  namespace: personal
+data:
+  rclone.conf: |
+    [dest]
+    type = s3
+    provider = Ceph
+    env_auth = true
+    endpoint = http://rook-ceph-rgw-archive.rook-ceph.svc.kube.skaia
+    region =
+    location_constraint =
+    acl =
+    server_side_encryption =
+    storage_class =

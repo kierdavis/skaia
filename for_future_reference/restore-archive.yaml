@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restore-archive
+  namespace: personal
+  labels:
+    app: restore-archive
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: restore-archive
+      annotations:
+        kubernetes.io/ingress-bandwidth: 10M  # megabits/second
+    spec:
+      nodeName: maryam
+      restartPolicy: Never
+      priorityClassName: best-effort
+      volumes:
+      - name: dest
+        persistentVolumeClaim:
+          claimName: archive-tmp
+      - name: gpgkey
+        secret:
+          secretName: gpg-encryption-key
+      containers:
+      - name: main
+        image: nixos/nix
+        command:
+        - bash
+        - -c
+        - 'rm -rf /dest/data && mkdir -p /dest/{cache,tmp,data} && nix-env -i -A nixpkgs.duplicity -A nixpkgs.gnupg23 && gpg --batch --import /gpgkey/publickeys.gpg && gpg --batch --import /gpgkey/secretkey.gpg && echo "trusted-key 0x8139C5FCEDA73ABF" >> ~/.gnupg/gpg.conf && gpg --list-keys && gpg --list-secret-keys && exec duplicity restore --verbosity 6 --archive-dir /dest/cache --tempdir /dest/tmp b2://$B2_ACCOUNT_ID:$B2_ACCOUNT_KEY@redactedbucket/duplicity-0/archive-0 /dest/data'
+        envFrom:
+        - secretRef:
+            name: old-backblaze
+        - secretRef:
+            name: old-duplicity
+        volumeMounts:
+        - name: dest
+          mountPath: /dest
+        - name: gpgkey
+          mountPath: /gpgkey
+        resources:
+          requests:
+            cpu: 40m
+            memory: 150Mi
