@@ -163,8 +163,9 @@ resource "kubernetes_service" "main" {
     port {
       name         = "ui"
       port         = 80
-      target_port  = "ui"
+      protocol     = "TCP"
       app_protocol = "http"
+      target_port  = "ui"
     }
   }
 }

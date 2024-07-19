@@ -59,6 +59,11 @@ module "jellyfin" {
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
 
+module "vaultwarden" {
+  source    = "./vaultwarden"
+  namespace = kubernetes_namespace.main.metadata[0].name
+}
+
 module "git" {
   source              = "./git"
   namespace           = kubernetes_namespace.main.metadata[0].name
