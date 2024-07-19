@@ -56,6 +56,20 @@ resource "kubernetes_persistent_volume_claim" "projects" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "documents" {
+  metadata {
+    name      = "documents"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = "fs-gp0"
+    resources {
+      requests = { storage = "40Gi" }
+    }
+  }
+}
+
 resource "kubernetes_secret" "archive" {
   metadata {
     name      = "archive"
@@ -85,6 +99,16 @@ module "projects_backup" {
   schedule            = "0 2 * * *"
   pvc_name            = kubernetes_persistent_volume_claim.projects.metadata[0].name
   mount_path          = "/net/skaia/projects"
+  archive_secret_name = kubernetes_secret.archive.metadata[0].name
+}
+
+module "documents_backup" {
+  source              = "../restic_cron_job"
+  name                = "documents-backup"
+  namespace           = var.namespace
+  schedule            = "0 2 * * 4"
+  pvc_name            = kubernetes_persistent_volume_claim.documents.metadata[0].name
+  mount_path          = "/net/skaia/documents"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
