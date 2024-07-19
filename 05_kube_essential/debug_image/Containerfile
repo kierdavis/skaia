@@ -12,6 +12,7 @@ RUN nix-env -i \
   -A nixpkgs.jnettop \
   -A nixpkgs.lsof \
   -A nixpkgs.nettools \
+  -A nixpkgs.nftables \
   -A nixpkgs.nmap \
   -A nixpkgs.pciutils \
   -A nixpkgs.procps \

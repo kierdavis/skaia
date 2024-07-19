@@ -61,9 +61,14 @@ module "generic_device_plugin" {
   source = "./generic_device_plugin"
 }
 
+module "kube_network_policies" {
+  source     = "./kube_network_policies"
+  depends_on = [module.prometheus]
+}
+
 module "prometheus" {
-  depends_on = [module.rook_ceph]
   source     = "./prometheus"
+  depends_on = [module.rook_ceph]
 }
 
 module "rook_ceph" {
