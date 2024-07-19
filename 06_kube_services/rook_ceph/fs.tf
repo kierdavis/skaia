@@ -37,11 +37,11 @@ resource "kubectl_manifest" "fs" {
         #}
         resources = {
           requests = {
-            cpu    = "30m"
-            memory = "80Mi"
+            cpu    = "300m"
+            memory = "300Mi"
           }
           limits = {
-            memory = "200Mi"
+            memory = "600Mi"
           }
         }
       }
