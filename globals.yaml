@@ -45,4 +45,4 @@ kubernetes:
     # "for 128-bit addresses, the mask must be >= 108"
     ipv6: fdf3:6160:0143:2::/108
 
-shared_fs_uid: 2000
+personal_uid: 1001

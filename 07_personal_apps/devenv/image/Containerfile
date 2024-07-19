@@ -1,4 +1,4 @@
-FROM nixos/nix@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769
+FROM docker.io/nixos/nix@sha256:bbd436fac4b50712fb065c3cb1d74702aa9d731cc6cc702dbba20a9ccb2d8769
 #ADD tiny.overlay.nix /etc/nixos/overlays/tiny.nix
 #ENV NIX_PATH="$NIX_PATH:nixpkgs-overlays=/etc/nixos/overlays"
 # This is big, and hard to eliminate from the closure. Put it in its own layer.

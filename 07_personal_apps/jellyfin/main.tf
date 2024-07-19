@@ -72,6 +72,14 @@ resource "kubernetes_stateful_set" "main" {
             name  = "TZ"
             value = "Europe/London"
           }
+          env {
+            name  = "PUID"
+            value = local.globals.personal_uid
+          }
+          env {
+            name  = "PGID"
+            value = local.globals.personal_uid
+          }
           port {
             name           = "ui"
             container_port = 8096
