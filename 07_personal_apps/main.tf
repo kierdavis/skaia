@@ -47,9 +47,19 @@ resource "kubernetes_namespace" "main" {
   }
 }
 
-module "storage" {
-  source    = "./storage"
-  namespace = kubernetes_namespace.main.metadata[0].name
+module "devenv" {
+  source              = "./devenv"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  media_pvc_name      = module.storage.media_pvc_name
+  downloads_pvc_name  = module.storage.downloads_pvc_name
+  projects_pvc_name   = module.storage.projects_pvc_name
+  archive_secret_name = module.storage.archive_secret_name
+}
+
+module "git" {
+  source              = "./git"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.storage.archive_secret_name
 }
 
 module "jellyfin" {
@@ -59,22 +69,12 @@ module "jellyfin" {
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
 
-module "vaultwarden" {
-  source    = "./vaultwarden"
+module "storage" {
+  source    = "./storage"
   namespace = kubernetes_namespace.main.metadata[0].name
 }
 
-module "git" {
-  source              = "./git"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.storage.archive_secret_name
-}
-
-module "devenv" {
-  source              = "./devenv"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  media_pvc_name      = module.storage.media_pvc_name
-  downloads_pvc_name  = module.storage.downloads_pvc_name
-  projects_pvc_name   = module.storage.projects_pvc_name
-  archive_secret_name = module.storage.archive_secret_name
+module "vaultwarden" {
+  source    = "./vaultwarden"
+  namespace = kubernetes_namespace.main.metadata[0].name
 }
