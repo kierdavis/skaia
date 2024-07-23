@@ -21,28 +21,28 @@ locals {
 resource "kubernetes_stateful_set" "main" {
   wait_for_rollout = false
   metadata {
-    name      = "paperless-ngx"
+    name      = "paperless"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx"
+      "app.kubernetes.io/name"      = "paperless"
       "app.kubernetes.io/component" = "webapp"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     replicas     = 1
-    service_name = "paperless-ngx"
+    service_name = "paperless"
     selector {
       match_labels = {
-        "app.kubernetes.io/name" = "paperless-ngx"
+        "app.kubernetes.io/name" = "paperless"
       }
     }
     template {
       metadata {
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx"
+          "app.kubernetes.io/name"      = "paperless"
           "app.kubernetes.io/component" = "webapp"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -152,9 +152,9 @@ resource "kubernetes_stateful_set" "main" {
       metadata {
         name = "database"
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx"
+          "app.kubernetes.io/name"      = "paperless"
           "app.kubernetes.io/component" = "webapp"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -169,9 +169,9 @@ resource "kubernetes_stateful_set" "main" {
       metadata {
         name = "media"
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx"
+          "app.kubernetes.io/name"      = "paperless"
           "app.kubernetes.io/component" = "webapp"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -187,17 +187,17 @@ resource "kubernetes_stateful_set" "main" {
 
 resource "kubernetes_service" "main" {
   metadata {
-    name      = "paperless-ngx"
+    name      = "paperless"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx"
+      "app.kubernetes.io/name"      = "paperless"
       "app.kubernetes.io/component" = "webapp"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     selector = {
-      "app.kubernetes.io/name" = "paperless-ngx"
+      "app.kubernetes.io/name" = "paperless"
     }
     port {
       name         = "ui"

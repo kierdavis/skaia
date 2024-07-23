@@ -1,27 +1,27 @@
 resource "kubernetes_deployment" "gotenberg" {
   wait_for_rollout = false
   metadata {
-    name      = "paperless-ngx-gotenberg"
+    name      = "paperless-gotenberg"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-gotenberg"
+      "app.kubernetes.io/name"      = "paperless-gotenberg"
       "app.kubernetes.io/component" = "gotenberg"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        "app.kubernetes.io/name" = "paperless-ngx-gotenberg"
+        "app.kubernetes.io/name" = "paperless-gotenberg"
       }
     }
     template {
       metadata {
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx-gotenberg"
+          "app.kubernetes.io/name"      = "paperless-gotenberg"
           "app.kubernetes.io/component" = "gotenberg"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -55,17 +55,17 @@ resource "kubernetes_deployment" "gotenberg" {
 
 resource "kubernetes_service" "gotenberg" {
   metadata {
-    name      = "paperless-ngx-gotenberg"
+    name      = "paperless-gotenberg"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-gotenberg"
+      "app.kubernetes.io/name"      = "paperless-gotenberg"
       "app.kubernetes.io/component" = "gotenberg"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     selector = {
-      "app.kubernetes.io/name" = "paperless-ngx-gotenberg"
+      "app.kubernetes.io/name" = "paperless-gotenberg"
     }
     port {
       name         = "main"

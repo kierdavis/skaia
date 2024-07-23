@@ -1,28 +1,28 @@
 resource "kubernetes_stateful_set" "redis" {
   wait_for_rollout = false
   metadata {
-    name      = "paperless-ngx-redis"
+    name      = "paperless-redis"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-redis"
+      "app.kubernetes.io/name"      = "paperless-redis"
       "app.kubernetes.io/component" = "redis"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     replicas     = 1
-    service_name = "paperless-ngx-redis"
+    service_name = "paperless-redis"
     selector {
       match_labels = {
-        "app.kubernetes.io/name" = "paperless-ngx-redis"
+        "app.kubernetes.io/name" = "paperless-redis"
       }
     }
     template {
       metadata {
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx-redis"
+          "app.kubernetes.io/name"      = "paperless-redis"
           "app.kubernetes.io/component" = "redis"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -59,9 +59,9 @@ resource "kubernetes_stateful_set" "redis" {
       metadata {
         name = "state"
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx-redis"
+          "app.kubernetes.io/name"      = "paperless-redis"
           "app.kubernetes.io/component" = "redis"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -77,17 +77,17 @@ resource "kubernetes_stateful_set" "redis" {
 
 resource "kubernetes_service" "redis" {
   metadata {
-    name      = "paperless-ngx-redis"
+    name      = "paperless-redis"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-redis"
+      "app.kubernetes.io/name"      = "paperless-redis"
       "app.kubernetes.io/component" = "redis"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     selector = {
-      "app.kubernetes.io/name" = "paperless-ngx-redis"
+      "app.kubernetes.io/name" = "paperless-redis"
     }
     port {
       name         = "main"

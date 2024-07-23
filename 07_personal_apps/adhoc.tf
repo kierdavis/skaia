@@ -159,3 +159,59 @@
 #  }
 #  wait_for_completion = false
 #}
+
+#resource "kubernetes_job" "sync_volumes" {
+#  metadata {
+#    name = "sync-volumes"
+#    namespace = kubernetes_namespace.main.metadata[0].name
+#    labels = { app = "sync-volumes" }
+#  }
+#  spec {
+#    backoff_limit = 0
+#    template {
+#      metadata {
+#        labels = { app = "sync-volumes" }
+#      }
+#      spec {
+#        restart_policy = "Never"
+#        volume {
+#          name = "src"
+#          persistent_volume_claim {
+#            claim_name = "state-paperless-ngx-redis-0"
+#          }
+#        }
+#        volume {
+#          name = "dest"
+#          persistent_volume_claim {
+#            claim_name = "state-paperless-redis-0"
+#          }
+#        }
+#        container {
+#          name = "main"
+#          image = "docker.io/eeacms/rsync"
+#          args = [
+#            "rsync",
+#            "--acls",
+#            "--archive",
+#            "--hard-links",
+#            "--verbose",
+#            "--xattrs",
+#            "/src/",
+#            "/dest/",
+#          ]
+#          volume_mount {
+#            name = "src"
+#            mount_path = "/src"
+#            read_only = true
+#          }
+#          volume_mount {
+#            name = "dest"
+#            mount_path = "/dest"
+#            read_only = false
+#          }
+#        }
+#      }
+#    }
+#  }
+#  wait_for_completion = false
+#}

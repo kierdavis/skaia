@@ -1,27 +1,27 @@
 resource "kubernetes_deployment" "tika" {
   wait_for_rollout = false
   metadata {
-    name      = "paperless-ngx-tika"
+    name      = "paperless-tika"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-tika"
+      "app.kubernetes.io/name"      = "paperless-tika"
       "app.kubernetes.io/component" = "tika"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        "app.kubernetes.io/name" = "paperless-ngx-tika"
+        "app.kubernetes.io/name" = "paperless-tika"
       }
     }
     template {
       metadata {
         labels = {
-          "app.kubernetes.io/name"      = "paperless-ngx-tika"
+          "app.kubernetes.io/name"      = "paperless-tika"
           "app.kubernetes.io/component" = "tika"
-          "app.kubernetes.io/part-of"   = "paperless-ngx"
+          "app.kubernetes.io/part-of"   = "paperless"
         }
       }
       spec {
@@ -54,17 +54,17 @@ resource "kubernetes_deployment" "tika" {
 
 resource "kubernetes_service" "tika" {
   metadata {
-    name      = "paperless-ngx-tika"
+    name      = "paperless-tika"
     namespace = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "paperless-ngx-tika"
+      "app.kubernetes.io/name"      = "paperless-tika"
       "app.kubernetes.io/component" = "tika"
-      "app.kubernetes.io/part-of"   = "paperless-ngx"
+      "app.kubernetes.io/part-of"   = "paperless"
     }
   }
   spec {
     selector = {
-      "app.kubernetes.io/name" = "paperless-ngx-tika"
+      "app.kubernetes.io/name" = "paperless-tika"
     }
     port {
       name         = "main"
