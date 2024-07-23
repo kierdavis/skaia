@@ -13,7 +13,7 @@ terraform {
 }
 
 locals {
-  rook_version = "1.14.3"
+  rook_version = "1.14.8"
   ceph_version = "18.2.2"
 
   meta_pool_spec = {
