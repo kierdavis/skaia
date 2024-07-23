@@ -1,7 +1,14 @@
 ARG rook_image
 
-FROM $rook_image AS build
+FROM $rook_image AS base
 USER root
+# mirrorlist.centos.org doesn't exist anymore.
+# The rook image is derived from a older version of the upstream ceph image which bakes this hostname into the repo configs.
+# Although I'm using a very recent rook image, the rook devs don't test that the released image has working repos.
+# Hack the repo configs to get around this.
+RUN sed -i '/^mirrorlist=/d;s,^#baseurl=http://mirror\.centos\.org/\$contentdir/,baseurl=https://vault.centos.org/,' /etc/yum.repos.d/CentOS-*.repo
+
+FROM base AS build
 RUN dnf install --assumeyes cargo
 ADD crate/Cargo.toml /crate/Cargo.toml
 ADD crate/Cargo.lock /crate/Cargo.lock
@@ -16,8 +23,7 @@ RUN \
 ADD crate/src /crate/src
 RUN cd /crate && cargo test --locked && cargo build --locked --release
 
-FROM $rook_image
-USER root
+FROM base
 RUN dnf install --assumeyes dumb-init && rm -rf /var/cache/dnf
 COPY --from=build /crate/target/release/rook-ceph-imperative-config /bin/rook-ceph-imperative-config
 ENTRYPOINT ["/usr/bin/dumb-init"]
