@@ -22,6 +22,10 @@ variable "projects_pvc_name" {
   type = string
 }
 
+variable "documents_pvc_name" {
+  type = string
+}
+
 variable "archive_secret_name" {
   type = string
 }
@@ -82,6 +86,10 @@ resource "kubernetes_deployment" "main" {
             name       = "projects"
             mount_path = "/net/skaia/projects"
           }
+          volume_mount {
+            name       = "documents"
+            mount_path = "/net/skaia/documents"
+          }
         }
         volume {
           name = "media"
@@ -99,6 +107,12 @@ resource "kubernetes_deployment" "main" {
           name = "projects"
           persistent_volume_claim {
             claim_name = var.projects_pvc_name
+          }
+        }
+        volume {
+          name = "documents"
+          persistent_volume_claim {
+            claim_name = var.documents_pvc_name
           }
         }
       }

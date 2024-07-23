@@ -53,6 +53,7 @@ module "devenv" {
   media_pvc_name      = module.storage.media_pvc_name
   downloads_pvc_name  = module.storage.downloads_pvc_name
   projects_pvc_name   = module.storage.projects_pvc_name
+  documents_pvc_name  = module.storage.documents_pvc_name
   archive_secret_name = module.storage.archive_secret_name
 }
 
