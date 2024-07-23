@@ -91,7 +91,7 @@ resource "kubernetes_stateful_set" "main" {
             read_only  = false
           }
           volume_mount {
-            name       = "transcode-cache"
+            name       = "transcoding-workspace"
             mount_path = "/config/data/transcodes"
             read_only  = false
           }
@@ -114,6 +114,23 @@ resource "kubernetes_stateful_set" "main" {
             limits = {
               memory            = "7Gi"
               "squat.ai/render" = "1"
+            }
+          }
+        }
+        volume {
+          name = "transcoding-workspace"
+          ephemeral {
+            volume_claim_template {
+              metadata {
+                labels = { "app.kubernetes.io/name" = "jellyfin" }
+              }
+              spec {
+                access_modes       = ["ReadWriteOnce"]
+                storage_class_name = "blk-media0"
+                resources {
+                  requests = { storage = "30Gi" }
+                }
+              }
             }
           }
         }
@@ -141,19 +158,6 @@ resource "kubernetes_stateful_set" "main" {
         storage_class_name = "blk-gp0"
         resources {
           requests = { storage = "2Gi" }
-        }
-      }
-    }
-    volume_claim_template {
-      metadata {
-        name   = "transcode-cache"
-        labels = { "app.kubernetes.io/name" = "jellyfin" }
-      }
-      spec {
-        access_modes       = ["ReadWriteOnce"]
-        storage_class_name = "blk-media0"
-        resources {
-          requests = { storage = "30Gi" }
         }
       }
     }
