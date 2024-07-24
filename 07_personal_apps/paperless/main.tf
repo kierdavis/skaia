@@ -10,10 +10,6 @@ variable "namespace" {
   type = string
 }
 
-variable "documents_pvc_name" {
-  type = string
-}
-
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
@@ -126,24 +122,6 @@ resource "kubernetes_stateful_set" "main" {
             name       = "media"
             mount_path = "/usr/src/paperless/media"
             read_only  = false
-          }
-          volume_mount {
-            name       = "documents"
-            sub_path   = "paperless/consume"
-            mount_path = "/usr/src/paperless/consume"
-            read_only  = false
-          }
-          volume_mount {
-            name       = "documents"
-            sub_path   = "paperless/export"
-            mount_path = "/usr/src/paperless/export"
-            read_only  = false
-          }
-        }
-        volume {
-          name = "documents"
-          persistent_volume_claim {
-            claim_name = var.documents_pvc_name
           }
         }
       }

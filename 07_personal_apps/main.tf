@@ -71,9 +71,8 @@ module "jellyfin" {
 }
 
 module "paperless" {
-  source             = "./paperless"
-  namespace          = kubernetes_namespace.main.metadata[0].name
-  documents_pvc_name = module.storage.documents_pvc_name
+  source    = "./paperless"
+  namespace = kubernetes_namespace.main.metadata[0].name
 }
 
 module "storage" {
