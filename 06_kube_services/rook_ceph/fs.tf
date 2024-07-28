@@ -41,7 +41,7 @@ resource "kubectl_manifest" "fs" {
             memory = "300Mi"
           }
           limits = {
-            memory = "600Mi"
+            memory = "2Gi"
           }
         }
       }
