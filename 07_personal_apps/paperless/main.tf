@@ -14,6 +14,13 @@ locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 
+module "image" {
+  source         = "../../modules/container_image"
+  repo_name      = "skaia-paperless"
+  repo_namespace = local.globals.docker_hub.namespace
+  src            = "${path.module}/image"
+}
+
 resource "kubernetes_stateful_set" "main" {
   wait_for_rollout = false
   metadata {
@@ -48,7 +55,7 @@ resource "kubernetes_stateful_set" "main" {
         termination_grace_period_seconds = 30
         container {
           name  = "main"
-          image = "ghcr.io/paperless-ngx/paperless-ngx@sha256:da0476cea301df8bc8d20739f0e76de1e77d91ad2c9170b45c803468dde19208"
+          image = module.image.tag
           env {
             # Seems like inotify doesn't work on cephfs.
             name  = "PAPERLESS_CONSUMER_POLLING"
