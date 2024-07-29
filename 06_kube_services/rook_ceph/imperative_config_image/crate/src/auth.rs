@@ -14,6 +14,7 @@ pub fn configure() -> Result<(), Error> {
   )?;
   let client_caps = &rbd_client_caps | &cephfs_client_caps;
   ensure_user_state_with_context("client.coloris", &client_caps)?;
+  ensure_user_state_with_context("client.saelli", &client_caps)?;
   Ok(())
 }
 
