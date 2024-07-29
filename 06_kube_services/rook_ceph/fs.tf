@@ -20,21 +20,31 @@ resource "kubectl_manifest" "fs" {
       metadataServer = {
         activeCount       = 1 # Controls sharding, not redundancy.
         priorityClassName = "system-cluster-critical"
-        #TODO:
-        #placement = {
-        #  topologySpreadConstraints = [{
-        #    maxSkew = 1
-        #    minDomains = 2
-        #    topologyKey = "topology.rook.io/chassis"
-        #    whenUnsatisfiable = "ScheduleAnyway"
-        #    labelSelector = {
-        #      matchLabels = {
-        #        "app.kubernetes.io/name" = "ceph-mds"
-        #        "app.kubernetes.io/part-of" = "fs"
-        #      }
-        #    }
-        #  }]
-        #}
+        placement = {
+          nodeAffinity = {
+            preferredDuringSchedulingIgnoredDuringExecution = [{
+              weight = 50
+              preference = {
+                matchExpressions = [{
+                  key      = "topology.kubernetes.io/zone"
+                  operator = "In"
+                  values   = ["z-adw"]
+                }]
+              }
+            }]
+          }
+          topologySpreadConstraints = [{
+            maxSkew           = 1
+            topologyKey       = "topology.rook.io/chassis"
+            whenUnsatisfiable = "ScheduleAnyway"
+            labelSelector = {
+              matchLabels = {
+                "app.kubernetes.io/name"    = "ceph-mds"
+                "app.kubernetes.io/part-of" = "fs"
+              }
+            }
+          }]
+        }
         resources = {
           requests = {
             cpu    = "300m"
