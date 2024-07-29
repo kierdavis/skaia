@@ -80,7 +80,7 @@ module "storage" {
   namespace = kubernetes_namespace.main.metadata[0].name
 }
 
-module "vaultwarden" {
-  source    = "./vaultwarden"
-  namespace = kubernetes_namespace.main.metadata[0].name
-}
+#module "vaultwarden" {
+#  source    = "./vaultwarden"
+#  namespace = kubernetes_namespace.main.metadata[0].name
+#}
