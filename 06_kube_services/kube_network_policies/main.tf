@@ -71,6 +71,10 @@ resource "kubernetes_daemonset" "main" {
         node_selector        = { "kubernetes.io/os" = "linux" }
         service_account_name = kubernetes_service_account.main.metadata[0].name
         toleration {
+          effect   = "NoExecute"
+          operator = "Exists"
+        }
+        toleration {
           effect   = "NoSchedule"
           operator = "Exists"
         }
