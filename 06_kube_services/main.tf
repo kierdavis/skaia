@@ -66,6 +66,11 @@ module "kube_network_policies" {
   depends_on = [module.prometheus]
 }
 
+module "postgresql" {
+  source     = "./postgresql"
+  depends_on = [module.rook_ceph]
+}
+
 module "prometheus" {
   source     = "./prometheus"
   depends_on = [module.rook_ceph]
