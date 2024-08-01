@@ -1,6 +1,8 @@
 authorized_ssh:
   nets:
-    ipv4: [REDACTED/32]
+    ipv4:
+    - REDACTED/32
+    - REDACTED/32
     ipv6: []
   public_keys:
   - REDACTED
