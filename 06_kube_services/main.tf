@@ -57,6 +57,10 @@ provider "helm" {
   }
 }
 
+module "csi_addons" {
+  source = "./csi_addons"
+}
+
 module "generic_device_plugin" {
   source = "./generic_device_plugin"
 }
@@ -77,5 +81,6 @@ module "prometheus" {
 }
 
 module "rook_ceph" {
-  source = "./rook_ceph"
+  source     = "./rook_ceph"
+  depends_on = [module.csi_addons]
 }

@@ -122,7 +122,8 @@ resource "kubernetes_stateful_set" "main" {
           ephemeral {
             volume_claim_template {
               metadata {
-                labels = { "app.kubernetes.io/name" = "jellyfin" }
+                labels      = { "app.kubernetes.io/name" = "jellyfin" }
+                annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "5 4 * * *" }
               }
               spec {
                 access_modes       = ["ReadWriteOnce"]
@@ -150,8 +151,9 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name   = "state"
-        labels = { "app.kubernetes.io/name" = "jellyfin" }
+        name        = "state"
+        labels      = { "app.kubernetes.io/name" = "jellyfin" }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "20 4 * * *" }
       }
       spec {
         access_modes       = ["ReadWriteOnce"]

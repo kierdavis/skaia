@@ -96,6 +96,9 @@ resource "helm_release" "main" {
         }
         storage = {
           volumeClaimTemplate = {
+            metadata = {
+              annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "30 4 * * *" }
+            }
             spec = {
               accessModes      = ["ReadWriteOnce"]
               storageClassName = "blk-gp0"
@@ -111,6 +114,7 @@ resource "helm_release" "main" {
       fullnameOverride = "grafana"
       persistence = {
         accessModes      = ["ReadWriteOnce"]
+        annotations      = { "reclaimspace.csiaddons.openshift.io/schedule" = "40 4 * * *" }
         enabled          = true
         size             = "4Gi"
         storageClassName = "blk-gp0"
@@ -193,6 +197,9 @@ resource "helm_release" "main" {
         serviceMonitorSelectorNilUsesHelmValues = false
         storageSpec = {
           volumeClaimTemplate = {
+            metadata = {
+              annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "35 4 * * *" }
+            }
             spec = {
               accessModes      = ["ReadWriteOnce"]
               storageClassName = "blk-gp0"

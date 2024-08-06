@@ -44,6 +44,7 @@ resource "helm_release" "main" {
         accessModes  = ["ReadWriteOnce"]
         size         = "16Gi"
         storageClass = "blk-gp0"
+        annotations  = { "reclaimspace.csiaddons.openshift.io/schedule" = "45 4 * * *" }
       }
     }
     readReplicas = {

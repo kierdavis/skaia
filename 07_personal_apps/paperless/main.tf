@@ -141,6 +141,7 @@ resource "kubernetes_stateful_set" "main" {
           "app.kubernetes.io/component" = "webapp"
           "app.kubernetes.io/part-of"   = "paperless"
         }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "0 4 * * *" }
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
@@ -158,6 +159,7 @@ resource "kubernetes_stateful_set" "main" {
           "app.kubernetes.io/component" = "webapp"
           "app.kubernetes.io/part-of"   = "paperless"
         }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "10 4 * * *" }
       }
       spec {
         access_modes       = ["ReadWriteOnce"]

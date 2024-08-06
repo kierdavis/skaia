@@ -63,6 +63,7 @@ resource "kubernetes_stateful_set" "redis" {
           "app.kubernetes.io/component" = "redis"
           "app.kubernetes.io/part-of"   = "paperless"
         }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "25 4 * * *" }
       }
       spec {
         access_modes       = ["ReadWriteOnce"]

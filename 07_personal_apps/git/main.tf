@@ -82,8 +82,9 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name   = "repositories"
-        labels = { "app.kubernetes.io/name" = "git" }
+        name        = "repositories"
+        labels      = { "app.kubernetes.io/name" = "git" }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "15 4 * * *" }
       }
       spec {
         access_modes       = ["ReadWriteOnce"]

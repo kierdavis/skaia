@@ -7,6 +7,7 @@ resource "helm_release" "operator" {
   values = [yamlencode({
     csi = {
       clusterName = "skaia"
+      csiAddons   = { enabled = true }
       #enableGrpcMetrics = true
       #enableLiveness = true
       provisionerReplicas = 1
