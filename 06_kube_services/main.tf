@@ -12,6 +12,9 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+    }
     tls = {
       source = "hashicorp/tls"
     }
@@ -34,11 +37,13 @@ provider "dockerhub" {
   password = local.globals.docker_hub.password
 }
 
-provider "kubernetes" {
-  host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
-  cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
-  client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
-  client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+provider "helm" {
+  kubernetes {
+    host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
+    cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
+    client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
+    client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+  }
 }
 
 provider "kubectl" {
@@ -48,13 +53,18 @@ provider "kubectl" {
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
-provider "helm" {
-  kubernetes {
-    host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
-    cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
-    client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
-    client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
-  }
+provider "kubernetes" {
+  host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
+  cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
+  client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
+  client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+}
+
+provider "postgresql" {
+  host     = module.postgresql.provider_config.host
+  username = module.postgresql.provider_config.username
+  password = module.postgresql.provider_config.password
+  sslmode  = module.postgresql.provider_config.sslmode
 }
 
 module "csi_addons" {
@@ -68,6 +78,11 @@ module "generic_device_plugin" {
 module "kube_network_policies" {
   source     = "./kube_network_policies"
   depends_on = [module.prometheus]
+}
+
+module "pmacct" {
+  source     = "./pmacct"
+  depends_on = [module.postgresql]
 }
 
 module "postgresql" {

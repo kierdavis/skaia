@@ -10,7 +10,7 @@ terraform {
 
 locals {
   # Password for the "postgres" user.
-  password = "REDACTED"
+  password = sensitive("REDACTED")
 }
 
 resource "helm_release" "main" {
@@ -19,10 +19,8 @@ resource "helm_release" "main" {
   version   = "15.5.20"
   namespace = "system"
   values = [yamlencode({
-    architecture = "standalone"
-    auth = {
-      postgresPassword = local.password
-    }
+    architecture     = "standalone"
+    auth             = { postgresPassword = local.password }
     clusterDomain    = "kube.skaia.cloud"
     fullnameOverride = "postgresql"
     metrics = {
@@ -47,15 +45,17 @@ resource "helm_release" "main" {
         annotations  = { "reclaimspace.csiaddons.openshift.io/schedule" = "45 4 * * *" }
       }
     }
-    readReplicas = {
-      replicaCount = 0
-      # networkPolicy, pdb, persistence, etc.
-    }
-    serviceAccount = {
-      create = false
-    }
-    shmVolume = {
-      enabled = false
-    }
+    readReplicas   = { replicaCount = 0 }
+    serviceAccount = { create = false }
+    shmVolume      = { enabled = false }
   })]
+}
+
+output "provider_config" {
+  value = {
+    host     = "postgresql.system.svc.kube.skaia.cloud"
+    username = "postgres"
+    password = local.password
+    sslmode  = "disable" # TODO?
+  }
 }
