@@ -114,3 +114,10 @@ resource "cloudflare_record" "main" {
   value    = each.value.ip_address
   proxied  = false
 }
+
+resource "linode_volume" "temp_osd" {
+  label     = "temposd0"
+  region    = linode_instance.main["peixes"].region
+  size      = 600
+  linode_id = linode_instance.main["peixes"].id
+}
