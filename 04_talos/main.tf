@@ -43,7 +43,7 @@ locals {
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
         "topology.kubernetes.io/region" = "r-lon"
-        "topology.kubernetes.io/zone"   = "z-linode-eu-west"
+        "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
         "topology.rook.io/chassis"      = "c-peixes"
       }
     }

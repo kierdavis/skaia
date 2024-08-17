@@ -101,7 +101,7 @@ resource "tls_private_key" "ssh" {
 
 resource "linode_instance" "main" {
   label      = "becquerel"
-  region     = "eu-west"
+  region     = "eu-west" # TODO: move to gb-lon
   type       = "g6-nanode-1"
   private_ip = false
 }
