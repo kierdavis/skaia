@@ -58,6 +58,12 @@ resource "kubernetes_daemonset" "main" {
     labels    = { "app.kubernetes.io/name" = "kube-network-policies" }
   }
   spec {
+    strategy {
+      type = "RollingUpdate"
+      rolling_update {
+        max_unavailable = "100%"
+      }
+    }
     selector {
       match_labels = { "app.kubernetes.io/name" = "kube-network-policies" }
     }
