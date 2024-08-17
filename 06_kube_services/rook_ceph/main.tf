@@ -31,7 +31,7 @@ locals {
         replicated    = { size = 2 }
         failureDomain = "osd"
         parameters = {
-          pg_num = "8"
+          pg_num = "16"
           bulk   = "1"
         }
       }
