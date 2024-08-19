@@ -17,6 +17,7 @@ RUN nix-env -i \
   -A nixpkgs.pciutils \
   -A nixpkgs.procps \
   -A nixpkgs.psmisc \
+  -A nixpkgs.strace \
   -A nixpkgs.sysstat \
   -A nixpkgs.tailscale \
   -A nixpkgs.tcpdump \

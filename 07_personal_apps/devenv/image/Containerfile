@@ -37,6 +37,7 @@ RUN nix-env -i \
   -A nixpkgs.restic \
   -A nixpkgs.ripgrep \
   -A nixpkgs.rsync \
+  -A nixpkgs.strace \
   -A nixpkgs.sysstat \
   -A nixpkgs.talosctl \
   -A nixpkgs.tcpdump \
