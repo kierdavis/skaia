@@ -37,8 +37,8 @@ resource "linode_instance" "main" {
 }
 
 locals {
-  # All in MiB
-  talos_disk_size = 15 * 1024
+  # TODO: bump to e.g. 25 GiB to squelch ceph mon disk space warning
+  talos_disk_size = 15 * 1024 # MiB
 }
 
 resource "linode_instance_disk" "talos" {
