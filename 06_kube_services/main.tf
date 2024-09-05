@@ -80,11 +80,6 @@ module "kube_network_policies" {
   depends_on = [module.prometheus]
 }
 
-module "pmacct" {
-  source     = "./pmacct"
-  depends_on = [module.postgresql]
-}
-
 module "postgresql" {
   source     = "./postgresql"
   depends_on = [module.rook_ceph]
