@@ -30,6 +30,7 @@ resource "kubernetes_config_map" "authorized_keys" {
 }
 
 resource "kubernetes_stateful_set" "main" {
+  wait_for_rollout = false
   metadata {
     name      = "git"
     namespace = var.namespace
