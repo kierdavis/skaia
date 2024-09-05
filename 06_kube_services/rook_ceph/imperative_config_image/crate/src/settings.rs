@@ -44,18 +44,16 @@ impl Namespace {
   }
 
   fn get(self, key: &str) -> Result<String, Error> {
-    let (ns_args, cmd_label) = match self {
-      Self::Global => (vec!["config", "show", "mgr.a"], "ceph config show mgr.a"),
-      // Self::Pool(pool) => (vec!["osd", "pool", "get", pool], "ceph osd pool get"),
+    let cmd = match self {
+      Self::Global => vec!["ceph", "config", "show", "mgr.a", key],
     };
-    let out = Command::new("ceph")
-      .args(ns_args)
-      .arg(key)
+    let out = Command::new(cmd[0])
+      .args(&cmd[1..])
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(Stdio::inherit())
       .output()
-      .map_err(Error::exec_subprocess(cmd_label))?;
+      .map_err(Error::exec_subprocess(&cmd))?;
     if out.status.success() {
       let mut value = String::from_utf8(out.stdout).map_err(Error::Utf8)?;
       if value.ends_with('\n') {
@@ -67,28 +65,25 @@ impl Namespace {
       }
       Ok(value)
     } else {
-      Err(Error::SubprocessStatus(cmd_label, out.status))
+      Err(Error::subprocess_status(&cmd, out.status))
     }
   }
 
   fn set(self, key: &str, value: &str) -> Result<(), Error> {
-    let (ns_args, cmd_label) = match self {
-      Self::Global => (vec!["config", "set", "global"], "ceph config set global"),
-      // Self::Pool(pool) => (vec!["osd", "pool", "set", pool], "ceph osd pool set"),
+    let cmd = match self {
+      Self::Global => vec!["ceph", "config", "set", "global", key, value],
     };
-    let status = Command::new("ceph")
-      .args(ns_args)
-      .arg(key)
-      .arg(value)
+    let status = Command::new(cmd[0])
+      .args(&cmd[1..])
       .stdin(Stdio::null())
       .stdout(Stdio::inherit())
       .stderr(Stdio::inherit())
       .status()
-      .map_err(Error::exec_subprocess(cmd_label))?;
+      .map_err(Error::exec_subprocess(&cmd))?;
     if status.success() {
       Ok(())
     } else {
-      Err(Error::SubprocessStatus(cmd_label, status))
+      Err(Error::subprocess_status(&cmd, status))
     }
   }
 }

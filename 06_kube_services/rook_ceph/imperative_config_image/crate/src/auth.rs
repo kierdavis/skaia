@@ -35,54 +35,54 @@ fn ensure_user_state(name: &str, caps: &Caps) -> Result<(), Error> {
 }
 
 fn user_exists(name: &str) -> Result<bool, Error> {
-  const CMD: &'static str = "ceph auth get";
-  let status = Command::new("ceph")
-    .args(&["auth", "get", name])
+  let cmd = ["ceph", "auth", "get", name];
+  let status = Command::new(cmd[0])
+    .args(&cmd[1..])
     .stdin(Stdio::null())
     .stdout(Stdio::null())
     .stderr(Stdio::inherit())
     .status()
-    .map_err(Error::exec_subprocess(CMD))?;
+    .map_err(Error::exec_subprocess(&cmd))?;
   if status.success() {
     Ok(true)
   } else if status.code() == Some(2) {
     // ENOENT
     Ok(false)
   } else {
-    Err(Error::SubprocessStatus(CMD, status))
+    Err(Error::subprocess_status(&cmd, status))
   }
 }
 
 fn create_user(name: &str) -> Result<(), Error> {
-  const CMD: &'static str = "ceph auth add";
-  let status = Command::new("ceph")
-    .args(&["auth", "add", name])
+  let cmd = ["ceph", "auth", "add", name];
+  let status = Command::new(cmd[0])
+    .args(&cmd[1..])
     .stdin(Stdio::null())
     .stdout(Stdio::inherit())
     .stderr(Stdio::inherit())
     .status()
-    .map_err(Error::exec_subprocess(CMD))?;
+    .map_err(Error::exec_subprocess(&cmd))?;
   if status.success() {
     Ok(())
   } else {
-    Err(Error::SubprocessStatus(CMD, status))
+    Err(Error::subprocess_status(&cmd, status))
   }
 }
 
 fn ensure_user_caps(name: &str, caps: &Caps) -> Result<(), Error> {
-  const CMD: &'static str = "ceph auth caps";
-  let status = Command::new("ceph")
-    .args(&["auth", "caps", name])
-    .args(caps.as_args())
+  let mut cmd = vec!["ceph", "auth", "caps", name];
+  cmd.extend(caps.as_args());
+  let status = Command::new(cmd[0])
+    .args(&cmd[1..])
     .stdin(Stdio::null())
     .stdout(Stdio::inherit())
     .stderr(Stdio::inherit())
     .status()
-    .map_err(Error::exec_subprocess(CMD))?;
+    .map_err(Error::exec_subprocess(&cmd))?;
   if status.success() {
     Ok(())
   } else {
-    Err(Error::SubprocessStatus(CMD, status))
+    Err(Error::subprocess_status(&cmd, status))
   }
 }
 
@@ -91,19 +91,19 @@ struct Caps(BTreeMap<&'static str, &'static str>);
 
 impl Caps {
   fn for_user(name: &str) -> Result<Self, Error> {
-    const CMD: &'static str = "ceph auth get";
-    let out = Command::new("ceph")
-      .args(&["auth", "get", name])
+    let cmd = ["ceph", "auth", "get", name];
+    let out = Command::new(cmd[0])
+      .args(&cmd[1..])
       .stdin(Stdio::null())
       .stdout(Stdio::piped())
       .stderr(Stdio::inherit())
       .output()
-      .map_err(Error::exec_subprocess(CMD))?;
+      .map_err(Error::exec_subprocess(&cmd))?;
     if out.status.success() {
       let out = String::from_utf8(out.stdout).map_err(Error::Utf8)?.leak();
       Ok(Self::parse(out))
     } else {
-      Err(Error::SubprocessStatus(CMD, out.status))
+      Err(Error::subprocess_status(&cmd, out.status))
     }
   }
   fn parse(input: &'static str) -> Self {
@@ -122,7 +122,7 @@ impl Caps {
         .collect(),
     )
   }
-  fn as_args(&self) -> impl Iterator<Item = &'static str> + '_ {
+  fn as_args(&self) -> impl Iterator<Item = &str> + '_ {
     self.0.iter().flat_map(|(&svc, &svc_caps)| [svc, svc_caps])
   }
 }
