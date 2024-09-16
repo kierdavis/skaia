@@ -41,8 +41,9 @@ resource "dockerhub_repository" "main" {
   private   = false
 }
 
-data "external" "build" {
-  program = ["${path.module}/build.${var.builder}.sh"]
+# Should be the smallest amount of work needed to obtain a hash of the src & args.
+data "external" "digest" {
+  program = ["${path.module}/digest.${var.builder}.sh"]
   query = {
     src  = var.src
     args = jsonencode(var.args)
@@ -50,28 +51,21 @@ data "external" "build" {
 }
 
 locals {
-  id      = data.external.build.result.id
-  id_safe = replace(local.id, ":", ".")
-  tag     = "docker.io/${var.repo_namespace}/${var.repo_name}:${local.id_safe}"
+  tag = "docker.io/${var.repo_namespace}/${var.repo_name}:${data.external.digest.result.digest}"
 }
 
-resource "terraform_data" "tag_and_push" {
+resource "terraform_data" "push" {
   depends_on       = [dockerhub_repository.main]
   triggers_replace = local.tag
   provisioner "local-exec" {
-    command = "exec ${path.module}/tag_and_push.sh"
-    environment = {
-      id  = local.id
+    command = "exec ${path.module}/push.${var.builder}.sh"
+    environment = merge(data.external.digest.result, {
       tag = local.tag
-    }
+    })
   }
 }
 
-output "id" {
-  value = local.id
-}
-
 output "tag" {
-  depends_on = [terraform_data.tag_and_push]
+  depends_on = [terraform_data.push]
   value      = local.tag
 }

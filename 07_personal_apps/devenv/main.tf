@@ -38,7 +38,9 @@ module "image" {
   source         = "../../modules/container_image"
   repo_name      = "skaia-personal-devenv"
   repo_namespace = local.globals.docker_hub.namespace
-  src            = "${path.module}/image"
+  builder        = "nix"
+  src            = "${path.module}/image.nix"
+  args           = { personalUID = local.globals.personal_uid }
 }
 
 resource "kubernetes_deployment" "main" {
