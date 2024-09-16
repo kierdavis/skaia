@@ -2,7 +2,8 @@ module "debug_image" {
   source         = "../modules/container_image"
   repo_name      = "skaia-debug"
   repo_namespace = local.globals.docker_hub.namespace
-  src            = "${path.module}/debug_image"
+  builder        = "nix"
+  src            = "${path.module}/debug_image.nix"
 }
 
 # TODO: resources
