@@ -7,7 +7,7 @@ resource "kubernetes_persistent_volume_claim" "downloads" {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-media0"
     resources {
-      requests = { storage = "750Gi" }
+      requests = { storage = "1Ti" }
     }
   }
 }
