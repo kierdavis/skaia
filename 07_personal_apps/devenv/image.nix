@@ -27,6 +27,7 @@ let
     fping
     fzf
     git
+    glpk
     gnugrep
     gnupg
     gnutar
