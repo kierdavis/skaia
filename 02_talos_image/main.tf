@@ -19,7 +19,7 @@ provider "linode" {
 }
 
 locals {
-  version = "1.7.1"
+  version = "1.7.7"
   schematic = {
     customization = {
       systemExtensions = {
@@ -66,7 +66,7 @@ resource "terraform_data" "convert_for_linode" {
 resource "linode_image" "main" {
   label      = "skaia-talos-${local.version}-${local.schematic_id_short}"
   file_path  = local.linode_image_path
-  region     = "eu-west" # TODO: move to gb-lon
+  region     = "gb-lon"
   depends_on = [terraform_data.convert_for_linode]
 }
 
