@@ -44,13 +44,14 @@ output "schematic_id" {
 }
 
 locals {
-  linode_image_path = "${path.module}/talos-${local.version}-${local.schematic_id}-linode.img.gz"
+  linode_image_path = "${path.module}/work/talos-${local.version}-${local.schematic_id}-linode.img.gz"
 }
 
 resource "terraform_data" "convert_for_linode" {
   triggers_replace = local.linode_image_path
   provisioner "local-exec" {
     command = <<EOF
+      mkdir -p "$(dirname "$dest")"
       curl --silent --show-error --fail "$src" \
         | unxz --stdout \
         | pigz --stdout > "$dest"
