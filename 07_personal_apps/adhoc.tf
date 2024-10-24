@@ -76,7 +76,7 @@ resource "kubernetes_job" "transcode" {
                 -filter_hw_device hw \
                 -i "$FILE" \
                 -vf format=nv12,hwupload=extra_hw_frames=64 \
-                -map 0 -map -0:4 \
+                -map 0 \
                 -c:a copy \
                 -c:s copy \
                 -c:v h264_qsv \
