@@ -17,7 +17,7 @@ Re-image bare metal nodes:
   Get script URL:
     terraform -chdir=02_talos_image output bare_metal_script_url
   Boot any LiveOS (e.g. nixos) from USB
-  bash <(curl URL) -- /dev/nvme0n1
+  bash <(curl URL) /dev/nvme0n1
 
 Confirm Talos api up on all nodes:
   curl https://192.168.178.154:50000
