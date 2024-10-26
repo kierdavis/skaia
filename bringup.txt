@@ -24,8 +24,14 @@ Confirm Talos api up on all nodes:
   curl https://192.168.178.164:50000
   curl https://peixes.skaia.cloud:50000
 
+If this is a rebuild, ensure node(s) aren't already registered to headscale:
+  ssh root@becquerel.skaia.cloud headscale nodes list
+  ssh root@becquerel.skaia.cloud headscale nodes delete -i <id>
+
 First Talos apply (configures tailscale):
   terraform -chdir=04_talos apply
+  If this is a rebuild, re-issue tailscale preauthkeys with e.g. -replace='headscale_pre_auth_key.main["pyrope"]'
+
 Confirm nodes registered to headscale:
   ssh root@becquerel.skaia.cloud headscale nodes list
   tailscale ping vantas
@@ -58,4 +64,3 @@ Confirm pod & service routes are advertised:
 
 To upgrade Talos, re-image nodes from scratch.
 Do not use `talosctl upgrade`!!! This will a) result in a Talos installation lacking the tailscale extension, and b) blow away OSDs located on the same block device as Talos.
-You'll also need to re-create the nodes and preauthkeys in headscale.
