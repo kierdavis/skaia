@@ -50,3 +50,12 @@ Confirm coredns gets scheduled:
   kubectl --kubeconfig=kubeconfig -n kube-system get pod
 Confirm pod & service routes are advertised:
   ssh root@becquerel.skaia.cloud headscale routes list
+
+
+
+
+
+
+To upgrade Talos, re-image nodes from scratch.
+Do not use `talosctl upgrade`!!! This will a) result in a Talos installation lacking the tailscale extension, and b) blow away OSDs located on the same block device as Talos.
+You'll also need to re-create the nodes and preauthkeys in headscale.
