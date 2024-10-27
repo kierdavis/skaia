@@ -42,6 +42,8 @@ resource "kubernetes_daemonset" "main" {
           name  = "main"
           image = "docker.io/squat/generic-device-plugin@sha256:ba6f0b4cf6c858d6ad29ba4d32e4da11638abbc7d96436bf04f582a97b2b8821"
           args = [
+            # For pods that use ~100% of the device's capacity for as long as the pod is running (i.e. transcode jobs).
+            # Only one pod of this type may run on a node at any given time.
             "--device",
             yamlencode({
               name = "render"
@@ -50,7 +52,20 @@ resource "kubernetes_daemonset" "main" {
                   { path = "/dev/dri/card0" },
                   { path = "/dev/dri/renderD128" },
                 ]
-                count = 4 # allow same device to be attached to up to N pods
+                count = 1
+              }]
+            }),
+            # For pods that may need use this device, but not to ~100% saturation or not ~100% of the time (i.e. jellyfin).
+            # Several pods of this type may run on the same node at a given time.
+            "--device",
+            yamlencode({
+              name = "render-sleep"
+              groups = [{
+                paths = [
+                  { path = "/dev/dri/card0" },
+                  { path = "/dev/dri/renderD128" },
+                ]
+                count = 4
               }]
             }),
           ]

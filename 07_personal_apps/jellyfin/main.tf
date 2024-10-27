@@ -107,13 +107,13 @@ resource "kubernetes_stateful_set" "main" {
           }
           resources {
             requests = {
-              cpu               = "250m"
-              memory            = "2Gi"
-              "squat.ai/render" = "1"
+              cpu                     = "250m"
+              memory                  = "2Gi"
+              "squat.ai/render-sleep" = "1"
             }
             limits = {
-              memory            = "7Gi"
-              "squat.ai/render" = "1"
+              memory                  = "7Gi"
+              "squat.ai/render-sleep" = "1"
             }
           }
         }
