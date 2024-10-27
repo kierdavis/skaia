@@ -97,7 +97,7 @@ resource "kubernetes_job" "main" {
               set -o errexit -o nounset -o pipefail
               vainfo --display drm --device /dev/dri/renderD128
               #ffmpeg -h encoder=h264_qsv
-              TMP_FILE="$(dirname "$FILE")/transcodetmp.$(basename "$FILE")"
+              DEST="/net/skaia/media/.nobackup/$${FILE#/net/skaia/media/}"
               ffmpeg \
                 -y \
                 -hwaccel qsv \
@@ -109,9 +109,9 @@ resource "kubernetes_job" "main" {
                 -c:v h264_qsv \
                 -b:v 1.5M \
                 -bufsize 1M \
-                "$TMP_FILE"
+                "$DEST"
               rm -v "$FILE"
-              mv -v "$TMP_FILE" "$FILE"
+              ln -sfT "$DEST" "$FILE"
             EOS
           ]
           env {
