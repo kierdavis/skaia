@@ -46,7 +46,7 @@ module "image" {
 
 resource "kubernetes_job" "main" {
   for_each = {
-    foobar = "/net/skaia/media/foobar.mkv"
+    #foobar = "/net/skaia/media/foobar.mkv"
     #foobar = "/net/skaia/media/foobar.mkv"
   }
   metadata {
