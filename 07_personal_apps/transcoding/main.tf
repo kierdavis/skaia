@@ -29,7 +29,6 @@ module "image" {
   src            = "${path.module}/image"
 }
 
-# Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.
 
 # To convert 10-bit HEVC to 8-bit AVC:
 # ffmpeg \
@@ -42,12 +41,30 @@ module "image" {
 #   -c:a copy \
 #   -c:s copy \
 #   -c:v h264_qsv \
-#   "$TMP_FILE"
+#   "$DEST"
+
+# To convert AVC to AVC at a lower bitrate:
+# ffmpeg \
+#   -y \
+#   -hwaccel qsv \
+#   -c:v h264_qsv \
+#   -i "$FILE" \
+#   -map 0 \
+#   -c:a copy \
+#   -c:s copy \
+#   -c:v h264_qsv \
+#   -b:v 1.5M \
+#   -bufsize 1M \
+#   "$DEST"
+
+# Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.
 
 resource "kubernetes_job" "main" {
   for_each = {
-    #foobar = "/net/skaia/media/foobar.mkv"
-    #foobar = "/net/skaia/media/foobar.mkv"
+    #s01e01 = "/net/skaia/media/foobar/S01E01.mkv"
+    #s01e02 = "/net/skaia/media/foobar/S01E02.mkv"
+    #s01e03 = "/net/skaia/media/foobar/S01E03.mkv"
+    #s01e04 = "/net/skaia/media/foobar/S01E04.mkv"
   }
   metadata {
     name      = "transcode-${each.key}"
@@ -98,17 +115,17 @@ resource "kubernetes_job" "main" {
               vainfo --display drm --device /dev/dri/renderD128
               #ffmpeg -h encoder=h264_qsv
               DEST="/net/skaia/media/.nobackup/$${FILE#/net/skaia/media/}"
+              mkdir -p "$(dirname "$DEST")"
               ffmpeg \
                 -y \
-                -hwaccel qsv \
-                -c:v h264_qsv \
+                -init_hw_device qsv=hw \
+                -filter_hw_device hw \
                 -i "$FILE" \
+                -vf format=nv12,hwupload=extra_hw_frames=64 \
                 -map 0 \
                 -c:a copy \
                 -c:s copy \
                 -c:v h264_qsv \
-                -b:v 1.5M \
-                -bufsize 1M \
                 "$DEST"
               rm -v "$FILE"
               ln -sfT "$DEST" "$FILE"
