@@ -76,6 +76,14 @@ resource "kubernetes_deployment" "main" {
               name = var.archive_secret_name
             }
           }
+          env {
+            name  = "B2_APPLICATION_KEY_ID"
+            value = "$(B2_ACCOUNT_ID)"
+          }
+          env {
+            name  = "B2_APPLICATION_KEY"
+            value = "$(B2_ACCOUNT_KEY)"
+          }
           volume_mount {
             name       = "media"
             mount_path = "/net/skaia/media"
