@@ -15,7 +15,8 @@ variable "archive_secret_name" {
 }
 
 locals {
-  globals = yamldecode(file("${path.module}/../../globals.yaml"))
+  globals         = yamldecode(file("${path.module}/../../globals.yaml"))
+  authorized_keys = join("\n", local.globals.authorized_ssh.public_keys)
 }
 
 resource "kubernetes_config_map" "authorized_keys" {
@@ -25,7 +26,7 @@ resource "kubernetes_config_map" "authorized_keys" {
     labels    = { "app.kubernetes.io/name" = "git" }
   }
   data = {
-    "all.pub" = join("\n", local.globals.authorized_ssh.public_keys)
+    "all.pub" = local.authorized_keys
   }
 }
 
@@ -44,7 +45,8 @@ resource "kubernetes_stateful_set" "main" {
     }
     template {
       metadata {
-        labels = { "app.kubernetes.io/name" = "git" }
+        labels      = { "app.kubernetes.io/name" = "git" }
+        annotations = { "skaia.cloud/confighash" = md5(local.authorized_keys) }
       }
       spec {
         enable_service_links             = false
