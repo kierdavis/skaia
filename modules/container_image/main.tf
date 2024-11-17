@@ -21,8 +21,8 @@ variable "builder" {
   type    = string
   default = "podman"
   validation {
-    condition     = contains(["nix", "podman"], var.builder)
-    error_message = "`builder` must be either \"nix\" or \"podman\""
+    condition     = contains(["buildah", "nix", "podman"], var.builder)
+    error_message = "`builder` must be either \"buildah\", \"nix\" or \"podman\""
   }
 }
 
