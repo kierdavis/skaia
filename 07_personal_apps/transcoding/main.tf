@@ -86,9 +86,9 @@ resource "kubernetes_job" "main" {
             required_during_scheduling_ignored_during_execution {
               node_selector_term {
                 match_expressions {
-                  key      = "kubernetes.io/hostname"
-                  operator = "In"
-                  values   = ["vantas", "pyrope"]
+                  key      = "hwcaps.skaia.cloud/qsv"
+                  operator = "NotIn"
+                  values   = ["none"]
                 }
               }
             }

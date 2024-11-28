@@ -20,6 +20,7 @@ locals {
       bootstrap_endpoint       = "192.168.178.154"
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
+        "hwcaps.skaia.cloud/qsv"        = "skylake"
         "topology.kubernetes.io/region" = "r-man"
         "topology.kubernetes.io/zone"   = "z-adw"
         "topology.rook.io/chassis"      = "c-vantas"
@@ -31,6 +32,7 @@ locals {
       bootstrap_endpoint       = "192.168.178.164"
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
+        "hwcaps.skaia.cloud/qsv"        = "broadwell"
         "topology.kubernetes.io/region" = "r-man"
         "topology.kubernetes.io/zone"   = "z-adw"
         "topology.rook.io/chassis"      = "c-pyrope"
@@ -42,6 +44,7 @@ locals {
       bootstrap_endpoint       = "peixes.skaia.cloud"
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
+        "hwcaps.skaia.cloud/qsv"        = "none"
         "topology.kubernetes.io/region" = "r-lon"
         "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
         "topology.rook.io/chassis"      = "c-peixes"

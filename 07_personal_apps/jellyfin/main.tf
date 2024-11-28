@@ -51,15 +51,15 @@ resource "kubernetes_stateful_set" "main" {
         enable_service_links             = false
         restart_policy                   = "Always"
         termination_grace_period_seconds = 30
+        # Must correspond to Jellyfin's hardware acceleration configuration.
         affinity {
           node_affinity {
-            # This node has a Skylake CPU while pyrope has a Broadwell.
             required_during_scheduling_ignored_during_execution {
               node_selector_term {
                 match_expressions {
-                  key      = "kubernetes.io/hostname"
+                  key      = "hwcaps.skaia.cloud/qsv"
                   operator = "In"
-                  values   = ["vantas"]
+                  values   = ["skylake"]
                 }
               }
             }
