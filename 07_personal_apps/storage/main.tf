@@ -30,6 +30,10 @@ output "documents_pvc_name" {
   value = kubernetes_persistent_volume_claim.documents.metadata[0].name
 }
 
+output "archive_scratch_pvc_name" {
+  value = kubernetes_persistent_volume_claim.archive_scratch.metadata[0].name
+}
+
 output "archive_secret_name" {
   value = kubernetes_secret.archive.metadata[0].name
 }

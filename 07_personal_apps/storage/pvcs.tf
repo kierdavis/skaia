@@ -53,3 +53,17 @@ resource "kubernetes_persistent_volume_claim" "documents" {
     }
   }
 }
+
+resource "kubernetes_persistent_volume_claim" "archive_scratch" {
+  metadata {
+    name      = "archive-scratch"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = "fs-gp0"
+    resources {
+      requests = { storage = "1Ti" }
+    }
+  }
+}
