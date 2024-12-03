@@ -1,6 +1,6 @@
 resource "kubernetes_job" "archive_download" {
   for_each = {
-    google = { src_path = "google", dest_path = "google" }
+    #media = { src_path = "media", dest_path = "media" }
   }
   wait_for_completion = false
   metadata {
@@ -67,77 +67,10 @@ resource "kubernetes_job" "archive_download" {
   }
 }
 
-module "archive_extract_image" {
-  source         = "../modules/container_image"
-  repo_name      = "skaia-archive-extract"
-  repo_namespace = local.globals.docker_hub.namespace
-  src            = "${path.module}/archive_extract_image"
-}
-
-resource "kubernetes_job" "archive_extract" {
-  for_each = {
-    #takeout-lss = { path = "downloaded/google/takeout-redacted@example.net-20150812.tar.bz2", compressor = "pbzip2" }
-  }
-  wait_for_completion = false
-  metadata {
-    name      = "archive-extract-${each.key}"
-    namespace = kubernetes_namespace.main.metadata[0].name
-    labels    = { app = "archive-extract", instance = each.key }
-  }
-  spec {
-    backoff_limit = 0
-    template {
-      metadata {
-        labels = { app = "archive-extract", instance = each.key }
-      }
-      spec {
-        restart_policy = "Never"
-        affinity {
-          node_affinity {
-            preferred_during_scheduling_ignored_during_execution {
-              weight = 50
-              preference {
-                match_expressions {
-                  key      = "topology.kubernetes.io/zone"
-                  operator = "In"
-                  values   = ["z-adw"]
-                }
-              }
-            }
-          }
-        }
-        volume {
-          name = "scratch"
-          persistent_volume_claim {
-            claim_name = module.storage.archive_scratch_pvc_name
-          }
-        }
-        container {
-          name  = "main"
-          image = module.archive_extract_image.tag
-          command = [
-            "bash",
-            "-c",
-            "mkdir -p /scratch/${each.value.path}.dir && tar -vx -C /scratch/${each.value.path}.dir -f /scratch/${each.value.path} -I ${each.value.compressor}",
-          ]
-          volume_mount {
-            name       = "scratch"
-            mount_path = "/scratch"
-          }
-          security_context {
-            run_as_user  = local.globals.personal_uid
-            run_as_group = local.globals.personal_uid
-          }
-        }
-      }
-    }
-  }
-}
-
 resource "kubernetes_job" "archive_upload" {
   for_each = {
-    # time format: "2012-11-01 22:08:41", or "now"
-    google-lss = { path = "accounts/google/redacted@example.net", time = "2015-08-12 00:00:00" }
+    # time format: "2012-11-01 22:08:41", or null for current time
+    #quartus = { path = "resources/quartus-13.0sp1-linux", time = null }
   }
   wait_for_completion = false
   metadata {
@@ -176,7 +109,7 @@ resource "kubernetes_job" "archive_upload" {
         container {
           name  = "main"
           image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
-          args = [
+          args = concat([
             "backup",
             "--exclude=lost+found",
             "--exclude=.nobackup",
@@ -184,9 +117,9 @@ resource "kubernetes_job" "archive_upload" {
             "--one-file-system",
             "--read-concurrency=4",
             "--repo=b2:${local.globals.b2.archive.bucket}:/personal-restic",
-            "--time=${each.value.time}",
+            ], each.value.time != null ? ["--time=${each.value.time}"] : [], [
             "/data/${each.value.path}",
-          ]
+          ])
           volume_mount {
             name       = "scratch"
             sub_path   = "staging"
@@ -197,6 +130,60 @@ resource "kubernetes_job" "archive_upload" {
             secret_ref {
               name = module.storage.archive_secret_name
             }
+          }
+          security_context {
+            run_as_user  = local.globals.personal_uid
+            run_as_group = local.globals.personal_uid
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_job" "delete_trash" {
+  count               = 0
+  wait_for_completion = false
+  metadata {
+    name      = "delete-trash"
+    namespace = kubernetes_namespace.main.metadata[0].name
+    labels    = { app = "delete-trash" }
+  }
+  spec {
+    backoff_limit = 0
+    template {
+      metadata {
+        labels = { app = "delete-trash" }
+      }
+      spec {
+        restart_policy = "Never"
+        affinity {
+          node_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 50
+              preference {
+                match_expressions {
+                  key      = "topology.kubernetes.io/zone"
+                  operator = "In"
+                  values   = ["z-adw"]
+                }
+              }
+            }
+          }
+        }
+        volume {
+          name = "scratch"
+          persistent_volume_claim {
+            claim_name = module.storage.archive_scratch_pvc_name
+          }
+        }
+        container {
+          name    = "main"
+          image   = "docker.io/busybox"
+          command = ["sh", "-c", "mv /scratch/trash /scratch/trash.deleting && mkdir /scratch/trash && rm -rf /scratch/trash.deleting"]
+          volume_mount {
+            name       = "scratch"
+            mount_path = "/scratch"
           }
           security_context {
             run_as_user  = local.globals.personal_uid
