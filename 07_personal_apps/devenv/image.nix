@@ -280,6 +280,9 @@ let
       cat $shadowContentsPath > $out/etc/shadow
       echo "" >> $out/etc/shadow
 
+      mkdir -p $out/etc/gnupg
+      echo pinentry-program ${pkgs.pinentry-curses}/bin/pinentry >> $out/etc/gnupg/gpg-agent.conf
+
       mkdir -p $out/usr
       ln -s /nix/var/nix/profiles/share $out/usr/
 
