@@ -1,6 +1,6 @@
 # Derived from https://github.com/NixOS/nix/blob/master/docker.nix at commit 908bc9a9574d31193b90e6c9ceb65d9622d4ed78.
 
-{ pkgs ? import <nixpkgs> { }
+{ pkgs ? import (builtins.fetchTarball https://github.com/NixOS/nixpkgs/archive/9ecb50d2fae8680be74c08bb0a995c5383747f89.tar.gz) { }
 , lib ? pkgs.lib
 , name ? "docker.io/kierdavis/skaia-personal-devenv"
 , tag ? "build"
@@ -35,7 +35,7 @@ let
     htop
     iana-etc
     iftop
-    iproute
+    iproute2
     iputils
     jnettop
     jq
