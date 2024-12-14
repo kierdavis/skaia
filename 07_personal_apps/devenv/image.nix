@@ -30,6 +30,7 @@ let
     glpk
     gnugrep
     gnupg
+    gnused
     gnutar
     gzip
     htop
