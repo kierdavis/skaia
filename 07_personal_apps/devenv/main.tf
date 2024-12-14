@@ -26,10 +26,6 @@ variable "documents_pvc_name" {
   type = string
 }
 
-variable "archive_scratch_pvc_name" {
-  type = string
-}
-
 variable "archive_secret_name" {
   type = string
 }
@@ -68,21 +64,6 @@ resource "kubernetes_deployment" "main" {
         enable_service_links             = false
         restart_policy                   = "Always"
         termination_grace_period_seconds = 30
-        # Only while heavily using archive-scratch.
-        affinity {
-          node_affinity {
-            preferred_during_scheduling_ignored_during_execution {
-              weight = 50
-              preference {
-                match_expressions {
-                  key      = "topology.kubernetes.io/zone"
-                  operator = "In"
-                  values   = ["z-adw"]
-                }
-              }
-            }
-          }
-        }
         container {
           name  = "main"
           image = module.image.tag
@@ -119,10 +100,6 @@ resource "kubernetes_deployment" "main" {
             name       = "documents"
             mount_path = "/net/skaia/documents"
           }
-          volume_mount {
-            name       = "archive-scratch"
-            mount_path = "/net/skaia/archive-scratch"
-          }
         }
         volume {
           name = "media"
@@ -146,12 +123,6 @@ resource "kubernetes_deployment" "main" {
           name = "documents"
           persistent_volume_claim {
             claim_name = var.documents_pvc_name
-          }
-        }
-        volume {
-          name = "archive-scratch"
-          persistent_volume_claim {
-            claim_name = var.archive_scratch_pvc_name
           }
         }
       }

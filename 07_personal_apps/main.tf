@@ -48,14 +48,13 @@ resource "kubernetes_namespace" "main" {
 }
 
 module "devenv" {
-  source                   = "./devenv"
-  namespace                = kubernetes_namespace.main.metadata[0].name
-  media_pvc_name           = module.storage.media_pvc_name
-  downloads_pvc_name       = module.storage.downloads_pvc_name
-  projects_pvc_name        = module.storage.projects_pvc_name
-  documents_pvc_name       = module.storage.documents_pvc_name
-  archive_scratch_pvc_name = module.storage.archive_scratch_pvc_name
-  archive_secret_name      = module.storage.archive_secret_name
+  source              = "./devenv"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  media_pvc_name      = module.storage.media_pvc_name
+  downloads_pvc_name  = module.storage.downloads_pvc_name
+  projects_pvc_name   = module.storage.projects_pvc_name
+  documents_pvc_name  = module.storage.documents_pvc_name
+  archive_secret_name = module.storage.archive_secret_name
 }
 
 module "git" {
