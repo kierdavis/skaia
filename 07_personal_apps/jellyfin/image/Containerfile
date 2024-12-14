@@ -1,2 +1,2 @@
-FROM docker.io/linuxserver/jellyfin@sha256:a074e43e90e97cb6a59ca0345bc6908fa3262b459618ae608b9da7e8ac4ae1f2
+FROM docker.io/linuxserver/jellyfin@sha256:a893c3ca1c0ff89f13a0877c6e8caf285a482aa188c6ee20e1cfdfdb6d52e906
 RUN apt update && apt install -y intel-opencl-icd && apt clean
