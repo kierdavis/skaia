@@ -65,10 +65,10 @@ resource "kubernetes_cron_job_v1" "main" {
                 "backup",
                 "--exclude=lost+found",
                 "--exclude=.nobackup",
-                "--host=skaia",
+                "--host=generic",
                 "--one-file-system",
                 "--read-concurrency=4",
-                "--repo=b2:${local.globals.b2.archive.bucket}:/skaia/personal-1",
+                "--repo=b2:${local.globals.b2.archive.bucket}:personal-restic",
                 var.mount_path,
               ]
               env_from {

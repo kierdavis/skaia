@@ -16,7 +16,7 @@ module "media_backup" {
   namespace           = var.namespace
   schedule            = "0 2 * * 2"
   pvc_name            = kubernetes_persistent_volume_claim.media.metadata[0].name
-  mount_path          = "/net/skaia/media"
+  mount_path          = "/data/media"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
@@ -26,7 +26,7 @@ module "projects_backup" {
   namespace           = var.namespace
   schedule            = "0 2 * * *"
   pvc_name            = kubernetes_persistent_volume_claim.projects.metadata[0].name
-  mount_path          = "/net/skaia/projects"
+  mount_path          = "/data/projects"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
@@ -36,7 +36,7 @@ module "documents_backup" {
   namespace           = var.namespace
   schedule            = "0 2 * * 4"
   pvc_name            = kubernetes_persistent_volume_claim.documents.metadata[0].name
-  mount_path          = "/net/skaia/documents"
+  mount_path          = "/data/documents"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
