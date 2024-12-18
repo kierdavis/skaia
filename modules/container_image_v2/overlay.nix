@@ -27,29 +27,30 @@ self: super: with self; {
 
     append =
       { from
-      , content ? ""
-      , script ? ""
-      , hash ? null
+      , content ? null
+      , script ? null
+      , env ? {}
       , name ? "${from.name}+append"
       , vmDiskSize ? 2048
       , vmMemSize ? 512
       }:
       let
-        common = stdenv.mkDerivation ({
-          inherit name from content script;
+        common = stdenv.mkDerivation {
+          inherit name from;
           nativeBuildInputs = [ imageTools.imgtool ];
           phases = [ "buildPhase" ];
           buildPhase = ''
             runHook preBuild
-            imgtool append ''${content:+--content="$content"} ''${script:+--script="$script"} "$from" "$out"
+            imgtool append \
+              ${if content != null then lib.escapeShellArg "--content=${content}" else ""} \
+              ${if script != null then lib.escapeShellArg "--script=${script}" else ""} \
+              ${lib.strings.concatStringsSep " " (lib.attrsets.mapAttrsToList (n: v: lib.escapeShellArg "--env=${n}=${v}") env)} \
+              "$from" "$out"
             runHook postBuild
           '';
-        } // (if hash != null then {
-          outputHash = hash;
-          outputHashMode = "recursive";
-        } else {}));
+        };
       in
-        if script != ""
+        if script != null
         then vmTools.runInLinuxVM (common.overrideAttrs (oldAttrs: {
           preVM = vmTools.createEmptyImage {
             size = vmDiskSize;

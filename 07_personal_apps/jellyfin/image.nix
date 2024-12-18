@@ -1,4 +1,4 @@
-{ curl, imageTools, lib, stdenv }:
+{ curl, imageTools, stdenv }:
 
 imageTools.append {
   from = imageTools.fetch {
@@ -7,7 +7,7 @@ imageTools.append {
     hash = "sha256-NtcW3RRTLV4n7NvNuLJ0epOaHsm2TQKFlu2N0RP9nWc=";
   };
   content = stdenv.mkDerivation {
-    name = "jellyfin-debs";
+    name = "jellyfin-content";
     nativeBuildInputs = [ curl ];
     phases = [ "fetchPhase" ];
     fetchPhase = ''
@@ -44,5 +44,4 @@ imageTools.append {
       /var/log/apt/term.log \
       /var/log/dpkg.log
   '';
-  #hash = lib.fakeHash;
 }

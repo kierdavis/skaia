@@ -76,6 +76,8 @@ def cmd_post_fetch(args):
         diff_digest = decompress_and_digest(blob_path, diff_staging_path, decompressor="unpigz")
         diff_path = img_path / "diffs" / diff_digest.replace(":", "/")
         diff_staging_path.rename(diff_path)
+      elif layer_ref["mediaType"] in ("application/vnd.in-toto+json",):
+        pass # This "layer" is some kind of metadata, not a diff. Do nothing.
       else:
         raise InvalidImageError(f"layer {layer_ref['digest']} referenced by manifest {manifest_path} has unrecognised mediaType: {layer_ref['mediaType']}")
 
@@ -197,93 +199,102 @@ def cmd_append(args):
     blob_rel_path = blob_ref["digest"].replace(":", "/")
     (out_path / "oci/blobs" / blob_rel_path).symlink_to(from_path / "oci/blobs" / blob_rel_path)
 
-  pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
+  if args.content is not None or args.script is not None:
+    pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
 
-  if args.content is not None:
-    log(f"copying contents of {args.content} to new layer")
-    subprocess.run(
-      ["rsync", "--archive", f"{args.content}/", "newlayer/"],
+    if args.content is not None:
+      log(f"copying contents of {args.content} to new layer")
+      subprocess.run(
+        ["rsync", "--archive", f"{args.content}/", "newlayer/"],
+        stdin=subprocess.DEVNULL,
+        stdout=sys.stderr,
+        check=True,
+      )
+
+    if args.script is not None:
+      run(from_path=from_path, config=config, script=args.script)
+
+    log("packing new layer blob...")
+    new_diff_staging_path = out_path / "diffs/staging"
+    new_blob_staging_path = out_path / "oci/blobs/staging"
+    tar_proc = subprocess.Popen(
+      [
+        "tar",
+        "--create",
+        "--directory=newlayer",
+        "--hard-dereference",
+        "--sort=name",
+        f"--mtime=@{os.environ.get('SOURCE_DATE_EPOCH', 1)}",
+        ".",
+      ],
       stdin=subprocess.DEVNULL,
-      stdout=sys.stderr,
-      check=True,
+      stdout=subprocess.PIPE,
     )
+    diff_sha256sum_proc = subprocess.Popen(
+      ["sha256sum"],
+      stdin=subprocess.PIPE,
+      stdout=subprocess.PIPE,
+    )
+    diff_tee_proc = subprocess.Popen(
+      ["tee", str(new_diff_staging_path), f"/dev/fd/{diff_sha256sum_proc.stdin.fileno()}"],
+      pass_fds=(diff_sha256sum_proc.stdin.fileno(),),
+      stdin=tar_proc.stdout,
+      stdout=subprocess.PIPE,
+    )
+    diff_sha256sum_proc.stdin.close()
+    pigz_proc = subprocess.Popen(
+      ["pigz"],
+      stdin=diff_tee_proc.stdout,
+      stdout=subprocess.PIPE,
+    )
+    blob_tee_proc = subprocess.Popen(
+      ["tee", str(new_blob_staging_path)],
+      stdin=pigz_proc.stdout,
+      stdout=subprocess.PIPE,
+    )
+    blob_sha256sum_proc = subprocess.Popen(
+      ["sha256sum"],
+      stdin=blob_tee_proc.stdout,
+      stdout=subprocess.PIPE,
+    )
+    for proc in [tar_proc, diff_sha256sum_proc, diff_tee_proc, pigz_proc, blob_tee_proc, blob_sha256sum_proc]:
+      proc.wait()
 
-  if args.script is not None:
-    run(from_path=from_path, config=config, script=args.script)
+    new_diff_digest = "sha256:" + diff_sha256sum_proc.stdout.read().decode("ascii").split()[0]
+    new_diff_path = out_path / "diffs" / new_diff_digest.replace(":", "/")
+    if new_diff_path.exists():
+      new_diff_staging_path.unlink()
+    else:
+      new_diff_staging_path.rename(new_diff_path)
 
-  log("packing new layer blob...")
-  new_diff_staging_path = out_path / "diffs/staging"
-  new_blob_staging_path = out_path / "oci/blobs/staging"
-  tar_proc = subprocess.Popen(
-    [
-      "tar",
-      "--create",
-      "--directory=newlayer",
-      "--hard-dereference",
-      "--sort=name",
-      f"--mtime=@{os.environ.get('SOURCE_DATE_EPOCH', 1)}",
-      ".",
-    ],
-    stdin=subprocess.DEVNULL,
-    stdout=subprocess.PIPE,
-  )
-  diff_sha256sum_proc = subprocess.Popen(
-    ["sha256sum"],
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-  )
-  diff_tee_proc = subprocess.Popen(
-    ["tee", str(new_diff_staging_path), f"/dev/fd/{diff_sha256sum_proc.stdin.fileno()}"],
-    pass_fds=(diff_sha256sum_proc.stdin.fileno(),),
-    stdin=tar_proc.stdout,
-    stdout=subprocess.PIPE,
-  )
-  diff_sha256sum_proc.stdin.close()
-  pigz_proc = subprocess.Popen(
-    ["pigz"],
-    stdin=diff_tee_proc.stdout,
-    stdout=subprocess.PIPE,
-  )
-  blob_tee_proc = subprocess.Popen(
-    ["tee", str(new_blob_staging_path)],
-    stdin=pigz_proc.stdout,
-    stdout=subprocess.PIPE,
-  )
-  blob_sha256sum_proc = subprocess.Popen(
-    ["sha256sum"],
-    stdin=blob_tee_proc.stdout,
-    stdout=subprocess.PIPE,
-  )
-  for proc in [tar_proc, diff_sha256sum_proc, diff_tee_proc, pigz_proc, blob_tee_proc, blob_sha256sum_proc]:
-    proc.wait()
+    new_blob_digest = "sha256:" + blob_sha256sum_proc.stdout.read().decode("ascii").split()[0]
+    new_blob_path = out_path / "oci/blobs" / new_blob_digest.replace(":", "/")
+    if new_blob_path.exists():
+      new_blob_staging_path.unlink()
+    else:
+      new_blob_staging_path.rename(new_blob_path)
 
-  new_diff_digest = "sha256:" + diff_sha256sum_proc.stdout.read().decode("ascii").split()[0]
-  new_diff_path = out_path / "diffs" / new_diff_digest.replace(":", "/")
-  if new_diff_path.exists():
-    new_diff_staging_path.unlink()
-  else:
-    new_diff_staging_path.rename(new_diff_path)
+    config["rootfs"]["diff_ids"].append(new_diff_digest)
+    config["history"].append({"comment": "imgtool"})
+    manifest["layers"].append({
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": new_blob_digest,
+      "size": new_blob_path.stat().st_size,
+    })
 
-  new_blob_digest = "sha256:" + blob_sha256sum_proc.stdout.read().decode("ascii").split()[0]
-  new_blob_path = out_path / "oci/blobs" / new_blob_digest.replace(":", "/")
-  if new_blob_path.exists():
-    new_blob_staging_path.unlink()
-  else:
-    new_blob_staging_path.rename(new_blob_path)
+  for pair in args.env:
+    name, _ = pair.split("=", 1)
+    env_list = config.setdefault("config", {}).get("Env", [])
+    env_list = [x for x in env_list if not x.startswith(name + "=")]
+    env_list.append(pair)
+    config["config"]["Env"] = env_list
 
-  config["rootfs"]["diff_ids"].append(new_diff_digest)
-  config["history"].append({"comment": "imgtool"})
   new_config_blob = json.dumps(config, separators=(",", ":")).encode("utf-8")
   new_config_digest = "sha256:" + hashlib.sha256(new_config_blob).hexdigest()
   (out_path / "oci/blobs" / new_config_digest.replace(":", "/")).write_bytes(new_config_blob)
 
   manifest["config"]["digest"] = new_config_digest
   manifest["config"]["size"] = len(new_config_blob)
-  manifest["layers"].append({
-    "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
-    "digest": new_blob_digest,
-    "size": new_blob_path.stat().st_size,
-  })
   new_manifest_blob = json.dumps(manifest, separators=(",", ":")).encode("utf-8")
   new_manifest_digest = "sha256:" + hashlib.sha256(new_manifest_blob).hexdigest()
   (out_path / "oci/blobs" / new_manifest_digest.replace(":", "/")).write_bytes(new_manifest_blob)
@@ -316,6 +327,7 @@ def main():
   append_parser.add_argument("out", metavar="IMAGE_PATH")
   append_parser.add_argument("--content", metavar="DIR", default=None)
   append_parser.add_argument("--script", metavar="SCRIPT", default=None)
+  append_parser.add_argument("--env", metavar="NAME=VALUE", default=[], action="append")
 
   args = parser.parse_args()
   args.cmd(args)
