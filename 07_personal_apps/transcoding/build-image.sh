@@ -13,3 +13,8 @@ buildah run --network=slirp4netns "$wc" -- mkdir -p /run/opengl-driver/lib/dri
 buildah run --network=slirp4netns "$wc" -- sh -c 'ln -sf $(nix-build "<nixpkgs>" -A intel-media-driver --no-out-link)/lib/dri/iHD_drv_video.so /run/opengl-driver/lib/dri/iHD_drv_video.so'
 buildah run --network=slirp4netns "$wc" -- nix-env --install --attr nixpkgs.ffmpeg-full --attr nixpkgs.libva-utils
 buildah commit --iidfile="$iidfile" --timestamp=0 "$wc"
+
+
+
+
+# TODO: switch to alpine since downloading Nix packages deterministically via imageTools is gonna be tricky.
