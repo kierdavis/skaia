@@ -91,8 +91,18 @@ def matches_desired_platform(manifest_ref, desired_arch="amd64", desired_os="lin
 
 
 @contextlib.contextmanager
-def mounted(device, mountpoint, flags=[]):
-  mount_cmd = ["mount"] + flags + [device, str(mountpoint)]
+def overlay_mounted(mountpoint, lowerdirs, upperdir=None, workdir=None, options=None):
+  mountpoint.mkdir(parents=True, exist_ok=True)
+  all_options = [f"lowerdir={':'.join(map(str, lowerdirs))}"]
+  if upperdir is not None:
+    all_options.append(f"upperdir={upperdir}")
+  if workdir is not None:
+    workdir.mkdir(parents=True, exist_ok=True)
+    all_options.append(f"workdir={workdir}")
+  if options:
+    all_options.extend(options)
+  mount_cmd = ["mount", "-toverlay", "-o" + ",".join(all_options), "overlay", str(mountpoint)]
+  log(" ".join(mount_cmd))
   try:
     subprocess.run(mount_cmd, stdin=subprocess.DEVNULL, stdout=sys.stderr, check=True)
   except subprocess.CalledProcessError:
@@ -136,35 +146,71 @@ def run(from_path, config, script):
   # The host's Nix store is mounted at the usual location.
   # It's assumed that the current working directory is backed by disk, not RAM.
 
-  lowerdirs = []
-  for layer_idx, diff_digest in enumerate(config["rootfs"]["diff_ids"]):
-    diff_tarball_path = from_path / "diffs" / diff_digest.replace(":", "/")
-    diff_extract_dir = pathlib.Path("lower") / str(layer_idx)
-    diff_extract_dir.mkdir(parents=True, exist_ok=True)
-    log(f"extracting {diff_tarball_path} to {diff_extract_dir}...")
-    subprocess.run(
-      ["tar", "--extract", f"--file={diff_tarball_path}", f"--directory={diff_extract_dir}"],
-      stdin=subprocess.DEVNULL,
-      stdout=sys.stderr,
-      check=True,
-    )
-    lowerdirs.insert(0, str(diff_extract_dir))
-
-  pathlib.Path("work").mkdir(parents=True, exist_ok=True)
-  pathlib.Path("overlay").mkdir(parents=True, exist_ok=True)
-  script_filename = "Of9lmrc1an0"  # difficult-to-predict name, to avoid conflicting with any image content
-
-  with mounted("overlay", "overlay", flags=["-toverlay", f"-olowerdir={':'.join(lowerdirs)},workdir=work,upperdir=newlayer,volatile"]):
-    with ephemeral_dir("overlay/dev"), \
-         ephemeral_dir("overlay/proc"), \
-         ephemeral_dir("overlay/sys"), \
-         ephemeral_file(f"overlay/{script_filename}", script, mode=0o755):
-      log(f"running script...")
-      env = " ".join(config.get("config", {}).get("Env", []))
+  with contextlib.ExitStack() as ctx:
+    # lowerdirs[0] is the topmost layer, lowerdirs[-1] is the bottommost layer - same as required by overlayfs mount option.
+    curr_tier_lowerdirs = []
+    for layer_idx, diff_digest in enumerate(config["rootfs"]["diff_ids"]):
+      diff_tarball_path = from_path / "diffs" / diff_digest.replace(":", "/")
+      diff_extract_dir = pathlib.Path("layer") / str(layer_idx)
+      diff_extract_dir.mkdir(parents=True, exist_ok=True)
+      log(f"extracting {diff_tarball_path} to {diff_extract_dir}...")
       subprocess.run(
-        ["unshare", "-imnpuf", "--mount-proc", "sh", "-e", "-c", f"chroot=$(type -p chroot); mount --rbind /dev overlay/dev; mount --rbind /proc overlay/proc; mount --rbind /sys overlay/sys; exec env --ignore-environment {env} $chroot overlay /{script_filename}"],
+        ["tar", "--extract", f"--file={diff_tarball_path}", f"--directory={diff_extract_dir}"],
+        stdin=subprocess.DEVNULL,
+        stdout=sys.stderr,
         check=True,
       )
+      curr_tier_lowerdirs.insert(0, diff_extract_dir)
+
+    max_lowerdirs_per_overlay = 28  # by experimentation
+    next_tier_lowerdirs = []
+    overlay_idx = 0
+
+    while len(curr_tier_lowerdirs) + len(next_tier_lowerdirs) > max_lowerdirs_per_overlay:
+      group_mountpoint = pathlib.Path("group") / str(overlay_idx)
+      group_size = min(max_lowerdirs_per_overlay + 1, len(curr_tier_lowerdirs))
+      ctx.enter_context(overlay_mounted(
+        mountpoint = group_mountpoint,
+        lowerdirs = curr_tier_lowerdirs[-group_size+1:],
+        upperdir = curr_tier_lowerdirs[-group_size],
+        workdir = pathlib.Path("work") / str(overlay_idx),
+        options = ["ro"],
+      ))
+      curr_tier_lowerdirs = curr_tier_lowerdirs[:-group_size]
+      next_tier_lowerdirs.insert(0, group_mountpoint)
+      if not curr_tier_lowerdirs:
+        curr_tier_lowerdirs = next_tier_lowerdirs
+        next_tier_lowerdirs = []
+      overlay_idx += 1
+
+    ctx.enter_context(overlay_mounted(
+      mountpoint = pathlib.Path("mnt"),
+      lowerdirs = curr_tier_lowerdirs + next_tier_lowerdirs,
+      workdir = pathlib.Path("work") / str(overlay_idx),
+      upperdir = pathlib.Path("newlayer"),
+      options = ["volatile"],
+    ))
+
+    for subdir in ["dev", "proc", "sys"]:
+      ctx.enter_context(ephemeral_dir(f"mnt/{subdir}"))
+
+    script_filename = "Of9lmrc1an0"  # difficult-to-predict name, to avoid conflicting with any image content
+    ctx.enter_context(ephemeral_file(f"mnt/{script_filename}", script, mode=0o755))
+
+    log(f"running script...")
+    env = " ".join(config.get("config", {}).get("Env", []))
+    subprocess.run(
+      [
+        "unshare",
+        "-imnpuf",
+        "--mount-proc",
+        "sh",
+        "-e",
+        "-c",
+        f"chroot=$(type -p chroot); mount --rbind /dev mnt/dev; mount --rbind /proc mnt/proc; mount --rbind /sys mnt/sys; exec env --ignore-environment {env} $chroot mnt /{script_filename}",
+      ],
+      check=True,
+    )
 
 
 def cmd_append(args):
