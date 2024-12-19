@@ -54,7 +54,8 @@ def decompress_and_digest(in_path, out_path, decompressor):
     stdout=subprocess.PIPE,
   )
   for proc in [decompress_proc, tee_proc, sha256sum_proc]:
-    proc.wait()
+    if proc.wait() != 0:
+      raise subprocess.CalledProcessError(returncode=proc.returncode, cmd=repr(proc.args))
   return "sha256:" + sha256sum_proc.stdout.read().decode("ascii").split()[0]
 
 
@@ -197,8 +198,12 @@ def run(from_path, config, script):
     script_filename = "Of9lmrc1an0"  # difficult-to-predict name, to avoid conflicting with any image content
     ctx.enter_context(ephemeral_file(f"mnt/{script_filename}", script, mode=0o755))
 
+    env = config.get("config", {}).get("Env", [])
+    for var_name in ["SOURCE_DATE_EPOCH"]:
+      if var_name in os.environ:
+        env.insert(0, f"{var_name}={os.environ[var_name]}")
+
     log(f"running script...")
-    env = " ".join(config.get("config", {}).get("Env", []))
     subprocess.run(
       [
         "unshare",
@@ -207,7 +212,7 @@ def run(from_path, config, script):
         "sh",
         "-e",
         "-c",
-        f"chroot=$(type -p chroot); mount --rbind /dev mnt/dev; mount --rbind /proc mnt/proc; mount --rbind /sys mnt/sys; exec env --ignore-environment {env} $chroot mnt /{script_filename}",
+        f"chroot=$(type -p chroot); mount --rbind /dev mnt/dev; mount --rbind /proc mnt/proc; mount --rbind /sys mnt/sys; exec env --ignore-environment {' '.join(env)} $chroot mnt /{script_filename}",
       ],
       check=True,
     )
@@ -245,20 +250,20 @@ def cmd_append(args):
     blob_rel_path = blob_ref["digest"].replace(":", "/")
     (out_path / "oci/blobs" / blob_rel_path).symlink_to(from_path / "oci/blobs" / blob_rel_path)
 
-  if args.content is not None or args.script is not None:
+  if args.add_content is not None or args.run_script is not None:
     pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
 
-    if args.content is not None:
-      log(f"copying contents of {args.content} to new layer")
+    if args.add_content is not None:
+      log(f"copying contents of {args.add_content} to new layer")
       subprocess.run(
-        ["rsync", "--archive", f"{args.content}/", "newlayer/"],
+        ["rsync", "--archive", f"{args.add_content}/", "newlayer/"],
         stdin=subprocess.DEVNULL,
         stdout=sys.stderr,
         check=True,
       )
 
-    if args.script is not None:
-      run(from_path=from_path, config=config, script=args.script)
+    if args.run_script is not None:
+      run(from_path=from_path, config=config, script=args.run_script)
 
     log("packing new layer blob...")
     new_diff_staging_path = out_path / "diffs/staging"
@@ -304,7 +309,8 @@ def cmd_append(args):
       stdout=subprocess.PIPE,
     )
     for proc in [tar_proc, diff_sha256sum_proc, diff_tee_proc, pigz_proc, blob_tee_proc, blob_sha256sum_proc]:
-      proc.wait()
+      if proc.wait() != 0:
+        raise subprocess.CalledProcessError(returncode=proc.returncode, cmd=repr(proc.args))
 
     new_diff_digest = "sha256:" + diff_sha256sum_proc.stdout.read().decode("ascii").split()[0]
     new_diff_path = out_path / "diffs" / new_diff_digest.replace(":", "/")
@@ -323,17 +329,24 @@ def cmd_append(args):
     config["rootfs"]["diff_ids"].append(new_diff_digest)
     config["history"].append({"comment": "imgtool"})
     manifest["layers"].append({
-      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "mediaType": {
+        "application/vnd.oci.image.manifest.v1+json": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "application/vnd.docker.distribution.manifest.v2+json": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+      }[manifest["mediaType"]],
       "digest": new_blob_digest,
       "size": new_blob_path.stat().st_size,
     })
 
-  for pair in args.env:
+  for pair in args.set_env:
     name, _ = pair.split("=", 1)
     env_list = config.setdefault("config", {}).get("Env", [])
     env_list = [x for x in env_list if not x.startswith(name + "=")]
     env_list.append(pair)
     config["config"]["Env"] = env_list
+  if args.set_entrypoint is not None:
+    config["config"]["Entrypoint"] = json.loads(args.set_entrypoint)
+  if args.set_cmd is not None:
+    config["config"]["Cmd"] = json.loads(args.set_cmd)
 
   new_config_blob = json.dumps(config, separators=(",", ":")).encode("utf-8")
   new_config_digest = "sha256:" + hashlib.sha256(new_config_blob).hexdigest()
@@ -371,9 +384,11 @@ def main():
   append_parser.set_defaults(cmd=cmd_append)
   append_parser.add_argument("from", metavar="IMAGE_PATH")
   append_parser.add_argument("out", metavar="IMAGE_PATH")
-  append_parser.add_argument("--content", metavar="DIR", default=None)
-  append_parser.add_argument("--script", metavar="SCRIPT", default=None)
-  append_parser.add_argument("--env", metavar="NAME=VALUE", default=[], action="append")
+  append_parser.add_argument("--add-content", metavar="DIR", default=None)
+  append_parser.add_argument("--run-script", metavar="SCRIPT", default=None)
+  append_parser.add_argument("--set-env", metavar="NAME=VALUE", default=[], action="append")
+  append_parser.add_argument("--set-entrypoint", metavar="JSON", default=None)
+  append_parser.add_argument("--set-cmd", metavar="JSON", default=None)
 
   args = parser.parse_args()
   args.cmd(args)

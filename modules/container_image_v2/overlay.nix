@@ -30,6 +30,8 @@ self: super: with self; {
       , content ? null
       , script ? null
       , env ? {}
+      , entrypoint ? null
+      , cmd ? null
       , name ? "${from.name}+append"
       , vmDiskSize ? 2048
       , vmMemSize ? 512
@@ -42,9 +44,11 @@ self: super: with self; {
           buildPhase = ''
             runHook preBuild
             imgtool append \
-              ${if content != null then lib.escapeShellArg "--content=${content}" else ""} \
-              ${if script != null then lib.escapeShellArg "--script=${script}" else ""} \
-              ${lib.strings.concatStringsSep " " (lib.attrsets.mapAttrsToList (n: v: lib.escapeShellArg "--env=${n}=${v}") env)} \
+              ${if content != null then lib.escapeShellArg "--add-content=${content}" else ""} \
+              ${if script != null then lib.escapeShellArg "--run-script=${script}" else ""} \
+              ${lib.strings.concatStringsSep " " (lib.attrsets.mapAttrsToList (n: v: lib.escapeShellArg "--set-env=${n}=${v}") env)} \
+              ${if entrypoint != null then lib.escapeShellArg "--set-entrypoint=${builtins.toJSON entrypoint}" else ""} \
+              ${if cmd != null then lib.escapeShellArg "--set-cmd=${builtins.toJSON cmd}" else ""} \
               "$from" "$out"
             runHook postBuild
           '';
@@ -83,5 +87,13 @@ self: super: with self; {
       export PATH="${extraPath}:$PATH"
       exec python3 ${./imgtool.py} "$@"
     '';
+
+    bases = {
+      alpine = imageTools.fetch {
+        imageName = "docker.io/alpine";
+        imageDigest = "sha256:6457d53fb065d6f250e1504b9bc42d5b6c65941d57532c072d929dd0628977d0";
+        hash = "sha256-siBcE0RJczoz5hYPz/b8Xz3Qg2sOol85ZlXB/Dz5bzQ=";
+      };
+    };
   };
 }
