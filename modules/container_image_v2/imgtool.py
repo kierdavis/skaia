@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import pathlib
+import shlex
 import subprocess
 import sys
 
@@ -59,7 +60,7 @@ def decompress_and_digest(in_path, out_path, decompressor):
   return "sha256:" + sha256sum_proc.stdout.read().decode("ascii").split()[0]
 
 
-def cmd_post_fetch(args):
+def subcmd_post_fetch(args):
   img_path = pathlib.Path(args.img_path)
   (img_path / "diffs/sha256").mkdir(parents=True, exist_ok=True)
 
@@ -131,18 +132,7 @@ def ephemeral_dir(path):
         pass
 
 
-@contextlib.contextmanager
-def ephemeral_file(path, content, mode=0o644):
-  path = pathlib.Path(path)
-  path.write_text(content)
-  path.chmod(mode)
-  try:
-    yield
-  finally:
-    path.unlink(missing_ok=True)
-
-
-def run(from_path, config, script):
+def run(in_path, config, script):
   # We're root, inside a VM, inside a Nix build.
   # The host's Nix store is mounted at the usual location.
   # It's assumed that the current working directory is backed by disk, not RAM.
@@ -151,7 +141,7 @@ def run(from_path, config, script):
     # lowerdirs[0] is the topmost layer, lowerdirs[-1] is the bottommost layer - same as required by overlayfs mount option.
     curr_tier_lowerdirs = []
     for layer_idx, diff_digest in enumerate(config["rootfs"]["diff_ids"]):
-      diff_tarball_path = from_path / "diffs" / diff_digest.replace(":", "/")
+      diff_tarball_path = in_path / "diffs" / diff_digest.replace(":", "/")
       diff_extract_dir = pathlib.Path("layer") / str(layer_idx)
       diff_extract_dir.mkdir(parents=True, exist_ok=True)
       log(f"extracting {diff_tarball_path} to {diff_extract_dir}...")
@@ -195,10 +185,7 @@ def run(from_path, config, script):
     for subdir in ["dev", "proc", "sys"]:
       ctx.enter_context(ephemeral_dir(f"mnt/{subdir}"))
 
-    script_filename = "Of9lmrc1an0"  # difficult-to-predict name, to avoid conflicting with any image content
-    ctx.enter_context(ephemeral_file(f"mnt/{script_filename}", script, mode=0o755))
-
-    env = config.get("config", {}).get("Env", [])
+    env = list(config.get("config", {}).get("Env", []))
     for var_name in ["SOURCE_DATE_EPOCH"]:
       if var_name in os.environ:
         env.insert(0, f"{var_name}={os.environ[var_name]}")
@@ -210,32 +197,34 @@ def run(from_path, config, script):
         "-imnpuf",
         "--mount-proc",
         "sh",
-        "-e",
-        "-c",
-        f"chroot=$(type -p chroot); mount --rbind /dev mnt/dev; mount --rbind /proc mnt/proc; mount --rbind /sys mnt/sys; exec env --ignore-environment {' '.join(env)} $chroot mnt /{script_filename}",
+        "-euc",
+        f"for x in dev proc sys; do mount --rbind /$x mnt/$x; done; exec env --ignore-environment {' '.join(env)} $(type -p chroot) mnt sh -euc {shlex.quote(script)}",
       ],
       check=True,
     )
 
 
-def cmd_append(args):
-  from_path = pathlib.Path(getattr(args, "from"))
+def subcmd_customise(args):
+  with open(args.customisations) as f:
+    customisations = json.load(f)
+
+  in_path = pathlib.Path(getattr(args, "in"))
   out_path = pathlib.Path(args.out)
 
-  manifest_refs = [ref for ref in iter_manifest_refs(from_path / "oci") if matches_desired_platform(ref)]
+  manifest_refs = [ref for ref in iter_manifest_refs(in_path / "oci") if matches_desired_platform(ref)]
   if not manifest_refs:
     raise PlatformMismatch("no manifest is suitable for desired platform")
   if len(manifest_refs) > 1:
     raise PlatformMismatch("multiple manifests are suitable for desired platform")
   [manifest_ref] = manifest_refs
 
-  manifest_path = from_path / "oci/blobs" / manifest_ref["digest"].replace(":", "/")
+  manifest_path = in_path / "oci/blobs" / manifest_ref["digest"].replace(":", "/")
   with open(manifest_path, "r") as f:
     manifest = json.load(f)
   if manifest["mediaType"] not in ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json"):
     raise InvalidImageError(f"manifest {manifest_path} has unrecognised mediaType: {manifest['mediaType']}")
 
-  config_path = from_path / "oci/blobs" / manifest["config"]["digest"].replace(":", "/")
+  config_path = in_path / "oci/blobs" / manifest["config"]["digest"].replace(":", "/")
   with open(config_path, "r") as f:
     config = json.load(f)
   if config["rootfs"]["type"] != "layers":
@@ -244,26 +233,26 @@ def cmd_append(args):
   (out_path / "diffs/sha256").mkdir(parents=True, exist_ok=True)
   for diff_digest in config["rootfs"]["diff_ids"]:
     diff_rel_path = diff_digest.replace(":", "/")
-    (out_path / "diffs" / diff_rel_path).symlink_to(from_path / "diffs" / diff_rel_path)
+    (out_path / "diffs" / diff_rel_path).symlink_to(in_path / "diffs" / diff_rel_path)
   (out_path / "oci/blobs/sha256").mkdir(parents=True, exist_ok=True)
   for blob_ref in manifest["layers"]:
     blob_rel_path = blob_ref["digest"].replace(":", "/")
-    (out_path / "oci/blobs" / blob_rel_path).symlink_to(from_path / "oci/blobs" / blob_rel_path)
+    (out_path / "oci/blobs" / blob_rel_path).symlink_to(in_path / "oci/blobs" / blob_rel_path)
 
-  if args.add_content is not None or args.run_script is not None:
+  if customisations.get("add") or customisations.get("run"):
     pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
 
-    if args.add_content is not None:
-      log(f"copying contents of {args.add_content} to new layer")
+    for src in customisations.get("add", []):
+      log(f"copying contents of {src} to new layer")
       subprocess.run(
-        ["rsync", "--archive", f"{args.add_content}/", "newlayer/"],
+        ["rsync", "--archive", f"{src}/", "newlayer/"],
         stdin=subprocess.DEVNULL,
         stdout=sys.stderr,
         check=True,
       )
 
-    if args.run_script is not None:
-      run(from_path=from_path, config=config, script=args.run_script)
+    if customisations.get("run"):
+      run(in_path=in_path, config=config, script=customisations["run"])
 
     log("packing new layer blob...")
     new_diff_staging_path = out_path / "diffs/staging"
@@ -273,6 +262,7 @@ def cmd_append(args):
         "tar",
         "--create",
         "--directory=newlayer",
+        "--exclude=./imgbuild",
         "--hard-dereference",
         "--sort=name",
         f"--mtime=@{os.environ.get('SOURCE_DATE_EPOCH', 1)}",
@@ -318,6 +308,7 @@ def cmd_append(args):
       new_diff_staging_path.unlink()
     else:
       new_diff_staging_path.rename(new_diff_path)
+    log(f"new layer diff: {new_diff_path}")
 
     new_blob_digest = "sha256:" + blob_sha256sum_proc.stdout.read().decode("ascii").split()[0]
     new_blob_path = out_path / "oci/blobs" / new_blob_digest.replace(":", "/")
@@ -325,6 +316,7 @@ def cmd_append(args):
       new_blob_staging_path.unlink()
     else:
       new_blob_staging_path.rename(new_blob_path)
+    log(f"new layer blob: {new_blob_path}")
 
     config["rootfs"]["diff_ids"].append(new_diff_digest)
     config["history"].append({"comment": "imgtool"})
@@ -337,26 +329,29 @@ def cmd_append(args):
       "size": new_blob_path.stat().st_size,
     })
 
-  for pair in args.set_env:
-    name, _ = pair.split("=", 1)
+  for name, value in customisations.get("env", {}).items():
     env_list = config.setdefault("config", {}).get("Env", [])
     env_list = [x for x in env_list if not x.startswith(name + "=")]
-    env_list.append(pair)
+    env_list.append(f"{name}={value}")
     config["config"]["Env"] = env_list
-  if args.set_entrypoint is not None:
-    config["config"]["Entrypoint"] = json.loads(args.set_entrypoint)
-  if args.set_cmd is not None:
-    config["config"]["Cmd"] = json.loads(args.set_cmd)
+  if customisations.get("entrypoint") is not None:
+    config["config"]["Entrypoint"] = customisations["entrypoint"]
+  if customisations.get("cmd") is not None:
+    config["config"]["Cmd"] = customisations["cmd"]
 
   new_config_blob = json.dumps(config, separators=(",", ":")).encode("utf-8")
   new_config_digest = "sha256:" + hashlib.sha256(new_config_blob).hexdigest()
-  (out_path / "oci/blobs" / new_config_digest.replace(":", "/")).write_bytes(new_config_blob)
+  new_config_path = out_path / "oci/blobs" / new_config_digest.replace(":", "/")
+  new_config_path.write_bytes(new_config_blob)
+  log(f"new config: {new_config_path}")
 
   manifest["config"]["digest"] = new_config_digest
   manifest["config"]["size"] = len(new_config_blob)
   new_manifest_blob = json.dumps(manifest, separators=(",", ":")).encode("utf-8")
   new_manifest_digest = "sha256:" + hashlib.sha256(new_manifest_blob).hexdigest()
-  (out_path / "oci/blobs" / new_manifest_digest.replace(":", "/")).write_bytes(new_manifest_blob)
+  new_manifest_path = out_path / "oci/blobs" / new_manifest_digest.replace(":", "/")
+  new_manifest_path.write_bytes(new_manifest_blob)
+  log(f"new manifest: {new_manifest_path}")
 
   with open(out_path / "oci/index.json", "w") as f:
     json.dump({
@@ -377,21 +372,17 @@ def main():
   subparsers = parser.add_subparsers()
 
   post_fetch_parser = subparsers.add_parser("post-fetch")
-  post_fetch_parser.set_defaults(cmd=cmd_post_fetch)
+  post_fetch_parser.set_defaults(subcmd=subcmd_post_fetch)
   post_fetch_parser.add_argument("img_path")
 
-  append_parser = subparsers.add_parser("append")
-  append_parser.set_defaults(cmd=cmd_append)
-  append_parser.add_argument("from", metavar="IMAGE_PATH")
-  append_parser.add_argument("out", metavar="IMAGE_PATH")
-  append_parser.add_argument("--add-content", metavar="DIR", default=None)
-  append_parser.add_argument("--run-script", metavar="SCRIPT", default=None)
-  append_parser.add_argument("--set-env", metavar="NAME=VALUE", default=[], action="append")
-  append_parser.add_argument("--set-entrypoint", metavar="JSON", default=None)
-  append_parser.add_argument("--set-cmd", metavar="JSON", default=None)
+  customise_parser = subparsers.add_parser("customise")
+  customise_parser.set_defaults(subcmd=subcmd_customise)
+  customise_parser.add_argument("customisations", metavar="JSON_PATH")
+  customise_parser.add_argument("in", metavar="IMAGE_PATH")
+  customise_parser.add_argument("out", metavar="IMAGE_PATH")
 
   args = parser.parse_args()
-  args.cmd(args)
+  args.subcmd(args)
 
 
 if __name__ == "__main__":

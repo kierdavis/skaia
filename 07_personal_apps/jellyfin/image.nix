@@ -1,44 +1,23 @@
-{ curl, imageTools, stdenv }:
+{ imageTools }:
 
-imageTools.append {
-  from = imageTools.fetch {
+imageTools.customise {
+  base = imageTools.fetch {
     imageName = "docker.io/linuxserver/jellyfin";
     imageDigest = "sha256:a893c3ca1c0ff89f13a0877c6e8caf285a482aa188c6ee20e1cfdfdb6d52e906";
     hash = "sha256-NtcW3RRTLV4n7NvNuLJ0epOaHsm2TQKFlu2N0RP9nWc=";
   };
-  content = stdenv.mkDerivation {
-    name = "jellyfin-content";
-    nativeBuildInputs = [ curl ];
-    phases = [ "fetchPhase" ];
-    fetchPhase = ''
-      urls=(
-        'http://archive.ubuntu.com/ubuntu/pool/universe/i/intel-compute-runtime/intel-opencl-icd_23.43.27642.40-1ubuntu3_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/i/intel-gmmlib/libigdgmm12_22.3.17%2bds1-1_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/i/intel-graphics-compiler/libigc1_1.0.15468.25-2build1_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/i/intel-graphics-compiler/libigdfcl1_1.0.15468.25-2build1_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/l/llvm-toolchain-14/libclang-cpp14t64_14.0.6-19build4_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/l/llvm-toolchain-14/libllvm14t64_14.0.6-19build4_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/o/opencl-clang-14/libopencl-clang14_14.0.0-4build2_amd64.deb'
-        'http://archive.ubuntu.com/ubuntu/pool/universe/s/spirv-llvm-translator-14/libllvmspirvlib14_14.0.0-12build1_amd64.deb'
-      )
-      mkdir -p $out/pkgs
-      cd $out/pkgs
-      for url in "''${urls[@]}"; do
-        curl --silent --show-error --fail --location --remote-name "$url"
-      done
-    '';
-    outputHash = "sha256-vEjA1xIEGP608c1YLnBYl8ZCT3tcUns9ChtnJLiyatA=";
-    outputHashMode = "recursive";
-  };
-  script = ''
-    #!/bin/sh
-    set -o errexit -o nounset
-    apt install -y /pkgs/*
-    rm -rf \
-      /pkgs \
-      /var/cache/ldconfig/aux-cache \
-      /var/log/apt/history.log \
-      /var/log/apt/term.log \
-      /var/log/dpkg.log
-  '';
+  add = [(imageTools.fetchDEBs {
+    urls = [
+      "https://archive.ubuntu.com/ubuntu/pool/universe/i/intel-compute-runtime/intel-opencl-icd_23.43.27642.40-1ubuntu3_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/i/intel-gmmlib/libigdgmm12_22.3.17%2bds1-1_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/i/intel-graphics-compiler/libigc1_1.0.15468.25-2build1_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/i/intel-graphics-compiler/libigdfcl1_1.0.15468.25-2build1_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/l/llvm-toolchain-14/libclang-cpp14t64_14.0.6-19build4_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/l/llvm-toolchain-14/libllvm14t64_14.0.6-19build4_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/o/opencl-clang-14/libopencl-clang14_14.0.0-4build2_amd64.deb"
+      "https://archive.ubuntu.com/ubuntu/pool/universe/s/spirv-llvm-translator-14/libllvmspirvlib14_14.0.0-12build1_amd64.deb"
+    ];
+    hash = "sha256-JMFavfI76M97Z1Ug4rb7DZbqOd8W6GiRf7DNLUvym0I=";
+  })];
+  run = imageTools.installDEBs;
 }

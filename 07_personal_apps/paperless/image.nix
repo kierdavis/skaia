@@ -13,13 +13,13 @@
 # I assume this is something to do with the fact the default config first
 # de-aliases Arial to Helvetica and then de-aliases Helvetica to Nimbus Sans.
 
-imageTools.append {
-  from = imageTools.fetch {
+imageTools.customise {
+  base = imageTools.fetch {
     imageName = "ghcr.io/paperless-ngx/paperless-ngx";
     imageDigest = "sha256:da0476cea301df8bc8d20739f0e76de1e77d91ad2c9170b45c803468dde19208";
     hash = "sha256-MqKoUUVzACkQtGicuTxpR42xT6Ap4Lq1mMQZ5lG4nM0=";
   };
-  content = writeTextFile {
+  add = [(writeTextFile {
     name = "paperless-ngx-content";
     text = ''
       /Arial,BoldItalic (/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf) ;
@@ -29,6 +29,6 @@ imageTools.append {
       /Helvetica (/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf) ;
     '';
     destination = "/usr/share/ghostscript/myfontmap.gs";
-  };
+  })];
   env.GS_OPTIONS = "-sFONTMAP=/usr/share/ghostscript/myfontmap.gs";
 }

@@ -25,36 +25,33 @@ self: super: with self; {
         outputHashMode = "recursive";
       };
 
-    append =
-      { from
-      , content ? null
-      , script ? null
+    customise =
+      { base
+      , add ? []
+      , run ? null
       , env ? {}
       , entrypoint ? null
       , cmd ? null
-      , name ? "${from.name}+append"
+      , name ? "${base.name}+custom"
       , vmDiskSize ? 2048
       , vmMemSize ? 512
       }:
       let
         common = stdenv.mkDerivation {
-          inherit name from;
+          inherit name base;
+          customisationsFile = writeText "customisations.json" (builtins.toJSON {
+            inherit add run env entrypoint cmd;
+          });
           nativeBuildInputs = [ imageTools.imgtool ];
           phases = [ "buildPhase" ];
           buildPhase = ''
             runHook preBuild
-            imgtool append \
-              ${if content != null then lib.escapeShellArg "--add-content=${content}" else ""} \
-              ${if script != null then lib.escapeShellArg "--run-script=${script}" else ""} \
-              ${lib.strings.concatStringsSep " " (lib.attrsets.mapAttrsToList (n: v: lib.escapeShellArg "--set-env=${n}=${v}") env)} \
-              ${if entrypoint != null then lib.escapeShellArg "--set-entrypoint=${builtins.toJSON entrypoint}" else ""} \
-              ${if cmd != null then lib.escapeShellArg "--set-cmd=${builtins.toJSON cmd}" else ""} \
-              "$from" "$out"
+            imgtool customise "$customisationsFile" "$base" "$out"
             runHook postBuild
           '';
         };
       in
-        if script != null
+        if run != null
         then vmTools.runInLinuxVM (common.overrideAttrs (oldAttrs: {
           preVM = vmTools.createEmptyImage {
             size = vmDiskSize;
@@ -72,7 +69,29 @@ self: super: with self; {
         }))
         else common;
 
-    #seq = steps: lib.foldl (img: transformer: transformer img) (builtins.head steps) (builtins.tail steps);
+    fetchPkgs =
+      { urls, hash }:
+      stdenv.mkDerivation {
+        name = "pkgs";
+        nativeBuildInputs = [ curl ];
+        phases = [ "fetchPhase" ];
+        fetchPhase = ''
+          mkdir -p $out/imgbuild/pkgs
+          cd $out/imgbuild/pkgs
+          for url in ${lib.strings.concatMapStringsSep " " lib.escapeShellArg urls}; do
+            curl --silent --show-error --fail --location --remote-name "$url"
+          done
+        '';
+        SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+        outputHash = hash;
+        outputHashMode = "recursive";
+      };
+
+    fetchAPKs = imageTools.fetchPkgs;
+    installAPKs = ''apk add --no-cache --no-network --repositories-file=/dev/null /imgbuild/pkgs/*.apk'';
+
+    fetchDEBs = imageTools.fetchPkgs;
+    installDEBs = ''apt install -y /imgbuild/pkgs/*.deb && rm -f /var/cache/ldconfig/aux-cache /var/log/apt/history.log /var/log/apt/term.log /var/log/dpkg.log'';
 
     imgtool = let
       extraPath = lib.makeBinPath [
