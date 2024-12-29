@@ -1,2 +1,0 @@
-FROM docker.io/nixos/nix@sha256:fd7a5c67d396fe6bddeb9c10779d97541ab3a1b2a9d744df3754a99add4046f1
-RUN nix-env -i -A nixpkgs.gnutar -A nixpkgs.pigz -A nixpkgs.pbzip2
