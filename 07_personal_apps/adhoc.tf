@@ -67,102 +67,80 @@
 #  }
 #}
 
-#resource "kubernetes_job" "archive_upload" {
-#  for_each = {
-#    # time format: "2012-11-01 22:08:41", or null for current time
-#    #projects2024 = { path = "projects/stale", time = "2024-07-19 23:01:04" }
-#  }
-#  wait_for_completion = false
-#  metadata {
-#    name = "archive-upload-${each.key}"
-#    namespace = kubernetes_namespace.main.metadata[0].name
-#    labels = { app = "archive-upload", instance = each.key }
-#  }
-#  spec {
-#    backoff_limit = 0
-#    template {
-#      metadata {
-#        labels = { app = "archive-upload", instance = each.key }
-#      }
-#      spec {
-#        restart_policy = "Never"
-#        # Hacky jobqueue setup:
-#        affinity {
-#          node_affinity {
-#            required_during_scheduling_ignored_during_execution {
-#              node_selector_term {
-#                match_expressions {
-#                  key      = "kubernetes.io/hostname"
-#                  operator = "In"
-#                  values   = ["pyrope"]
-#                }
-#              }
-#            }
-#          }
-#        }
-#        #affinity {
-#        #  node_affinity {
-#        #    preferred_during_scheduling_ignored_during_execution {
-#        #      weight = 50
-#        #      preference {
-#        #        match_expressions {
-#        #          key      = "topology.kubernetes.io/zone"
-#        #          operator = "In"
-#        #          values   = ["z-adw"]
-#        #        }
-#        #      }
-#        #    }
-#        #  }
-#        #}
-#        volume {
-#          name = "scratch"
-#          persistent_volume_claim {
-#            claim_name = module.storage.archive_scratch_pvc_name
-#          }
-#        }
-#        container {
-#          name = "main"
-#          image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
-#          args = concat([
-#            "backup",
-#            "--exclude=lost+found",
-#            "--exclude=.nobackup",
-#            "--host=generic",
-#            "--one-file-system",
-#            "--read-concurrency=4",
-#            "--repo=b2:${local.globals.b2.archive.bucket}:/personal-restic",
-#            ], each.value.time != null ? ["--time=${each.value.time}"] : [], [
-#            "/data/${each.value.path}",
-#          ])
-#          volume_mount {
-#            name = "scratch"
-#            sub_path = "staging"
-#            mount_path = "/data"
-#            read_only = true
-#          }
-#          env_from {
-#            secret_ref {
-#              name = module.storage.archive_secret_name
-#            }
-#          }
-#          security_context {
-#            run_as_user = local.globals.personal_uid
-#            run_as_group = local.globals.personal_uid
-#          }
-#          # Hacky jobqueue setup:
-#          resources {
-#            requests = {
-#              "squat.ai/render" = "1"
-#            }
-#            limits = {
-#              "squat.ai/render" = "1"
-#            }
-#          }
-#        }
-#      }
-#    }
-#  }
-#}
+resource "kubernetes_job" "archive_upload" {
+  for_each = {
+    # time format: "2012-11-01 22:08:41", or null for current time
+    #el-passport-photo = { volume_path = ".nobackup/e", mount_path = "/data/media/photos/el-passport-photo-2025", time = null }
+  }
+  wait_for_completion = false
+  metadata {
+    name      = "archive-upload-${each.key}"
+    namespace = kubernetes_namespace.main.metadata[0].name
+    labels    = { app = "archive-upload", instance = each.key }
+  }
+  spec {
+    backoff_limit = 0
+    template {
+      metadata {
+        labels = { app = "archive-upload", instance = each.key }
+      }
+      spec {
+        restart_policy = "Never"
+        affinity {
+          node_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 50
+              preference {
+                match_expressions {
+                  key      = "topology.kubernetes.io/zone"
+                  operator = "In"
+                  values   = ["z-adw"]
+                }
+              }
+            }
+          }
+        }
+        volume {
+          name = "media"
+          persistent_volume_claim {
+            claim_name = module.storage.media_pvc_name
+          }
+        }
+        container {
+          name  = "main"
+          image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
+          args = concat([
+            "backup",
+            "--exclude=lost+found",
+            "--exclude=.nobackup",
+            "--host=generic",
+            "--one-file-system",
+            "--read-concurrency=4",
+            "--repo=b2:${local.globals.b2.archive.bucket}:/personal-restic",
+            "--verbose",
+            ], each.value.time != null ? ["--time=${each.value.time}"] : [], [
+            each.value.mount_path,
+          ])
+          volume_mount {
+            name       = "media"
+            sub_path   = each.value.volume_path
+            mount_path = each.value.mount_path
+            read_only  = true
+          }
+          env_from {
+            secret_ref {
+              name = module.storage.archive_secret_name
+            }
+          }
+          security_context {
+            run_as_user  = local.globals.personal_uid
+            run_as_group = local.globals.personal_uid
+          }
+        }
+      }
+    }
+  }
+}
 
 #resource "kubernetes_job" "archive_xfer" {
 #  wait_for_completion = false
