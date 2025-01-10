@@ -19,23 +19,34 @@ terraform {
 }
 
 locals {
-  headscale_version = "0.22.3"
-  headscale_sha256  = "41eb475ba94d2f4efdd5b90ca76d3926a0fc0b561baabf6190ca32335c9102d2"
+  headscale_version = "0.23.0"
+  headscale_sha256  = "d9193dad4b070b9b3f6d54c8f14366952944b6e917672c0bc1dfd8f5491287a7"
 
   globals = yamldecode(file("${path.module}/../globals.yaml"))
 
   headscale_config = {
-    acl_policy_path                = "/etc/headscale/acls.json"
-    acme_email                     = "redacted@example.net"
-    acme_url                       = "https://acme-v02.api.letsencrypt.org/directory"
-    db_path                        = "/var/lib/headscale/db.sqlite"
-    db_type                        = "sqlite3"
-    derp                           = { urls = ["https://controlplane.tailscale.com/derpmap/default"] }
-    disable_check_updates          = true
-    ip_prefixes                    = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
-    listen_addr                    = "0.0.0.0:443"
-    noise                          = { private_key_path = "/var/lib/headscale/noise.key" }
-    private_key_path               = "/var/lib/headscale/private.key"
+    acme_email = "redacted@example.net"
+    acme_url   = "https://acme-v02.api.letsencrypt.org/directory"
+    database = {
+      type   = "sqlite"
+      sqlite = { path = "/var/lib/headscale/db.sqlite" }
+    }
+    derp = {
+      server = { private_key_path = "/var/lib/headscale/private.key" }
+      urls   = ["https://controlplane.tailscale.com/derpmap/default"]
+    }
+    disable_check_updates = true
+    dns                   = { magic_dns = false }
+    listen_addr           = "0.0.0.0:443"
+    noise                 = { private_key_path = "/var/lib/headscale/noise.key" }
+    policy = {
+      mode = "file"
+      path = "/etc/headscale/acls.json"
+    }
+    prefixes = {
+      v4 = local.globals.headscale.net.ipv4
+      v6 = local.globals.headscale.net.ipv6
+    }
     server_url                     = "https://headscale.skaia.cloud/"
     tls_letsencrypt_cache_dir      = "/var/lib/headscale/acme"
     tls_letsencrypt_challenge_type = "TLS-ALPN-01"
@@ -61,19 +72,11 @@ locals {
         ]
         dst = [
           "group:system:*",
-          # TODO: Need headscale >= 0.23.0 (not yet released) for IPv6 CIDR support here.
-          # https://github.com/juanfont/headscale/commit/c72401a99b4cdf49655b08b2f4d5c3a49ae116c2
           "${local.globals.kubernetes.pod_net.ipv4}:*",
-          #"${local.globals.kubernetes.pod_net.ipv6}:*",
+          "${local.globals.kubernetes.pod_net.ipv6}:*",
           "${local.globals.kubernetes.svc_net.ipv4}:*",
-          #"${local.globals.kubernetes.svc_net.ipv6}:*",
+          "${local.globals.kubernetes.svc_net.ipv6}:*",
         ]
-      },
-      # Allow communications within group:admins.
-      {
-        action = "accept"
-        src    = ["group:admins"]
-        dst    = ["group:admins:*"]
       },
     ]
     autoApprovers = {
