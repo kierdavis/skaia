@@ -94,7 +94,6 @@ resource "kubectl_manifest" "cluster" {
         devices = [
           { name = "/dev/disk/by-id/ata-MTFDDAK2T0TBN-1AR1ZABHA_UGXWT01ZRCNAHP" },
           { name = "/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNX0J113462W" },
-          { name = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi-disk-1" },
           { name = "/dev/disk/by-partlabel/OSD0" },
         ]
         useAllDevices = false

@@ -32,29 +32,16 @@ resource "linode_instance" "main" {
   for_each   = toset(["peixes"])
   label      = each.key
   region     = "gb-lon"
-  type       = "g6-standard-4"
+  type       = "g6-standard-2"
   private_ip = false
-}
-
-locals {
-  # TODO: bump to e.g. 25 GiB to squelch ceph mon disk space warning
-  talos_disk_size = 15 * 1024 # MiB
 }
 
 resource "linode_instance_disk" "talos" {
   for_each  = linode_instance.main
   label     = "talos"
   linode_id = each.value.id
-  size      = local.talos_disk_size
+  size      = 25 * 1024 # MiB
   image     = data.terraform_remote_state.image.outputs.linode_image_id
-}
-
-resource "linode_instance_disk" "osd" {
-  for_each   = linode_instance.main
-  label      = "osd"
-  linode_id  = each.value.id
-  size       = each.value.specs[0].disk - local.talos_disk_size
-  filesystem = "raw"
 }
 
 resource "linode_instance_config" "main" {
@@ -67,10 +54,6 @@ resource "linode_instance_config" "main" {
   device {
     device_name = "sda"
     disk_id     = linode_instance_disk.talos[each.key].id
-  }
-  device {
-    device_name = "sdb"
-    disk_id     = linode_instance_disk.osd[each.key].id
   }
 }
 
