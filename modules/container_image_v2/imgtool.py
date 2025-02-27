@@ -37,6 +37,37 @@ def iter_manifest_refs(oci_path, index_path=None):
       raise InvalidImageError(f"manifest {manifest_ref['digest']} referenced by index {index_path} has unrecognised mediaType: {manifest_ref['mediaType']}")
 
 
+def matches_desired_platform(manifest_ref, desired_arch="amd64", desired_os="linux"):
+  arch = manifest_ref.get("platform", {}).get("architecture")
+  arch_ok = arch is None or arch == desired_arch
+  os = manifest_ref.get("platform", {}).get("os")
+  os_ok = os is None or os == desired_os
+  return arch_ok and os_ok
+
+
+def select_and_load_manifest(img_path):
+  manifest_refs = [ref for ref in iter_manifest_refs(img_path / "oci") if matches_desired_platform(ref)]
+  if not manifest_refs:
+    raise PlatformMismatch("no manifest is suitable for desired platform")
+  if len(manifest_refs) > 1:
+    raise PlatformMismatch("multiple manifests are suitable for desired platform")
+  [manifest_ref] = manifest_refs
+
+  manifest_path = img_path / "oci/blobs" / manifest_ref["digest"].replace(":", "/")
+  with open(manifest_path, "r") as f:
+    manifest = json.load(f)
+  if manifest["mediaType"] not in ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json"):
+    raise InvalidImageError(f"manifest {manifest_path} has unrecognised mediaType: {manifest['mediaType']}")
+
+  config_path = img_path / "oci/blobs" / manifest["config"]["digest"].replace(":", "/")
+  with open(config_path, "r") as f:
+    config = json.load(f)
+  if config["rootfs"]["type"] != "layers":
+    raise InvalidImageError(f"expected rootfs.type to be 'layers' in {config_path}")
+
+  return manifest, config
+
+
 def decompress_and_digest(in_path, out_path, decompressor):
   log(f"decompressing {in_path}...")
   decompress_proc = subprocess.Popen(
@@ -84,14 +115,6 @@ def subcmd_post_fetch(args):
         raise InvalidImageError(f"layer {layer_ref['digest']} referenced by manifest {manifest_path} has unrecognised mediaType: {layer_ref['mediaType']}")
 
 
-def matches_desired_platform(manifest_ref, desired_arch="amd64", desired_os="linux"):
-  arch = manifest_ref.get("platform", {}).get("architecture")
-  arch_ok = arch is None or arch == desired_arch
-  os = manifest_ref.get("platform", {}).get("os")
-  os_ok = os is None or os == desired_os
-  return arch_ok and os_ok
-
-
 @contextlib.contextmanager
 def overlay_mounted(mountpoint, lowerdirs, upperdir=None, workdir=None, options=None):
   mountpoint.mkdir(parents=True, exist_ok=True)
@@ -132,58 +155,67 @@ def ephemeral_dir(path):
         pass
 
 
+def mount_image(ctx, img_path, workspace_path, img_config=None, upperdir=None):
+  if img_config is None:
+    _, img_config = select_and_load_manifest(img_path)
+
+  # lowerdirs[0] is the topmost layer, lowerdirs[-1] is the bottommost layer - same order as required by overlayfs mount option.
+  curr_tier_lowerdirs = []
+  for layer_idx, diff_digest in enumerate(img_config["rootfs"]["diff_ids"]):
+    diff_tarball_path = img_path / "diffs" / diff_digest.replace(":", "/")
+    diff_extract_dir = workspace_path / "layer" / str(layer_idx)
+    diff_extract_dir.mkdir(parents=True, exist_ok=True)
+    log(f"extracting {diff_tarball_path} to {diff_extract_dir}...")
+    subprocess.run(
+      ["tar", "--extract", f"--file={diff_tarball_path}", f"--directory={diff_extract_dir}"],
+      stdin=subprocess.DEVNULL,
+      stdout=sys.stderr,
+      check=True,
+    )
+    curr_tier_lowerdirs.insert(0, diff_extract_dir)
+
+  max_lowerdirs_per_overlay = 28  # by experimentation
+  next_tier_lowerdirs = []
+  overlay_idx = 0
+
+  while len(curr_tier_lowerdirs) + len(next_tier_lowerdirs) > max_lowerdirs_per_overlay:
+    group_mountpoint = workspace_path / "group" / str(overlay_idx)
+    group_size = min(max_lowerdirs_per_overlay + 1, len(curr_tier_lowerdirs))
+    ctx.enter_context(overlay_mounted(
+      mountpoint = group_mountpoint,
+      lowerdirs = curr_tier_lowerdirs[-group_size+1:],
+      upperdir = curr_tier_lowerdirs[-group_size],
+      workdir = workspace_path / "work" / str(overlay_idx),
+      options = ["ro"],
+    ))
+    curr_tier_lowerdirs = curr_tier_lowerdirs[:-group_size]
+    next_tier_lowerdirs.insert(0, group_mountpoint)
+    if not curr_tier_lowerdirs:
+      curr_tier_lowerdirs = next_tier_lowerdirs
+      next_tier_lowerdirs = []
+    overlay_idx += 1
+
+  mountpoint = workspace_path / "mnt"
+  ctx.enter_context(overlay_mounted(
+    mountpoint = mountpoint,
+    lowerdirs = curr_tier_lowerdirs + next_tier_lowerdirs,
+    workdir = workspace_path / "work" / str(overlay_idx) if upperdir is not None else None,
+    upperdir = upperdir,
+    options = ["volatile"] if upperdir is not None else ["ro"],
+  ))
+  return mountpoint
+
+
 def run(in_path, config, script):
   # We're root, inside a VM, inside a Nix build.
   # The host's Nix store is mounted at the usual location.
   # It's assumed that the current working directory is backed by disk, not RAM.
 
   with contextlib.ExitStack() as ctx:
-    # lowerdirs[0] is the topmost layer, lowerdirs[-1] is the bottommost layer - same as required by overlayfs mount option.
-    curr_tier_lowerdirs = []
-    for layer_idx, diff_digest in enumerate(config["rootfs"]["diff_ids"]):
-      diff_tarball_path = in_path / "diffs" / diff_digest.replace(":", "/")
-      diff_extract_dir = pathlib.Path("layer") / str(layer_idx)
-      diff_extract_dir.mkdir(parents=True, exist_ok=True)
-      log(f"extracting {diff_tarball_path} to {diff_extract_dir}...")
-      subprocess.run(
-        ["tar", "--extract", f"--file={diff_tarball_path}", f"--directory={diff_extract_dir}"],
-        stdin=subprocess.DEVNULL,
-        stdout=sys.stderr,
-        check=True,
-      )
-      curr_tier_lowerdirs.insert(0, diff_extract_dir)
-
-    max_lowerdirs_per_overlay = 28  # by experimentation
-    next_tier_lowerdirs = []
-    overlay_idx = 0
-
-    while len(curr_tier_lowerdirs) + len(next_tier_lowerdirs) > max_lowerdirs_per_overlay:
-      group_mountpoint = pathlib.Path("group") / str(overlay_idx)
-      group_size = min(max_lowerdirs_per_overlay + 1, len(curr_tier_lowerdirs))
-      ctx.enter_context(overlay_mounted(
-        mountpoint = group_mountpoint,
-        lowerdirs = curr_tier_lowerdirs[-group_size+1:],
-        upperdir = curr_tier_lowerdirs[-group_size],
-        workdir = pathlib.Path("work") / str(overlay_idx),
-        options = ["ro"],
-      ))
-      curr_tier_lowerdirs = curr_tier_lowerdirs[:-group_size]
-      next_tier_lowerdirs.insert(0, group_mountpoint)
-      if not curr_tier_lowerdirs:
-        curr_tier_lowerdirs = next_tier_lowerdirs
-        next_tier_lowerdirs = []
-      overlay_idx += 1
-
-    ctx.enter_context(overlay_mounted(
-      mountpoint = pathlib.Path("mnt"),
-      lowerdirs = curr_tier_lowerdirs + next_tier_lowerdirs,
-      workdir = pathlib.Path("work") / str(overlay_idx),
-      upperdir = pathlib.Path("newlayer"),
-      options = ["volatile"],
-    ))
+    mountpoint = mount_image(ctx, in_path, workspace_path=pathlib.Path("run"), img_config=config, upperdir=pathlib.Path("newlayer"))
 
     for subdir in ["dev", "proc", "sys"]:
-      ctx.enter_context(ephemeral_dir(f"mnt/{subdir}"))
+      ctx.enter_context(ephemeral_dir(mountpoint / subdir))
 
     env = list(config.get("config", {}).get("Env", []))
     for var_name in ["SOURCE_DATE_EPOCH"]:
@@ -198,37 +230,114 @@ def run(in_path, config, script):
         "--mount-proc",
         "sh",
         "-euc",
-        f"for x in dev proc sys; do mount --rbind /$x mnt/$x; done; exec env --ignore-environment {' '.join(env)} $(type -p chroot) mnt sh -euc {shlex.quote(script)}",
+        f"for x in dev proc sys; do mount --rbind /$x {mountpoint}/$x; done; exec env --ignore-environment {' '.join(env)} $(type -p chroot) {mountpoint} sh -euc {shlex.quote(script)}",
       ],
       check=True,
     )
 
 
-def subcmd_customise(args):
+def subcmd_create_layer(args):
+  in_path = pathlib.Path(getattr(args, "in"))
+  out_path = pathlib.Path(args.out)
   with open(args.customisations) as f:
     customisations = json.load(f)
 
+  manifest, config = select_and_load_manifest(in_path)
+
+  pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
+
+  for i, entry in enumerate(customisations.get("add", [])):
+    with contextlib.ExitStack() as ctx:
+      if entry.get("from"):
+        src_root = mount_image(ctx, pathlib.Path(entry["from"]), workspace_path=pathlib.Path(f"add{i}"))
+      else:
+        src_root = pathlib.Path("/")
+      assert entry["src"].startswith("/")
+      src = src_root / entry["src"].lstrip("/")
+      assert entry["dest"].startswith("/")
+      dest = pathlib.Path("newlayer") / entry["dest"].lstrip("/")
+      log(f"copying {src} to {dest}...")
+      dest.parent.mkdir(parents=True, exist_ok=True)
+      rsync_cmd = ["rsync", "--archive"]
+      if entry.get("dereference", True):
+        rsync_cmd.append("--copy-links")
+      if src.is_dir():
+        rsync_cmd += [f"{src}/", f"{dest}/"]
+      else:
+        rsync_cmd += [str(src), str(dest)]
+      subprocess.run(
+        rsync_cmd,
+        stdin=subprocess.DEVNULL,
+        stdout=sys.stderr,
+        check=True,
+      )
+
+  if customisations.get("run"):
+    run(in_path=in_path, config=config, script=customisations["run"])
+
+  log("packing blob...")
+  out_path.mkdir(parents=True, exist_ok=True)
+  new_diff_path = out_path / "diff"
+  new_blob_path = out_path / "blob"
+  tar_proc = subprocess.Popen(
+    [
+      "tar",
+      "--create",
+      "--directory=newlayer",
+      "--exclude=./imgbuild",
+      "--hard-dereference",
+      "--sort=name",
+      f"--mtime=@{os.environ.get('SOURCE_DATE_EPOCH', 1)}",
+      ".",
+    ],
+    stdin=subprocess.DEVNULL,
+    stdout=subprocess.PIPE,
+  )
+  diff_sha256sum_proc = subprocess.Popen(
+    ["sha256sum"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+  )
+  diff_tee_proc = subprocess.Popen(
+    ["tee", str(new_diff_path), f"/dev/fd/{diff_sha256sum_proc.stdin.fileno()}"],
+    pass_fds=(diff_sha256sum_proc.stdin.fileno(),),
+    stdin=tar_proc.stdout,
+    stdout=subprocess.PIPE,
+  )
+  diff_sha256sum_proc.stdin.close()
+  pigz_proc = subprocess.Popen(
+    ["pigz"],
+    stdin=diff_tee_proc.stdout,
+    stdout=subprocess.PIPE,
+  )
+  blob_tee_proc = subprocess.Popen(
+    ["tee", str(new_blob_path)],
+    stdin=pigz_proc.stdout,
+    stdout=subprocess.PIPE,
+  )
+  blob_sha256sum_proc = subprocess.Popen(
+    ["sha256sum"],
+    stdin=blob_tee_proc.stdout,
+    stdout=subprocess.PIPE,
+  )
+  for proc in [tar_proc, diff_sha256sum_proc, diff_tee_proc, pigz_proc, blob_tee_proc, blob_sha256sum_proc]:
+    if proc.wait() != 0:
+      raise subprocess.CalledProcessError(returncode=proc.returncode, cmd=repr(proc.args))
+
+  with open(out_path / "metadata.json", "w") as f:
+    json.dump({
+      "diff_digest": "sha256:" + diff_sha256sum_proc.stdout.read().decode("ascii").split()[0],
+      "blob_digest": "sha256:" + blob_sha256sum_proc.stdout.read().decode("ascii").split()[0],
+    }, f, separators=(",", ":"))
+
+
+def subcmd_customise(args):
   in_path = pathlib.Path(getattr(args, "in"))
   out_path = pathlib.Path(args.out)
+  with open(args.customisations) as f:
+    customisations = json.load(f)
 
-  manifest_refs = [ref for ref in iter_manifest_refs(in_path / "oci") if matches_desired_platform(ref)]
-  if not manifest_refs:
-    raise PlatformMismatch("no manifest is suitable for desired platform")
-  if len(manifest_refs) > 1:
-    raise PlatformMismatch("multiple manifests are suitable for desired platform")
-  [manifest_ref] = manifest_refs
-
-  manifest_path = in_path / "oci/blobs" / manifest_ref["digest"].replace(":", "/")
-  with open(manifest_path, "r") as f:
-    manifest = json.load(f)
-  if manifest["mediaType"] not in ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json"):
-    raise InvalidImageError(f"manifest {manifest_path} has unrecognised mediaType: {manifest['mediaType']}")
-
-  config_path = in_path / "oci/blobs" / manifest["config"]["digest"].replace(":", "/")
-  with open(config_path, "r") as f:
-    config = json.load(f)
-  if config["rootfs"]["type"] != "layers":
-    raise InvalidImageError(f"expected rootfs.type to be 'layers' in {config_path}")
+  manifest, config = select_and_load_manifest(in_path)
 
   (out_path / "diffs/sha256").mkdir(parents=True, exist_ok=True)
   for diff_digest in config["rootfs"]["diff_ids"]:
@@ -239,94 +348,23 @@ def subcmd_customise(args):
     blob_rel_path = blob_ref["digest"].replace(":", "/")
     (out_path / "oci/blobs" / blob_rel_path).symlink_to(in_path / "oci/blobs" / blob_rel_path)
 
-  if customisations.get("add") or customisations.get("run"):
-    pathlib.Path("newlayer").mkdir(parents=True, exist_ok=True)
+  if customisations.get("newLayer"):
+    new_layer_path = pathlib.Path(customisations["newLayer"])
+    with open(new_layer_path / "metadata.json") as f:
+      new_layer_metadata = json.load(f)
 
-    for src in customisations.get("add", []):
-      log(f"copying contents of {src} to new layer")
-      subprocess.run(
-        ["rsync", "--archive", f"{src}/", "newlayer/"],
-        stdin=subprocess.DEVNULL,
-        stdout=sys.stderr,
-        check=True,
-      )
+    (out_path / "diffs" / new_layer_metadata["diff_digest"].replace(":", "/")).symlink_to(new_layer_path / "diff")
+    (out_path / "oci/blobs" / new_layer_metadata["blob_digest"].replace(":", "/")).symlink_to(new_layer_path / "blob")
 
-    if customisations.get("run"):
-      run(in_path=in_path, config=config, script=customisations["run"])
-
-    log("packing new layer blob...")
-    new_diff_staging_path = out_path / "diffs/staging"
-    new_blob_staging_path = out_path / "oci/blobs/staging"
-    tar_proc = subprocess.Popen(
-      [
-        "tar",
-        "--create",
-        "--directory=newlayer",
-        "--exclude=./imgbuild",
-        "--hard-dereference",
-        "--sort=name",
-        f"--mtime=@{os.environ.get('SOURCE_DATE_EPOCH', 1)}",
-        ".",
-      ],
-      stdin=subprocess.DEVNULL,
-      stdout=subprocess.PIPE,
-    )
-    diff_sha256sum_proc = subprocess.Popen(
-      ["sha256sum"],
-      stdin=subprocess.PIPE,
-      stdout=subprocess.PIPE,
-    )
-    diff_tee_proc = subprocess.Popen(
-      ["tee", str(new_diff_staging_path), f"/dev/fd/{diff_sha256sum_proc.stdin.fileno()}"],
-      pass_fds=(diff_sha256sum_proc.stdin.fileno(),),
-      stdin=tar_proc.stdout,
-      stdout=subprocess.PIPE,
-    )
-    diff_sha256sum_proc.stdin.close()
-    pigz_proc = subprocess.Popen(
-      ["pigz"],
-      stdin=diff_tee_proc.stdout,
-      stdout=subprocess.PIPE,
-    )
-    blob_tee_proc = subprocess.Popen(
-      ["tee", str(new_blob_staging_path)],
-      stdin=pigz_proc.stdout,
-      stdout=subprocess.PIPE,
-    )
-    blob_sha256sum_proc = subprocess.Popen(
-      ["sha256sum"],
-      stdin=blob_tee_proc.stdout,
-      stdout=subprocess.PIPE,
-    )
-    for proc in [tar_proc, diff_sha256sum_proc, diff_tee_proc, pigz_proc, blob_tee_proc, blob_sha256sum_proc]:
-      if proc.wait() != 0:
-        raise subprocess.CalledProcessError(returncode=proc.returncode, cmd=repr(proc.args))
-
-    new_diff_digest = "sha256:" + diff_sha256sum_proc.stdout.read().decode("ascii").split()[0]
-    new_diff_path = out_path / "diffs" / new_diff_digest.replace(":", "/")
-    if new_diff_path.exists():
-      new_diff_staging_path.unlink()
-    else:
-      new_diff_staging_path.rename(new_diff_path)
-    log(f"new layer diff: {new_diff_path}")
-
-    new_blob_digest = "sha256:" + blob_sha256sum_proc.stdout.read().decode("ascii").split()[0]
-    new_blob_path = out_path / "oci/blobs" / new_blob_digest.replace(":", "/")
-    if new_blob_path.exists():
-      new_blob_staging_path.unlink()
-    else:
-      new_blob_staging_path.rename(new_blob_path)
-    log(f"new layer blob: {new_blob_path}")
-
-    config["rootfs"]["diff_ids"].append(new_diff_digest)
+    config["rootfs"]["diff_ids"].append(new_layer_metadata["diff_digest"])
     config["history"].append({"comment": "imgtool"})
     manifest["layers"].append({
       "mediaType": {
         "application/vnd.oci.image.manifest.v1+json": "application/vnd.oci.image.layer.v1.tar+gzip",
         "application/vnd.docker.distribution.manifest.v2+json": "application/vnd.docker.image.rootfs.diff.tar.gzip",
       }[manifest["mediaType"]],
-      "digest": new_blob_digest,
-      "size": new_blob_path.stat().st_size,
+      "digest": new_layer_metadata["blob_digest"],
+      "size": (new_layer_path / "blob").stat().st_size,
     })
 
   for name, value in customisations.get("env", {}).items():
@@ -374,6 +412,12 @@ def main():
   post_fetch_parser = subparsers.add_parser("post-fetch")
   post_fetch_parser.set_defaults(subcmd=subcmd_post_fetch)
   post_fetch_parser.add_argument("img_path")
+
+  create_layer_parser = subparsers.add_parser("create-layer")
+  create_layer_parser.set_defaults(subcmd=subcmd_create_layer)
+  create_layer_parser.add_argument("customisations", metavar="JSON_PATH")
+  create_layer_parser.add_argument("in", metavar="IMAGE_PATH")
+  create_layer_parser.add_argument("out", metavar="IMAGE_PATH")
 
   customise_parser = subparsers.add_parser("customise")
   customise_parser.set_defaults(subcmd=subcmd_customise)

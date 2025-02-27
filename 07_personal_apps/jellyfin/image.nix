@@ -17,7 +17,8 @@ imageTools.customise {
       "https://archive.ubuntu.com/ubuntu/pool/universe/o/opencl-clang-14/libopencl-clang14_14.0.0-4build2_amd64.deb"
       "https://archive.ubuntu.com/ubuntu/pool/universe/s/spirv-llvm-translator-14/libllvmspirvlib14_14.0.0-12build1_amd64.deb"
     ];
-    hash = "sha256-JMFavfI76M97Z1Ug4rb7DZbqOd8W6GiRf7DNLUvym0I=";
+    hash = "sha256-nEPVF8/OQzjVtSONf7cimUjm5TQkMBw0tvxUAkOQZa8=";
   })];
   run = imageTools.installDEBs;
+  newLayerHash = "sha256-3vIwXx2iVprVbqy21rtTouh3KTUJSYQZAD2AczwWlW4=";
 }

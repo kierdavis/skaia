@@ -23,44 +23,15 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/container_image_v2"
   repo_name      = "skaia-transcode"
   repo_namespace = local.globals.docker_hub.namespace
-  builder        = "buildah"
-  src            = "${path.module}/build-image.sh"
+  src            = "${path.module}/image.nix"
 }
-
-
-# To convert 10-bit HEVC to 8-bit AVC:
-# ffmpeg \
-#   -y \
-#   -init_hw_device qsv=hw \
-#   -filter_hw_device hw \
-#   -i "$FILE" \
-#   -vf format=nv12,hwupload=extra_hw_frames=64 \
-#   -map 0 \
-#   -c:a copy \
-#   -c:s copy \
-#   -c:v h264_qsv \
-#   "$DEST"
-
-# To convert AVC to AVC at a lower bitrate:
-# ffmpeg \
-#   -y \
-#   -hwaccel qsv \
-#   -c:v h264_qsv \
-#   -i "$FILE" \
-#   -map 0 \
-#   -c:a copy \
-#   -c:s copy \
-#   -c:v h264_qsv \
-#   -b:v 1.5M \
-#   -bufsize 1M \
-#   "$DEST"
 
 # Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.
 
-resource "kubernetes_job" "main" {
+resource "kubernetes_job" "hevc10_to_avc" {
   for_each = {
     #s01e01 = "/net/skaia/media/foobar/S01E01.mkv"
     #s01e02 = "/net/skaia/media/foobar/S01E02.mkv"
@@ -82,13 +53,14 @@ resource "kubernetes_job" "main" {
         restart_policy = "Never"
         affinity {
           node_affinity {
-            # Require a node with Intel QSV (all QSV versions include h.264 encoding).
+            # Require a node that supports hardware AVC encoding.
+            # None of my nodes support hardware HEVC Main 10 decoding, so we'll do that in software.
             required_during_scheduling_ignored_during_execution {
               node_selector_term {
                 match_expressions {
                   key      = "hwcaps.skaia.cloud/qsv"
                   operator = "NotIn"
-                  values   = ["none"]
+                  values   = ["none", "cantiga", "clarkdale", "arrandale"]
                 }
               }
             }
@@ -108,25 +80,26 @@ resource "kubernetes_job" "main" {
         }
         container {
           name  = "main"
-          image = module.image.tag
+          image = module.image.name_and_tag
           command = [
-            "bash", "-c",
+            "sh", "-c",
             <<-EOS
               set -o errexit -o nounset -o pipefail
               vainfo --display drm --device /dev/dri/renderD128
-              #ffmpeg -h encoder=h264_qsv
               DEST="/net/skaia/media/.nobackup/$${FILE#/net/skaia/media/}"
               mkdir -p "$(dirname "$DEST")"
               ffmpeg \
                 -y \
-                -init_hw_device qsv=hw \
+                -init_hw_device vaapi=hw \
                 -filter_hw_device hw \
                 -i "$FILE" \
                 -vf format=nv12,hwupload=extra_hw_frames=64 \
                 -map 0 \
                 -c:a copy \
                 -c:s copy \
-                -c:v h264_qsv \
+                -c:v h264_vaapi \
+                -b:v 1.5M \
+                -bufsize 1M \
                 "$DEST"
               rm -v "$FILE"
               ln -sfT "$DEST" "$FILE"

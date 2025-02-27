@@ -18,7 +18,7 @@ nix_derivation = subprocess.run(
 ).stdout.decode("utf-8").strip()
 
 
-def build_it(delete_nix_build_after=False):
+def build_it():
   nix_store_path = pathlib.Path(subprocess.run(
     ["nix-store", "--realise", nix_derivation],
     stdout=subprocess.PIPE,
@@ -42,15 +42,7 @@ def build_it(delete_nix_build_after=False):
       sys.stderr.write(podman_load_proc.stdout.read().decode("utf-8"))
       raise subprocess.CalledProcessError(returncode=proc.returncode, cmd=repr(proc.args))
 
-  podman_id = re.search(r"\bLoaded image: sha256:(\w+)\b", podman_load_proc.stdout.read().decode("utf-8")).group(1)
-
-  if delete_nix_build_after:
-    subprocess.run(
-      ["nix-store", "--delete", str(nix_store_path)],
-      check=True,
-    )
-
-  return podman_id
+  return re.search(r"\bLoaded image: sha256:(\w+)\b", podman_load_proc.stdout.read().decode("utf-8")).group(1)
 
 
 @contextlib.contextmanager
@@ -68,7 +60,8 @@ def temporary_podman_tag(image_id):
     )
 
 
-podman_id_1 = build_it(delete_nix_build_after=True)
+podman_id_1 = build_it()
+subprocess.run(["nix-collect-garbage"], check=True)
 podman_id_2 = build_it()
 
 if podman_id_1 == podman_id_2:

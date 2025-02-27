@@ -1,4 +1,4 @@
-{ imageTools, writeTextFile }:
+{ imageTools, writeText }:
 
 # After a thouroughly painful troubleshooting session, I found that this fixes
 # the garbled text in the PDF/A files produced from newer Jump paychecks.
@@ -19,16 +19,15 @@ imageTools.customise {
     imageDigest = "sha256:da0476cea301df8bc8d20739f0e76de1e77d91ad2c9170b45c803468dde19208";
     hash = "sha256-MqKoUUVzACkQtGicuTxpR42xT6Ap4Lq1mMQZ5lG4nM0=";
   };
-  add = [(writeTextFile {
-    name = "paperless-ngx-content";
-    text = ''
+  add = [{
+    src = writeText "myfontmap.gs" ''
       /Arial,BoldItalic (/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf) ;
       /Arial,Bold (/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf) ;
       /Arial,Italic (/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf) ;
       /Arial (/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf) ;
       /Helvetica (/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf) ;
     '';
-    destination = "/usr/share/ghostscript/myfontmap.gs";
-  })];
+    dest = "/usr/share/ghostscript/myfontmap.gs";
+  }];
   env.GS_OPTIONS = "-sFONTMAP=/usr/share/ghostscript/myfontmap.gs";
 }
