@@ -19,8 +19,8 @@ terraform {
 }
 
 locals {
-  headscale_version = "0.23.0"
-  headscale_sha256  = "d9193dad4b070b9b3f6d54c8f14366952944b6e917672c0bc1dfd8f5491287a7"
+  headscale_version = "0.24.1"
+  headscale_sha256  = "28540f5bed81e574dd99b3100ee2fa932ecbb68c6ac093a86f2fc32cb07ff731"
 
   globals = yamldecode(file("${path.module}/../globals.yaml"))
 
