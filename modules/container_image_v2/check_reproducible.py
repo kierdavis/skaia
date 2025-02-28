@@ -11,8 +11,10 @@ import tempfile
 image_src = sys.argv[1]
 this_script = pathlib.Path(__file__)
 
+nix_derivation_gcroot_path = pathlib.Path("check_reproducible_drv.gcroot")
+
 nix_derivation = subprocess.run(
-  ["nix-instantiate", str(this_script.parent / "image.nix"), "-I", f"src={image_src}"],
+  ["nix-instantiate", str(this_script.parent / "image.nix"), "-I", f"src={image_src}", "--add-root", str(nix_derivation_gcroot_path)],
   stdout=subprocess.PIPE,
   check=True,
 ).stdout.decode("utf-8").strip()
@@ -63,6 +65,8 @@ def temporary_podman_tag(image_id):
 podman_id_1 = build_it()
 subprocess.run(["nix-collect-garbage"], check=True)
 podman_id_2 = build_it()
+
+nix_derivation_gcroot_path.unlink()
 
 if podman_id_1 == podman_id_2:
   print()
