@@ -43,36 +43,36 @@ output "schematic_id" {
   value = local.schematic_id
 }
 
-locals {
-  linode_image_path = "${path.module}/work/talos-${local.version}-${local.schematic_id}-linode.img.gz"
-}
+#locals {
+#  linode_image_path = "${path.module}/work/talos-${local.version}-${local.schematic_id}-linode.img.gz"
+#}
 
-resource "terraform_data" "convert_for_linode" {
-  triggers_replace = local.linode_image_path
-  provisioner "local-exec" {
-    command = <<EOF
-      mkdir -p "$(dirname "$dest")"
-      curl --silent --show-error --fail "$src" \
-        | unxz --stdout \
-        | pigz --stdout > "$dest"
-    EOF
-    environment = {
-      src  = "https://factory.talos.dev/image/${local.schematic_id}/v${local.version}/metal-amd64.raw.xz"
-      dest = local.linode_image_path
-    }
-  }
-}
+#resource "terraform_data" "convert_for_linode" {
+#  triggers_replace = local.linode_image_path
+#  provisioner "local-exec" {
+#    command = <<EOF
+#      mkdir -p "$(dirname "$dest")"
+#      curl --silent --show-error --fail "$src" \
+#        | unxz --stdout \
+#        | pigz --stdout > "$dest"
+#    EOF
+#    environment = {
+#      src  = "https://factory.talos.dev/image/${local.schematic_id}/v${local.version}/metal-amd64.raw.xz"
+#      dest = local.linode_image_path
+#    }
+#  }
+#}
 
-resource "linode_image" "main" {
-  label      = "skaia-talos-${local.version}-${local.schematic_id_short}"
-  file_path  = local.linode_image_path
-  region     = "gb-lon"
-  depends_on = [terraform_data.convert_for_linode]
-}
+#resource "linode_image" "main" {
+#  label      = "skaia-talos-${local.version}-${local.schematic_id_short}"
+#  file_path  = local.linode_image_path
+#  region     = "gb-lon"
+#  depends_on = [terraform_data.convert_for_linode]
+#}
 
-output "linode_image_id" {
-  value = linode_image.main.id
-}
+#output "linode_image_id" {
+#  value = linode_image.main.id
+#}
 
 resource "linode_object_storage_bucket" "bare_metal" {
   cluster    = "fr-par-1"

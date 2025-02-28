@@ -29,7 +29,7 @@ data "terraform_remote_state" "image" {
 }
 
 resource "linode_instance" "main" {
-  for_each   = toset(["peixes"])
+  for_each   = toset([])
   label      = each.key
   region     = "gb-lon"
   type       = "g6-standard-2"

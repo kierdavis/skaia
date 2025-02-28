@@ -39,18 +39,6 @@ locals {
         "topology.rook.io/chassis"      = "c-pyrope"
       }
     }
-    peixes = {
-      role                     = "controlplane"
-      boot_disk                = "/dev/sda"
-      bootstrap_endpoint       = "peixes.skaia.cloud"
-      force_bootstrap_endpoint = false # set to true if tailscaled is broken
-      labels = {
-        "hwcaps.skaia.cloud/qsv"        = "none"
-        "topology.kubernetes.io/region" = "r-lon"
-        "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
-        "topology.rook.io/chassis"      = "c-peixes"
-      }
-    }
   }
   arbitrary_node = "vantas"
 
