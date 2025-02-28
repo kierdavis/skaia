@@ -1,7 +1,8 @@
 terraform {
   required_providers {
     headscale = {
-      source = "awlsring/headscale"
+      source  = "awlsring/headscale"
+      version = "~> 0.2"
     }
     talos = {
       source  = "siderolabs/talos"
