@@ -9,6 +9,7 @@ authorized_ssh:
   - REDACTED
   - REDACTED
   - REDACTED
+  - REDACTED
 
 b2:
   account_id: REDACTED
