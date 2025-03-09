@@ -43,6 +43,10 @@ output "schematic_id" {
   value = local.schematic_id
 }
 
+output "installer_image" {
+  value = "factory.talos.dev/installer/${local.schematic_id}:v${local.version}"
+}
+
 #locals {
 #  linode_image_path = "${path.module}/work/talos-${local.version}-${local.schematic_id}-linode.img.gz"
 #}
