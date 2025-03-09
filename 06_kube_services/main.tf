@@ -12,9 +12,9 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
-    postgresql = {
-      source = "cyrilgdn/postgresql"
-    }
+    #postgresql = {
+    #  source = "cyrilgdn/postgresql"
+    #}
     tls = {
       source = "hashicorp/tls"
     }
@@ -60,12 +60,12 @@ provider "kubernetes" {
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
-provider "postgresql" {
-  host     = module.postgresql.provider_config.host
-  username = module.postgresql.provider_config.username
-  password = module.postgresql.provider_config.password
-  sslmode  = module.postgresql.provider_config.sslmode
-}
+#provider "postgresql" {
+#  host     = module.postgresql.provider_config.host
+#  username = module.postgresql.provider_config.username
+#  password = module.postgresql.provider_config.password
+#  sslmode  = module.postgresql.provider_config.sslmode
+#}
 
 module "csi_addons" {
   source = "./csi_addons"
@@ -80,10 +80,10 @@ module "kube_network_policies" {
   depends_on = [module.prometheus]
 }
 
-module "postgresql" {
-  source     = "./postgresql"
-  depends_on = [module.rook_ceph]
-}
+#module "postgresql" {
+#  source     = "./postgresql"
+#  depends_on = [module.rook_ceph]
+#}
 
 module "prometheus" {
   source     = "./prometheus"
