@@ -79,7 +79,7 @@ output "installer_image" {
 #}
 
 resource "linode_object_storage_bucket" "bare_metal" {
-  cluster    = "fr-par-1"
+  region     = "fr-par"
   label      = "skaia-talos-image"
   acl        = "private"
   versioning = false
@@ -87,7 +87,7 @@ resource "linode_object_storage_bucket" "bare_metal" {
 
 resource "linode_object_storage_object" "bare_metal" {
   bucket       = linode_object_storage_bucket.bare_metal.label
-  cluster      = linode_object_storage_bucket.bare_metal.cluster
+  region       = linode_object_storage_bucket.bare_metal.region
   key          = "install.sh"
   acl          = "public-read"
   content_type = "application/x-sh"
@@ -140,5 +140,5 @@ resource "linode_object_storage_object" "bare_metal" {
 }
 
 output "bare_metal_script_url" {
-  value = "https://${linode_object_storage_object.bare_metal.bucket}.${linode_object_storage_object.bare_metal.cluster}.linodeobjects.com/${linode_object_storage_object.bare_metal.key}"
+  value = "https://${linode_object_storage_object.bare_metal.bucket}.${linode_object_storage_object.bare_metal.endpoint}/${linode_object_storage_object.bare_metal.key}"
 }
