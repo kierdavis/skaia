@@ -39,6 +39,22 @@ locals {
         "topology.rook.io/chassis"      = "c-pyrope"
       }
     }
+    # Temporary master for upgrades.
+    nitram = {
+      role                     = "controlplane"
+      boot_disk                = "/dev/sda"
+      bootstrap_endpoint       = "nitram.skaia.cloud"
+      force_bootstrap_endpoint = false # set to true if tailscaled is broken
+      labels = {
+        "hwcaps.skaia.cloud/qsv"        = "none"
+        "topology.kubernetes.io/region" = "r-lhr"
+        "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
+        "topology.rook.io/chassis"      = "c-nitram"
+      }
+      taints = {
+        "skaia.cloud/control-only" = "true:NoSchedule"
+      }
+    }
   }
   arbitrary_node = "vantas"
 
@@ -173,6 +189,7 @@ data "talos_machine_configuration" "main" {
           nameservers = ["1.1.1.1", "1.0.0.1"]
         }
         nodeLabels = each.value.labels
+        nodeTaints = lookup(each.value, "taints", {})
         sysctls = {
           "net.ipv4.ip_forward"          = "1"
           "net.ipv6.conf.all.forwarding" = "1"

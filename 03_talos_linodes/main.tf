@@ -11,6 +11,10 @@ terraform {
 
 locals {
   nodes = {
+    # Temporary master for upgrades.
+    nitram = {
+      type = "g6-standard-1"
+    }
   }
 
   globals = yamldecode(file("${path.module}/../globals.yaml"))
