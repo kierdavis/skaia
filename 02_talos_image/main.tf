@@ -19,40 +19,53 @@ provider "linode" {
 }
 
 locals {
-  version = "1.7.7"
-  schematic = {
-    customization = {
-      systemExtensions = {
-        officialExtensions = ["siderolabs/tailscale"]
+  instances = {
+    "1.7.7" = {
+      version = "1.7.7"
+      schematic = {
+        customization = {
+          systemExtensions = {
+            officialExtensions = ["siderolabs/tailscale"]
+          }
+        }
       }
     }
   }
 }
 
 data "external" "schematic_id" {
-  program = ["sh", "-c", "jq -r .yaml | curl --silent --show-error --fail --data-binary @- https://factory.talos.dev/schematics"]
-  query   = { yaml = yamlencode(local.schematic) }
+  for_each = local.instances
+  program  = ["sh", "-c", "jq -r .yaml | curl --silent --show-error --fail --data-binary @- https://factory.talos.dev/schematics"]
+  query    = { yaml = yamlencode(each.value.schematic) }
 }
 
 locals {
-  schematic_id       = data.external.schematic_id.result.id
-  schematic_id_short = substr(local.schematic_id, 0, 8)
-}
-
-output "schematic_id" {
-  value = local.schematic_id
+  instances2 = {
+    for key, inst in local.instances :
+    key => merge(inst, {
+      schematic_id       = data.external.schematic_id[key].result.id
+      schematic_id_short = substr(data.external.schematic_id[key].result.id, 0, 8)
+    })
+  }
 }
 
 output "installer_image" {
-  value = "factory.talos.dev/installer/${local.schematic_id}:v${local.version}"
+  value = {
+    for key, inst in local.instances2 :
+    key => "factory.talos.dev/installer/${inst.schematic_id}:v${inst.version}"
+  }
 }
 
 locals {
-  linode_image_path = "${path.module}/work/talos-${local.version}-${local.schematic_id}-linode.img.gz"
+  linode_image_path = {
+    for key, inst in local.instances2 :
+    key => "${path.module}/work/talos-${inst.version}-${inst.schematic_id}-linode.img.gz"
+  }
 }
 
 resource "terraform_data" "convert_for_linode" {
-  triggers_replace = local.linode_image_path
+  for_each         = local.instances2
+  triggers_replace = local.linode_image_path[each.key]
   provisioner "local-exec" {
     command = <<EOF
       mkdir -p "$(dirname "$dest")"
@@ -61,22 +74,26 @@ resource "terraform_data" "convert_for_linode" {
         | pigz --stdout > "$dest"
     EOF
     environment = {
-      src  = "https://factory.talos.dev/image/${local.schematic_id}/v${local.version}/metal-amd64.raw.xz"
-      dest = local.linode_image_path
+      src  = "https://factory.talos.dev/image/${each.value.schematic_id}/v${each.value.version}/metal-amd64.raw.xz"
+      dest = local.linode_image_path[each.key]
     }
   }
 }
 
 resource "linode_image" "main" {
-  label      = "skaia-talos-${local.version}-${local.schematic_id_short}"
-  file_path  = local.linode_image_path
-  file_hash  = filemd5(local.linode_image_path)
+  for_each   = local.instances2
+  label      = "skaia-talos-${each.value.version}-${each.value.schematic_id_short}"
+  file_path  = local.linode_image_path[each.key]
+  file_hash  = filemd5(local.linode_image_path[each.key])
   region     = "fr-par" # Only using fr-par due to a Linode outage; go back to gb-lon next time.
   depends_on = [terraform_data.convert_for_linode]
 }
 
 output "linode_image_id" {
-  value = linode_image.main.id
+  value = {
+    for key, inst in local.instances2 :
+    key => linode_image.main[key].id
+  }
 }
 
 resource "linode_object_storage_bucket" "bare_metal" {
@@ -87,9 +104,10 @@ resource "linode_object_storage_bucket" "bare_metal" {
 }
 
 resource "linode_object_storage_object" "bare_metal" {
+  for_each     = local.instances2
   bucket       = linode_object_storage_bucket.bare_metal.label
   region       = linode_object_storage_bucket.bare_metal.region
-  key          = "install.sh"
+  key          = "install/${each.key}.sh"
   acl          = "public-read"
   content_type = "application/x-sh"
   content      = <<-EOF
@@ -106,7 +124,7 @@ resource "linode_object_storage_object" "bare_metal" {
     wipefs --all "$target"* || true
     blkdiscard --force "$target" || true
 
-    url="https://factory.talos.dev/image/${local.schematic_id}/v${local.version}/metal-amd64.raw.xz"
+    url="https://factory.talos.dev/image/${each.value.schematic_id}/v${each.value.version}/metal-amd64.raw.xz"
     curl --silent --show-error --fail --location "$url" \
       | xzcat | dd of="$target"
 
@@ -141,5 +159,8 @@ resource "linode_object_storage_object" "bare_metal" {
 }
 
 output "bare_metal_script_url" {
-  value = "https://${linode_object_storage_object.bare_metal.bucket}.${linode_object_storage_object.bare_metal.endpoint}/${linode_object_storage_object.bare_metal.key}"
+  value = {
+    for key, obj in linode_object_storage_object.bare_metal :
+    key => "https://${obj.bucket}.${obj.endpoint}/${obj.key}"
+  }
 }
