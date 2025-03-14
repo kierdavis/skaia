@@ -20,7 +20,7 @@ let
     htop
     iana-etc
     iftop
-    iproute
+    iproute2
     iptables-legacy
     iputils
     jnettop
