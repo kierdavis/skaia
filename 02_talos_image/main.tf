@@ -20,6 +20,16 @@ provider "linode" {
 
 locals {
   instances = {
+    "1.7.1" = {
+      version = "1.7.1"
+      schematic = {
+        customization = {
+          systemExtensions = {
+            officialExtensions = ["siderolabs/tailscale"]
+          }
+        }
+      }
+    }
     "1.7.7" = {
       version = "1.7.7"
       schematic = {
@@ -84,7 +94,7 @@ resource "linode_image" "main" {
   for_each   = local.instances2
   label      = "skaia-talos-${each.value.version}-${each.value.schematic_id_short}"
   file_path  = local.linode_image_path[each.key]
-  file_hash  = filemd5(local.linode_image_path[each.key])
+  file_hash  = try(filemd5(local.linode_image_path[each.key]), null)
   region     = "fr-par" # Only using fr-par due to a Linode outage; go back to gb-lon next time.
   depends_on = [terraform_data.convert_for_linode]
 }

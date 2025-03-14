@@ -14,7 +14,7 @@ locals {
     # Temporary master for upgrades.
     nitram = {
       type  = "g6-standard-1"
-      image = "1.7.7"
+      image = "1.7.1"
     }
   }
 
