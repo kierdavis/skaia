@@ -1,14 +1,8 @@
 { pkgs ? import <nixpkgs> { }
 , lib ? pkgs.lib
-, name ? "docker.io/kierdavis/skaia-debug"
-, tag ? "build"
 , bundleNixpkgs ? true
 , channelName ? "nixpkgs"
 , channelURL ? "https://nixos.org/channels/nixpkgs-unstable"
-, extraPkgs ? []
-, maxLayers ? 1000
-, nixConf ? {}
-, flake-registry ? null
 }:
 let
   defaultPkgs = with pkgs; [
@@ -51,7 +45,7 @@ let
     util-linux
     wget
     which
-  ] ++ extraPkgs;
+  ];
 
   users = {
 
@@ -171,7 +165,7 @@ let
     let
       vStr = if builtins.isList v then lib.concatStringsSep " " v else v;
     in
-      "${n} = ${vStr}") (defaultNixConf // nixConf))) + "\n";
+      "${n} = ${vStr}") defaultNixConf)) + "\n";
 
   baseSystem =
     let
@@ -213,12 +207,7 @@ let
         cp -a ${rootEnv}/* $out/
         ln -s ${manifest} $out/manifest.nix
       '';
-      flake-registry-path = if (flake-registry == null) then
-        null
-      else if (builtins.readFileType (toString flake-registry)) == "directory" then
-        "${flake-registry}/flake-registry.json"
-      else
-        flake-registry;
+      flake-registry-path = null;
     in
     pkgs.runCommand "base-system"
       {
@@ -291,7 +280,9 @@ let
 in
 (pkgs.dockerTools.buildLayeredImageWithNixDb {
 
-  inherit name tag maxLayers;
+  name = "docker.io/kierdavis/skaia-debug";
+  tag = "build";
+  maxLayers = 1000;
 
   contents = [ baseSystem ];
 
