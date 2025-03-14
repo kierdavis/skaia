@@ -20,16 +20,6 @@ provider "linode" {
 
 locals {
   instances = {
-    "1.7.1" = {
-      version = "1.7.1"
-      schematic = {
-        customization = {
-          systemExtensions = {
-            officialExtensions = ["siderolabs/tailscale"]
-          }
-        }
-      }
-    }
     "1.7.7" = {
       version = "1.7.7"
       schematic = {
