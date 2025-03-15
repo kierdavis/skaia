@@ -137,101 +137,14 @@ resource "linode_object_storage_bucket" "bare_metal" {
 }
 
 resource "linode_object_storage_object" "bare_metal" {
-  for_each     = local.instances2
   bucket       = linode_object_storage_bucket.bare_metal.label
   region       = linode_object_storage_bucket.bare_metal.region
-  key          = "install/${each.key}.sh"
+  key          = "install.py"
   acl          = "public-read"
-  content_type = "application/x-sh"
-  content      = <<-EOF
-    #!/bin/bash
-    set -o errexit -o nounset -o pipefail -o xtrace
-
-    target="$1"
-
-    if ! type jq &>/dev/null; then
-      nix-env -iA nixos.jq
-    fi
-
-    url="https://factory.talos.dev/image/${each.value.schematic_id}/v${each.value.version}/metal-amd64.raw.xz"
-
-    sector_size=512
-    align=4  # align partition boundaries to a multiple of this many sectors
-
-    disk_size_s=$(parted "$target" unit s print --json | jq --raw-output .disk.size)
-    disk_size=$${disk_size_s%s}
-    # Last 33 sectors are reserved for the partition table mirror.
-    last_part_end=$(( disk_size - 33 ))
-    last_part_end=$(( (last_part_end/align)*align ))
-
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    # TODO: THIS CONDITIONAL DOESNT WORK - FIND OUT WHY
-    #if [[ -e /dev/disk/by-partlabel/OSD* ]]; then
-    if false; then
-      # TODO: rewrite this code to support Talos 1.9 part layout (only 4 parts at image time)
-      for i in $(seq 1 5); do
-        wipefs --all "$target"p"$i" || true
-        blkdiscard --force "$target"p"$i" || true
-      done
-
-      part7_start_s=$(parted "$target" unit s print --json | jq --raw-output '.disk.partitions[]|select(.number==7)|.start')
-      part7_start=$${part7_start_s%s}
-
-      curl --silent --show-error --fail --location "$url" \
-        | xzcat | dd of="$target" bs="$sector_size" count="$part7_start"
-
-      echo fix | parted ---pretend-input-tty "$target" print
-
-      part6_start_s=$(parted "$target" unit s print --json | jq --raw-output '.disk.partitions[]|select(.number==6)|.start')
-      part6_start=$${part6_start_s%s}
-      part6_end=$(( part6_start + 50*1024*1024*1024/sector_size ))
-      part6_end=$(( (part6_end/align)*align ))
-      if [[ $part6_end -gt $part7_start ]]; then
-        part6_end=$part7_start
-      fi
-      parted "$target" resizepart 6 "$((part6_end-1))"s
-
-      parted "$target" mkpart OSD0 "$part7_start"s "$((last_part_end-1))"s
-      parted "$target" type 7 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D
-
-    else
-      wipefs --all "$target"?* || true
-      wipefs --all "$target"* || true
-      blkdiscard --force "$target" || true
-
-      curl --silent --show-error --fail --location "$url" \
-        | xzcat | dd of="$target"
-
-      echo fix | parted ---pretend-input-tty "$target" print
-
-      part4_end_s=$(parted "$target" unit s print --json | jq --raw-output '.disk.partitions[]|select(.number==4)|.end')
-      part4_end=$(( $${part4_end_s%s} + 1 ))
-      unalloc_start=$part4_end
-      unalloc_start=$(( ((unalloc_start+align-1)/align)*align ))
-      unalloc_end=$(( unalloc_start + 50*1024*1024*1024/sector_size ))
-      unalloc_end=$(( (unalloc_end/align)*align ))
-
-      if [[ $unalloc_end -lt $last_part_end ]]; then
-        parted "$target" mkpart OSD0 "$unalloc_end"s "$((last_part_end-1))"s
-        parted "$target" type 5 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D
-      else
-        unalloc_end=$last_part_end
-      fi
-    fi
-
-    parted "$target" print
-    blkid "$target"* | sort
-    echo ok
-  EOF
+  content_type = "text/x-python"
+  content      = templatefile("install.py", { flavours = local.instances2 })
 }
 
 output "bare_metal_script_url" {
-  value = {
-    for key, obj in linode_object_storage_object.bare_metal :
-    key => "https://${obj.bucket}.${obj.endpoint}/${obj.key}"
-  }
+  value = "https://${linode_object_storage_object.bare_metal.bucket}.${linode_object_storage_object.bare_metal.endpoint}/${linode_object_storage_object.bare_metal.key}"
 }
