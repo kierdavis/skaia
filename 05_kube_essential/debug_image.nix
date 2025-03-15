@@ -279,11 +279,12 @@ let
     ''));
 
 in
-(pkgs.dockerTools.buildLayeredImageWithNixDb {
+pkgs.dockerTools.streamLayeredImage {
 
   name = "docker.io/kierdavis/skaia-debug";
   tag = "build";
   maxLayers = 1000;
+  includeNixDB = true;
 
   contents = [ baseSystem ];
 
@@ -318,4 +319,4 @@ in
     ];
   };
 
-}).stream
+}
