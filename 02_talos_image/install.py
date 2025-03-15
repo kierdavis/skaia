@@ -63,7 +63,7 @@ def main():
   if preserve_parts:
     print("Will preserve these partitions:")
     for part in preserve_parts:
-      print(f"  {part['name']}: {part['start']}s .. {part['end']}s")
+      print(f"  {part['name']}: {part['start']} .. {part['end']}")
   else:
     print("Will not preserve any partitions.")
   print()
@@ -96,7 +96,7 @@ def main():
 
   if preserve_parts:
     for preserve_part in preserve_parts:
-      log_and_run(["parted", args.target, "mkpart", preserve_part["name"], size_sectors_to_str(preserve_part["start"]), size_sectors_to_str(preserve_part["end"])])
+      log_and_run(["parted", args.target, "mkpart", preserve_part["name"], preserve_part["start"], preserve_part["end"]])
       disk = describe_disk(args.target)
       [new_part] = [p for p in disk["partitions"] if p["name"] == preserve_part["name"]]
       log_and_run(["parted", args.target, "type", str(new_part["number"]), preserve_part["type-uuid"]])

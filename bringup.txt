@@ -16,8 +16,10 @@ terraform -chdir=03_talos_linodes apply
 Re-image bare metal nodes:
   Get script URL:
     terraform -chdir=02_talos_image output bare_metal_script_url
-  Boot any LiveOS (e.g. nixos) from USB
-  bash <(curl URL) /dev/nvme0n1
+  Boot NixOS from USB
+  curl -O URL
+  chmod +x ./install.py
+  ./install.py --target=/dev/nvme0n1 --flavour=1.9.5
 
 Confirm Talos api up on all nodes:
   curl https://192.168.178.154:50000
@@ -63,7 +65,7 @@ Confirm pod & service routes are advertised:
 
 
 To upgrade Talos, re-image nodes from scratch.
-Do not use `talosctl upgrade`!!! This will a) result in a Talos installation lacking the tailscale extension, and b) blow away OSDs located on the same block device as Talos.
+Do not use `talosctl upgrade`!!! This will blow away OSDs located on the same block device as Talos.
 
 
 
