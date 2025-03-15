@@ -25,6 +25,7 @@ let
     iputils
     jnettop
     jq
+    kmod
     less
     lsof
     man
