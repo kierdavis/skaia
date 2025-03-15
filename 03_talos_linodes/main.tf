@@ -14,7 +14,7 @@ locals {
     # Temporary master for upgrades.
     nitram = {
       type  = "g6-standard-1"
-      image = "1.7.7"
+      image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
     }
   }
 
@@ -49,7 +49,7 @@ resource "linode_instance_disk" "talos" {
   label     = "talos"
   linode_id = linode_instance.main[each.key].id
   size      = 25 * 1024 # MiB
-  image     = data.terraform_remote_state.image.outputs.linode_image_id[each.value.image]
+  image     = each.value.image
 }
 
 resource "linode_instance_config" "main" {

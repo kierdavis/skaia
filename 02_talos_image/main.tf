@@ -30,6 +30,20 @@ locals {
         }
       }
     }
+    "1.9.5" = {
+      version = "1.9.5"
+      schematic = {
+        customization = {
+          systemExtensions = {
+            officialExtensions = ["siderolabs/tailscale"]
+          }
+          extraKernelArgs = [
+            "console=ttyS0,19200n8", # Linode
+            "console=tty1",          # Bare metal
+          ]
+        }
+      }
+    }
   }
 }
 
