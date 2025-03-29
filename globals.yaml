@@ -1,0 +1,51 @@
+authorized_ssh:
+  nets:
+    ipv4:
+    - 255.255.255.255/32
+    ipv6: []
+  public_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHdNJ4lHp/dHW/Lt8ttReIIsXG2aVZTh4GI3MZaaw+LD kier@coloris
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII1DxQEvI0PgZ2G7VAPrZkgSCjwWgXhh+DaSfMRey0dB kier@saelli
+
+b2:
+  account_id: redact
+  account_key: redact
+  archive:
+    bucket: redact
+    restic_password: redact
+
+cloudflare:
+  token: redact
+  zone_id: redact
+
+docker_hub:
+  username: kierdavis
+  password: redact
+  namespace: kierdavis
+
+headscale:
+  net:
+    ipv4: 255.255.255.0/24
+    ipv6: ffff:ffff:ffff:ffff:ffff::/80
+
+letsencrypt:
+  email: redact
+
+linode:
+  token: redact
+
+kubernetes:
+  pod_net:
+    ipv4: 255.255.128.0/17
+    ipv6: ffff:ffff:ffff:ffff::/64
+    # node-ipam-controller (kube-controller-manager) divides the pod network into a subnet per node.
+    # This defines how big those subnets should be (tradeoff between max number of nodes and max pods per node).
+    node_prefix_len:
+      ipv4: 24  # 256 pods per node
+      ipv6: 80  # "The subnet mask size cannot be greater than 16 more than the cluster mask size"
+  svc_net:
+    ipv4: 255.255.128.0/17
+    # "for 128-bit addresses, the mask must be >= 108"
+    ipv6: ffff:ffff:ffff:ffff:ffff:ffff:fff0::/108
+
+personal_uid: 1001

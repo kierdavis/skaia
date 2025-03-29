@@ -1,0 +1,74 @@
+terraform -chdir=00_becquerel apply
+terraform -chdir=01_tailnet apply
+Confirm headscale is running:
+  ssh root@becquerel.skaia.cloud headscale users list
+
+Join coloris to tailscale:
+  terraform -chdir=01_tailnet output -json workstation_pre_auth_keys | jq -r .coloris | sudo tee /etc/skaia-headscale-auth-key
+  sudo systemctl stop tailscaled tailscaled-autoconnect
+  sudo systemctl start tailscaled tailscaled-autoconnect
+  ssh root@becquerel.skaia.cloud headscale nodes list
+
+terraform -chdir=02_talos_image apply
+
+terraform -chdir=03_talos_linodes apply
+
+Re-image bare metal nodes:
+  Get script URL:
+    terraform -chdir=02_talos_image output bare_metal_script_url
+  Boot NixOS from USB
+  curl -O URL
+  chmod +x ./install.py
+  ./install.py --target=/dev/nvme0n1 --flavour=1.9.5
+
+Confirm Talos api up on all nodes:
+  curl https://192.168.178.154:50000
+  curl https://192.168.178.164:50000
+  curl https://peixes.skaia.cloud:50000
+
+If this is a rebuild, ensure node(s) aren't already registered to headscale:
+  ssh root@becquerel.skaia.cloud headscale nodes list
+  ssh root@becquerel.skaia.cloud headscale nodes delete -i <id>
+
+First Talos apply (configures tailscale):
+  terraform -chdir=04_talos apply
+  If this is a rebuild, re-issue tailscale preauthkeys with e.g. -replace='headscale_pre_auth_key.main["pyrope"]'
+
+Confirm nodes registered to headscale:
+  ssh root@becquerel.skaia.cloud headscale nodes list
+  tailscale ping vantas
+  tailscale ping ampora
+  tailscale ping peixes
+
+Comment out the firewall rule allowing direct (non-tailscale) access to the Talos api server
+terraform -chdir=03_talos_linodes apply
+
+Second Talos apply (changes the endpoints from bootstrap IPs to tailscale IPs, should bring up kube-apiservers):
+  terraform -chdir=04_talos apply
+
+terraform -chdir=04_talos output -raw talosconfig > talosconfig
+terraform -chdir=04_talos output -raw kubeconfig > kubeconfig
+Confirm nodes all present (not Ready yet though):
+  kubectl --kubeconfig=kubeconfig get node
+
+terraform -chdir=05_kube_system apply
+Confirm nodes all Ready:
+  kubectl --kubeconfig=kubeconfig get node
+Confirm coredns gets scheduled:
+  kubectl --kubeconfig=kubeconfig -n kube-system get pod
+Confirm pod & service routes are advertised:
+  ssh root@becquerel.skaia.cloud headscale routes list
+
+
+
+
+
+
+To upgrade Talos, re-image nodes from scratch.
+Do not use `talosctl upgrade`!!! This will blow away OSDs located on the same block device as Talos.
+
+
+
+
+Checking if connections are being dropped by firewall rules:
+  talosctl logs ext-tailscale | grep Drop:
