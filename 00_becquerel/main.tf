@@ -25,7 +25,7 @@ locals {
   globals = yamldecode(file("${path.module}/../globals.yaml"))
 
   headscale_config = {
-    acme_email = "redacted@example.net"
+    acme_email = local.globals.letsencrypt.email
     acme_url   = "https://acme-v02.api.letsencrypt.org/directory"
     database = {
       type   = "sqlite"

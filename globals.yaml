@@ -32,6 +32,9 @@ headscale:
     ipv4: 100.88.1.0/24
     ipv6: fd7a:115c:a1e0:88:1::/80
 
+letsencrypt:
+  email: redacted@example.net
+
 linode:
   token: REDACTED
 
