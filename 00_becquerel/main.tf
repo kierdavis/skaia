@@ -160,7 +160,7 @@ resource "linode_stackscript" "main" {
 
     mkdir -p /etc/headscale
     base64 -d >/etc/headscale/config.yaml <<<"${base64encode(yamlencode(local.headscale_config))}"
-    base64 -d >/etc/headscale/acls.json <<<"${base64encode(jsonencode(local.headscale_acls))}"
+    base64 -d >${local.headscale_config.policy.path} <<<"${base64encode(jsonencode(local.headscale_acls))}"
 
     cat >/etc/systemd/system/headscale.service <<EOF
     [Unit]
