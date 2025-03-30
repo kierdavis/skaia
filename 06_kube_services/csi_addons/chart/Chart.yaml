@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kubernetes-csi-addons
+version: 1.0
+appVersion: 0.8.0
+sources:
+- https://github.com/csi-addons/kubernetes-csi-addons/
