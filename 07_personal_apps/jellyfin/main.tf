@@ -134,7 +134,7 @@ resource "kubernetes_stateful_set" "main" {
               }
               spec {
                 access_modes       = ["ReadWriteOnce"]
-                storage_class_name = "blk-media0"
+                storage_class_name = "rbd-video0"
                 resources {
                   requests = { storage = "30Gi" }
                 }

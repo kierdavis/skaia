@@ -1,5 +1,5 @@
 resource "kubectl_manifest" "rbd_metadata_pool_legacy" {
-  for_each   = toset(["gp0", "media0"])
+  for_each   = toset(["gp0"])
   depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
@@ -20,7 +20,7 @@ resource "kubectl_manifest" "rbd_metadata_pool_legacy" {
 }
 
 resource "kubectl_manifest" "rbd_data_pool_legacy" {
-  for_each   = toset(["gp0", "media0"])
+  for_each   = toset(["gp0"])
   depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
@@ -41,7 +41,7 @@ resource "kubectl_manifest" "rbd_data_pool_legacy" {
 }
 
 resource "kubernetes_storage_class" "rbd_legacy" {
-  for_each = toset(["gp0", "media0"])
+  for_each = toset(["gp0"])
   metadata {
     name   = "blk-${each.key}"
     labels = { "skaia.cloud/type" = "rbd" }
