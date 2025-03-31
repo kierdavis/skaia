@@ -1,21 +1,40 @@
 locals {
-  fs_name = "fs"
+  cephfs_storage_classes = {
+    video0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        crushRoot     = "z-adw"
+        parameters = {
+          pg_num = "8"
+          bulk   = "1"
+        }
+      }
+    }
+  }
 }
 
-resource "kubectl_manifest" "fs" {
+resource "kubectl_manifest" "cephfs" {
   depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephFilesystem"
     metadata = {
-      name      = local.fs_name
+      name      = "cephfs"
       namespace = local.namespace
     }
     spec = {
-      metadataPool = local.meta_pool_spec
+      metadataPool = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        parameters = {
+          pg_num = "2"
+          bulk   = "0"
+        }
+      }
       dataPools = [
-        for name, info in local.data_classes :
-        merge(info.pool_spec, { name = "data-${name}" })
+        for name, info in local.cephfs_storage_classes :
+        merge(info.data_pool_spec, { name = name })
       ]
       metadataServer = {
         activeCount       = 1 # Controls sharding, not redundancy.
@@ -59,19 +78,19 @@ resource "kubectl_manifest" "fs" {
   })
 }
 
-resource "kubernetes_storage_class" "fs" {
-  for_each = local.data_classes
+resource "kubernetes_storage_class" "cephfs" {
+  for_each = local.cephfs_storage_classes
   metadata {
-    name   = "fs-${each.key}"
-    labels = { "skaia.cloud/type" = "rook-ceph-fs" }
+    name   = "cephfs-${each.key}"
+    labels = { "skaia.cloud/type" = "cephfs" }
   }
   storage_provisioner    = "rook-ceph.cephfs.csi.ceph.com"
   reclaim_policy         = "Delete"
   allow_volume_expansion = true
   parameters = {
     clusterID                                               = local.namespace
-    fsName                                                  = kubectl_manifest.fs.name
-    pool                                                    = "${kubectl_manifest.fs.name}-data-${each.key}"
+    fsName                                                  = kubectl_manifest.cephfs.name
+    pool                                                    = "${kubectl_manifest.cephfs.name}-${each.key}"
     "csi.storage.k8s.io/provisioner-secret-name"            = "rook-csi-cephfs-provisioner"
     "csi.storage.k8s.io/provisioner-secret-namespace"       = local.namespace
     "csi.storage.k8s.io/controller-expand-secret-name"      = "rook-csi-cephfs-provisioner"

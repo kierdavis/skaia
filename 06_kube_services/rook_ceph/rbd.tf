@@ -1,44 +1,76 @@
-resource "kubectl_manifest" "blk_meta_pool" {
-  for_each   = local.data_classes
+locals {
+  rbd_storage_classes = {
+    rosebud0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        parameters = {
+          pg_num = "8"
+          bulk   = "1"
+        }
+      }
+    }
+    video0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        crushRoot     = "z-adw"
+        parameters = {
+          pg_num = "2"
+          bulk   = "1"
+        }
+      }
+    }
+  }
+}
+
+resource "kubectl_manifest" "rbd_metadata_pool" {
   depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephBlockPool"
     metadata = {
-      name      = "blk-${each.key}-meta"
+      name      = "rbd-metadata"
       namespace = local.namespace
     }
-    spec = local.meta_pool_spec
+    spec = {
+      replicated    = { size = 2 }
+      failureDomain = "host"
+      parameters = {
+        pg_num = "2"
+        bulk   = "0"
+      }
+    }
   })
 }
 
-resource "kubectl_manifest" "blk_data_pool" {
-  for_each   = local.data_classes
+resource "kubectl_manifest" "rbd_data_pool" {
+  for_each   = local.rbd_storage_classes
   depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephBlockPool"
     metadata = {
-      name      = "blk-${each.key}-data"
+      name      = "rbd-${each.key}"
       namespace = local.namespace
     }
-    spec = each.value.pool_spec
+    spec = each.value.data_pool_spec
   })
 }
 
-resource "kubernetes_storage_class" "blk" {
-  for_each = local.data_classes
+resource "kubernetes_storage_class" "rbd" {
+  for_each = local.rbd_storage_classes
   metadata {
-    name   = "blk-${each.key}"
-    labels = { "skaia.cloud/type" = "rook-ceph-blk" }
+    name   = "rbd-${each.key}"
+    labels = { "skaia.cloud/type" = "rbd" }
   }
   storage_provisioner    = "rook-ceph.rbd.csi.ceph.com"
   reclaim_policy         = "Delete"
   allow_volume_expansion = true
   parameters = {
     clusterID                                               = local.namespace
-    pool                                                    = kubectl_manifest.blk_meta_pool[each.key].name
-    dataPool                                                = kubectl_manifest.blk_data_pool[each.key].name
+    pool                                                    = kubectl_manifest.rbd_metadata_pool.name
+    dataPool                                                = kubectl_manifest.rbd_data_pool[each.key].name
     "csi.storage.k8s.io/fstype"                             = "ext4"
     "csi.storage.k8s.io/provisioner-secret-name"            = "rook-csi-rbd-provisioner"
     "csi.storage.k8s.io/provisioner-secret-namespace"       = local.namespace
