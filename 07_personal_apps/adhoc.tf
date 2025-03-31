@@ -297,58 +297,79 @@ resource "kubernetes_job" "archive_upload" {
 #}
 #
 
-#resource "kubernetes_job" "sync_volumes" {
+#resource "kubernetes_persistent_volume_claim" "storage_grafana_0_tmp" {
 #  metadata {
-#    name = "sync-volumes"
-#    namespace = kubernetes_namespace.main.metadata[0].name
-#    labels = { app = "sync-volumes" }
+#    name = "storage-grafana-0-tmp"
+#    namespace = "prometheus"
 #  }
 #  spec {
-#    backoff_limit = 0
-#    template {
-#      metadata {
-#        labels = { app = "sync-volumes" }
-#      }
-#      spec {
-#        restart_policy = "Never"
-#        volume {
-#          name = "src"
-#          persistent_volume_claim {
-#            claim_name = "state-paperless-ngx-redis-0"
-#          }
-#        }
-#        volume {
-#          name = "dest"
-#          persistent_volume_claim {
-#            claim_name = "state-paperless-redis-0"
-#          }
-#        }
-#        container {
-#          name = "main"
-#          image = "docker.io/eeacms/rsync"
-#          args = [
-#            "rsync",
-#            "--acls",
-#            "--archive",
-#            "--hard-links",
-#            "--verbose",
-#            "--xattrs",
-#            "/src/",
-#            "/dest/",
-#          ]
-#          volume_mount {
-#            name = "src"
-#            mount_path = "/src"
-#            read_only = true
-#          }
-#          volume_mount {
-#            name = "dest"
-#            mount_path = "/dest"
-#            read_only = false
-#          }
-#        }
-#      }
+#    access_modes       = ["ReadWriteOnce"]
+#    storage_class_name = "rbd-monitoring0"
+#    resources {
+#      requests = { storage = "4Gi" }
 #    }
 #  }
-#  wait_for_completion = false
 #}
+
+resource "kubernetes_job" "sync_volumes" {
+  for_each = {
+    #grafana = {
+    #  namespace = "prometheus"
+    #  src = kubernetes_persistent_volume_claim.storage_grafana_0_tmp.metadata[0].name
+    #  dest = "storage-grafana-0"
+    #}
+  }
+  metadata {
+    name      = "sync-volumes-${each.key}"
+    namespace = each.value.namespace
+    labels    = { app = "sync-volumes", instance = each.key }
+  }
+  spec {
+    backoff_limit = 0
+    template {
+      metadata {
+        labels = { app = "sync-volumes", instance = each.key }
+      }
+      spec {
+        restart_policy = "Never"
+        volume {
+          name = "src"
+          persistent_volume_claim {
+            claim_name = each.value.src
+          }
+        }
+        volume {
+          name = "dest"
+          persistent_volume_claim {
+            claim_name = each.value.dest
+          }
+        }
+        container {
+          name  = "main"
+          image = "docker.io/eeacms/rsync"
+          args = [
+            "rsync",
+            "--acls",
+            "--archive",
+            "--hard-links",
+            "--verbose",
+            "--xattrs",
+            "/src/",
+            "/dest/",
+          ]
+          volume_mount {
+            name       = "src"
+            mount_path = "/src"
+            read_only  = true
+          }
+          volume_mount {
+            name       = "dest"
+            mount_path = "/dest"
+            read_only  = false
+          }
+        }
+      }
+    }
+  }
+  wait_for_completion = false
+}

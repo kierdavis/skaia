@@ -117,9 +117,10 @@ resource "helm_release" "main" {
         annotations      = { "reclaimspace.csiaddons.openshift.io/schedule" = "40 4 * * *" }
         enabled          = true
         size             = "4Gi"
-        storageClassName = "blk-gp0"
+        storageClassName = "rbd-monitoring0"
         type             = "sts"
       }
+      replicas = 1
       resources = {
         requests = {
           cpu    = "5m"
