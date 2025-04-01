@@ -45,12 +45,12 @@ resource "kubernetes_persistent_volume_claim" "music" {
 
 resource "kubernetes_persistent_volume_claim" "projects" {
   metadata {
-    name      = "projects"
+    name      = "projects-x"
     namespace = var.namespace
   }
   spec {
     access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-gp0"
+    storage_class_name = "cephfs-documents0"
     volume_mode        = "Filesystem"
     resources {
       requests = { storage = "100Gi" }
