@@ -10,6 +10,16 @@ locals {
         }
       }
     }
+    music0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        parameters = {
+          pg_num = "2"
+          bulk   = "1"
+        }
+      }
+    }
     video0 = {
       data_pool_spec = {
         replicated    = { size = 2 }
