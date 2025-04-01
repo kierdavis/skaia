@@ -19,7 +19,7 @@ output "downloads_pvc_name" {
 }
 
 output "media_pvc_name" {
-  value = kubernetes_persistent_volume_claim.media.metadata[0].name
+  value = kubernetes_persistent_volume_claim.video.metadata[0].name
 }
 
 output "projects_pvc_name" {

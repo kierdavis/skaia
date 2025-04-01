@@ -15,7 +15,7 @@ module "media_backup" {
   name                = "media-backup"
   namespace           = var.namespace
   schedule            = "0 2 * * 2"
-  pvc_name            = kubernetes_persistent_volume_claim.media.metadata[0].name
+  pvc_name            = kubernetes_persistent_volume_claim.video.metadata[0].name
   mount_path          = "/data/media"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }

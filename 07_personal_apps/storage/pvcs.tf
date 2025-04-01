@@ -13,14 +13,14 @@ resource "kubernetes_persistent_volume_claim" "downloads" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "media" {
+resource "kubernetes_persistent_volume_claim" "video" {
   metadata {
-    name      = "media"
+    name      = "video"
     namespace = var.namespace
   }
   spec {
     access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-media0"
+    storage_class_name = "cephfs-video0"
     volume_mode        = "Filesystem"
     resources {
       requests = { storage = "200Gi" }
