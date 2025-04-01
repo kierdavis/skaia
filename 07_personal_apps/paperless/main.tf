@@ -145,7 +145,7 @@ resource "kubernetes_stateful_set" "main" {
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
-        storage_class_name = "blk-gp0"
+        storage_class_name = "rbd-documents0"
         volume_mode        = "Filesystem"
         resources {
           requests = { storage = "2Gi" }
@@ -164,7 +164,7 @@ resource "kubernetes_stateful_set" "main" {
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
-        storage_class_name = "blk-gp0"
+        storage_class_name = "rbd-documents0"
         volume_mode        = "Filesystem"
         resources {
           requests = { storage = "20Gi" }

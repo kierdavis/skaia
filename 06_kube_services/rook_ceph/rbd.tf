@@ -1,5 +1,15 @@
 locals {
   rbd_storage_classes = {
+    documents0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        parameters = {
+          pg_num = "2"
+          bulk   = "1"
+        }
+      }
+    }
     monitoring0 = {
       data_pool_spec = {
         replicated    = { size = 2 }
