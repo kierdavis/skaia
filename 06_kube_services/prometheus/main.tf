@@ -15,11 +15,17 @@ terraform {
   }
 }
 
-data "terraform_remote_state" "talos" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../../04_talos/terraform.tfstate"
-  }
+variable "node_endpoints" {
+  type = map(string)
+}
+
+variable "etcd_ca_cert" {
+  type = string
+}
+
+variable "etcd_ca_key" {
+  type      = string
+  sensitive = true
 }
 
 resource "kubernetes_namespace" "main" {
@@ -39,7 +45,7 @@ resource "kubernetes_namespace" "main" {
 
 locals {
   namespace         = kubernetes_namespace.main.metadata[0].name
-  node_endpoint_set = toset([for _, addr in data.terraform_remote_state.talos.outputs.node_endpoints : addr])
+  node_endpoint_set = toset([for _, addr in var.node_endpoints : addr])
 }
 
 resource "tls_private_key" "etcd_client" {
@@ -55,8 +61,8 @@ resource "tls_cert_request" "etcd_client" {
 }
 
 resource "tls_locally_signed_cert" "etcd_client" {
-  ca_cert_pem           = data.terraform_remote_state.talos.outputs.etcd_ca_cert
-  ca_private_key_pem    = data.terraform_remote_state.talos.outputs.etcd_ca_key
+  ca_cert_pem           = var.etcd_ca_cert
+  ca_private_key_pem    = var.etcd_ca_key
   cert_request_pem      = tls_cert_request.etcd_client.cert_request_pem
   validity_period_hours = 2 * 365 * 24
   early_renewal_hours   = 365 * 24
@@ -69,7 +75,7 @@ resource "kubernetes_secret" "etcd" {
     namespace = local.namespace
   }
   data = {
-    "ca.crt"     = data.terraform_remote_state.talos.outputs.etcd_ca_cert
+    "ca.crt"     = var.etcd_ca_cert
     "client.crt" = tls_locally_signed_cert.etcd_client.cert_pem
     "client.key" = tls_private_key.etcd_client.private_key_pem
   }

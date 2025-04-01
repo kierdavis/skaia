@@ -86,8 +86,11 @@ module "kube_network_policies" {
 #}
 
 module "prometheus" {
-  source     = "./prometheus"
-  depends_on = [module.rook_ceph]
+  source         = "./prometheus"
+  depends_on     = [module.rook_ceph]
+  node_endpoints = data.terraform_remote_state.talos.outputs.node_endpoints
+  etcd_ca_cert   = data.terraform_remote_state.talos.outputs.etcd_ca_cert
+  etcd_ca_key    = data.terraform_remote_state.talos.outputs.etcd_ca_key
 }
 
 module "rook_ceph" {
