@@ -236,6 +236,7 @@ resource "kubernetes_job" "archive_upload" {
 #              spec {
 #                access_modes       = ["ReadWriteOnce"]
 #                storage_class_name = "rbd-video0"
+#                volume_mode        = "Filesystem"
 #                resources {
 #                  requests = { storage = "40Gi" }
 #                }
@@ -305,6 +306,7 @@ resource "kubernetes_job" "archive_upload" {
 #  spec {
 #    access_modes       = ["ReadWriteOnce"]
 #    storage_class_name = "rbd-monitoring0"
+#    volume_mode        = "Filesystem"
 #    resources {
 #      requests = { storage = "4Gi" }
 #    }

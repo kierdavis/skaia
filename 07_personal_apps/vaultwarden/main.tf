@@ -72,6 +72,7 @@ resource "kubernetes_stateful_set" "main" {
       spec {
         access_modes       = ["ReadWriteOnce"]
         storage_class_name = "blk-gp0"
+        volume_mode        = "Filesystem"
         resources {
           requests = { storage = "1Gi" }
         }

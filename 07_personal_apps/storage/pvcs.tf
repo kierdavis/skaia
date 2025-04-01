@@ -6,6 +6,7 @@ resource "kubernetes_persistent_volume_claim" "downloads" {
   spec {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-media0"
+    volume_mode        = "Filesystem"
     resources {
       requests = { storage = "1.25Ti" }
     }
@@ -20,6 +21,7 @@ resource "kubernetes_persistent_volume_claim" "media" {
   spec {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-media0"
+    volume_mode        = "Filesystem"
     resources {
       requests = { storage = "200Gi" }
     }
@@ -34,6 +36,7 @@ resource "kubernetes_persistent_volume_claim" "projects" {
   spec {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-gp0"
+    volume_mode        = "Filesystem"
     resources {
       requests = { storage = "100Gi" }
     }
@@ -48,6 +51,7 @@ resource "kubernetes_persistent_volume_claim" "documents" {
   spec {
     access_modes       = ["ReadWriteMany"]
     storage_class_name = "fs-gp0"
+    volume_mode        = "Filesystem"
     resources {
       requests = { storage = "40Gi" }
     }
