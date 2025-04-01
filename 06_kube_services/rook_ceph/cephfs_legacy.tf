@@ -18,15 +18,6 @@ resource "kubectl_manifest" "cephfs_legacy" {
       }
       dataPools = [
         {
-          name          = "data-gp0"
-          replicated    = { size = 2 }
-          failureDomain = "host"
-          parameters = {
-            pg_num = "16"
-            bulk   = "1"
-          }
-        },
-        {
           name          = "data-media0"
           replicated    = { size = 2 }
           failureDomain = "host"
@@ -80,7 +71,7 @@ resource "kubectl_manifest" "cephfs_legacy" {
 }
 
 resource "kubernetes_storage_class" "cephfs_legacy" {
-  for_each = toset(["gp0", "media0"])
+  for_each = toset(["media0"])
   metadata {
     name   = "fs-${each.key}"
     labels = { "skaia.cloud/type" = "cephfs" }
