@@ -107,7 +107,7 @@ resource "helm_release" "main" {
             }
             spec = {
               accessModes      = ["ReadWriteOnce"]
-              storageClassName = "blk-gp0"
+              storageClassName = "rbd-monitoring0"
               resources        = { requests = { storage = "2Gi" } }
             }
           }
@@ -209,7 +209,7 @@ resource "helm_release" "main" {
             }
             spec = {
               accessModes      = ["ReadWriteOnce"]
-              storageClassName = "blk-gp0"
+              storageClassName = "rbd-monitoring0"
               resources        = { requests = { storage = "16Gi" } }
             }
           }
