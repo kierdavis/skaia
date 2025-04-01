@@ -60,12 +60,12 @@ resource "kubernetes_persistent_volume_claim" "projects" {
 
 resource "kubernetes_persistent_volume_claim" "documents" {
   metadata {
-    name      = "documents"
+    name      = "documents-x"
     namespace = var.namespace
   }
   spec {
     access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-gp0"
+    storage_class_name = "cephfs-documents0"
     volume_mode        = "Filesystem"
     resources {
       requests = { storage = "40Gi" }
