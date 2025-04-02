@@ -1,11 +1,11 @@
 resource "kubernetes_persistent_volume_claim" "downloads" {
   metadata {
-    name      = "torrent-downloads"
+    name      = "torrent-downloads-x"
     namespace = var.namespace
   }
   spec {
     access_modes       = ["ReadWriteMany"]
-    storage_class_name = "fs-media0"
+    storage_class_name = "cephfs-video0"
     volume_mode        = "Filesystem"
     resources {
       requests = { storage = "1.25Ti" }
