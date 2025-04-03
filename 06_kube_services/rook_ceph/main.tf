@@ -36,3 +36,10 @@ resource "kubernetes_namespace" "main" {
 locals {
   namespace = kubernetes_namespace.main.metadata[0].name
 }
+
+module "imperative_config" {
+  source     = "./imperative_config"
+  depends_on = [kubectl_manifest.cluster]
+  namespace  = local.namespace
+  rook_image = local.rook_image
+}

@@ -1,16 +1,35 @@
-module "imperative_config_image" {
-  source         = "../../modules/container_image"
-  repo_name      = "skaia-rook-ceph-imperative-config"
-  repo_namespace = local.globals.docker_hub.namespace
-  src            = "${path.module}/imperative_config_image"
-  args           = { rook_image = local.rook_image }
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
+  }
 }
 
-resource "kubernetes_job" "imperative_config" {
-  depends_on = [kubectl_manifest.cluster]
+variable "namespace" {
+  type = string
+}
+
+variable "rook_image" {
+  type = string
+}
+
+locals {
+  globals = yamldecode(file("${path.module}/../../../globals.yaml"))
+}
+
+module "image" {
+  source         = "../../../modules/container_image"
+  repo_name      = "skaia-rook-ceph-imperative-config"
+  repo_namespace = local.globals.docker_hub.namespace
+  src            = "${path.module}/image"
+  args           = { rook_image = var.rook_image }
+}
+
+resource "kubernetes_job" "main" {
   metadata {
     name      = "imperative-config"
-    namespace = local.namespace
+    namespace = var.namespace
     labels    = { "app.kubernetes.io/name" = "imperative-config" }
   }
   spec {
@@ -30,7 +49,7 @@ resource "kubernetes_job" "imperative_config" {
         termination_grace_period_seconds = 30
         container {
           name  = "main"
-          image = module.imperative_config_image.tag
+          image = module.image.tag
           env {
             name = "ROOK_CEPH_MON_HOST"
             value_from {

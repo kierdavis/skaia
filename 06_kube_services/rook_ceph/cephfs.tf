@@ -35,7 +35,7 @@ locals {
 }
 
 resource "kubectl_manifest" "cephfs" {
-  depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
+  depends_on = [kubectl_manifest.cluster, module.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephFilesystem"
