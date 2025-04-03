@@ -92,33 +92,33 @@ self: super: with self; {
           enableParallelBuilding = true;
         };
 
-    fetchPkgs =
-      { urls, hash }:
-      {
-        src = stdenv.mkDerivation {
-          name = "pkgs";
-          nativeBuildInputs = [ curl ];
-          phases = [ "fetchPhase" ];
-          fetchPhase = ''
-            mkdir -p $out
-            cd $out
-            for url in ${lib.strings.concatMapStringsSep " " lib.escapeShellArg urls}; do
-              curl --silent --show-error --fail --location --remote-name "$url"
-            done
-          '';
-          SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
-          outputHash = hash;
-          outputHashMode = "recursive";
-          enableParallelBuilding = true;
-        };
-        dest = "/imgbuild/pkgs";
+    apkInventory = import ./apk-inventory.nix {
+      inherit (self) fetchurl;
+      inherit (self.lib) fakeHash;
+    };
+
+    fetchAPKs = callback: {
+      src = stdenv.mkDerivation {
+        name = "apks";
+        phases = [ "buildPhase" ];
+        srcs = callback self.imageTools.apkInventory;
+        buildPhase = ''
+          runHook preBuild
+          mkdir -p "$out"
+          cd "$out"
+          for src in $srcs; do
+            dest="''${src##*/}"
+            dest="''${dest#*-}"
+            ln -sfT "$src" "$dest"
+          done
+          runHook postBuild
+        '';
+        enableParallelBuilding = true;
       };
+      dest = "/imgbuild/pkgs";
+    };
 
-    fetchAPKs = imageTools.fetchPkgs;
     installAPKs = ''apk add --no-cache --no-network --repositories-file=/dev/null /imgbuild/pkgs/*.apk'';
-
-    fetchDEBs = imageTools.fetchPkgs;
-    installDEBs = ''apt install -y /imgbuild/pkgs/*.deb && rm -f /var/cache/ldconfig/aux-cache /var/log/apt/history.log /var/log/apt/term.log /var/log/dpkg.log'';
 
     compileRustExecutable =
       { name
@@ -184,40 +184,37 @@ self: super: with self; {
         hash = "sha256-siBcE0RJczoz5hYPz/b8Xz3Qg2sOol85ZlXB/Dz5bzQ=";
       };
       cargo = imageTools.customise {
-        name = "alpine-cargo-image";
+        name = "alpine-cargo";
         base = imageTools.bases.alpine;
-        add = [(imageTools.fetchAPKs {
-          urls = [
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/binutils-2.41-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/brotli-libs-1.1.0-r1.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/c-ares-1.27.0-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/ca-certificates-20240226-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/cargo-1.76.0-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/gcc-13.2.1_git20231014-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/gmp-6.3.0-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/isl26-0.26-r1.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/jansson-2.14-r4.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libatomic-13.2.1_git20231014-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libcurl-8.9.1-r1.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libffi-3.4.4-r3.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libgcc-13.2.1_git20231014-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libgomp-13.2.1_git20231014-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libidn2-2.3.4-r4.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libstdc++-13.2.1_git20231014-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libunistring-1.1-r2.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libxml2-2.11.8-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/llvm17-libs-17.0.5-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mpc1-1.3.1-r1.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mpfr4-4.2.1-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/musl-dev-1.2.4_git20230717-r4.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/nghttp2-libs-1.58.0-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/rust-1.76.0-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/scudo-malloc-17.0.5-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/xz-libs-5.4.5-r0.apk"
-            "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/zstd-libs-1.5.5-r8.apk"
-          ];
-          hash = "sha256-e4/ATyyrRYDWBkmMEjVG2fdlcGRbKaWf0qeKN6GukS4=";
-        })];
+        add = [(imageTools.fetchAPKs (pkgs: with pkgs; [
+          binutils
+          brotli-libs
+          c-ares
+          ca-certificates
+          cargo
+          gcc
+          gmp
+          isl26
+          jansson
+          libatomic
+          libcurl
+          libffi
+          libgcc
+          libgomp
+          libidn2
+          libstdcxx
+          libunistring
+          libxml2
+          llvm17-libs
+          mpc1
+          mpfr4
+          musl-dev
+          nghttp2-libs
+          rust
+          scudo-malloc
+          xz-libs
+          zstd-libs
+        ]))];
         run = imageTools.installAPKs;
         newLayerHash = "sha256-IlmaoNnPfotpJWYZpMV7Q4dJlHXHb7kPWiXp9DXZfBs=";
       };
