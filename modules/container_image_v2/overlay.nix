@@ -58,7 +58,7 @@ self: super: with self; {
           outputHashMode = "recursive";
         } else {}));
 
-        newLayer' = if run != null
+        newLayer' = if run != null || builtins.any (elem: elem ? from) add
           then vmTools.runInLinuxVM (newLayer.overrideAttrs (oldAttrs: {
             preVM = vmTools.createEmptyImage {
               size = vmDiskSize;
@@ -119,6 +119,8 @@ self: super: with self; {
     };
 
     installAPKs = ''apk add --no-cache --no-network --repositories-file=/dev/null /imgbuild/pkgs/*.apk'';
+    installDEBs = ''apt install -y /imgbuild/pkgs/*.deb && rm -f /var/cache/ldconfig/aux-cache /var/log/apt/history.log /var/log/apt/term.log /var/log/dpkg.log'';
+    installRPMs = ''rpm --install /imgbuild/pkgs/*'';
 
     compileRustExecutable =
       { name
@@ -126,14 +128,16 @@ self: super: with self; {
       , cargoToml
       , cargoLock
       , dest ? "/bin/${name}"
-      , compiledDepsLayerHash ? null
-      , compiledAppLayerHash ? null
+      , cargoImage ? self.imageTools.bases.alpineCargo
+      , runTests ? false
+      , options ? {}
+      , depsOptions ? {}
       }:
       let
         vendoredDeps = rustPlatform.importCargoLock { lockFile = cargoLock; };
-        compiledDeps = imageTools.customise {
+        compiledDeps = imageTools.customise ({
           name = "${name}-compiled-deps";
-          base = imageTools.bases.cargo;
+          base = cargoImage;
           add = [
             { src = cargoToml; dest = "/crate/Cargo.toml"; }
             { src = cargoLock; dest = "/crate/Cargo.lock"; }
@@ -152,24 +156,24 @@ self: super: with self; {
           run = ''
             cd /crate
             ln -sfT ${vendoredDeps.name}/.cargo .cargo
+            ${if runTests then "cargo build --locked --offline" else ""}
             cargo build --locked --offline --release
             rm -rf src target/.rustc_info.json
           '';
           vmMemSize = 2048;
-          newLayerHash = compiledDepsLayerHash;
-        };
-        compiledApp = imageTools.customise {
+        } // depsOptions);
+        compiledApp = imageTools.customise ({
           name = "${name}-compiled";
           base = compiledDeps;
           add = [{ inherit src; dest = "/crate/src"; }];
           run = ''
             cd /crate
             touch src/main.rs  # so cargo knows a rebuild is necessary
+            ${if runTests then "cargo test --locked --offline" else ""}
             cargo build --locked --offline --release
             rm -rf src target/.rustc_info.json
           '';
-          newLayerHash = compiledAppLayerHash;
-        };
+        } // options);
       in
         {
           from = compiledApp;
@@ -183,7 +187,7 @@ self: super: with self; {
         imageDigest = "sha256:6457d53fb065d6f250e1504b9bc42d5b6c65941d57532c072d929dd0628977d0";
         hash = "sha256-siBcE0RJczoz5hYPz/b8Xz3Qg2sOol85ZlXB/Dz5bzQ=";
       };
-      cargo = imageTools.customise {
+      alpineCargo = imageTools.customise {
         name = "alpine-cargo";
         base = imageTools.bases.alpine;
         add = [(imageTools.fetchAPKs (pkgs: with pkgs; [

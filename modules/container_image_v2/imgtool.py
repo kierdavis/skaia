@@ -25,10 +25,10 @@ def iter_manifest_refs(oci_path, index_path=None):
     index_path = oci_path / "index.json"
   with open(index_path, "r") as f:
     index = json.load(f)
-  if index["mediaType"] != "application/vnd.oci.image.index.v1+json":
+  if index["mediaType"] not in ("application/vnd.oci.image.index.v1+json", "application/vnd.docker.distribution.manifest.list.v2+json"):
     raise InvalidImageError(f"index {index_path} has unrecognised mediaType: {index['mediaType']}")
   for manifest_ref in index["manifests"]:
-    if manifest_ref["mediaType"] == "application/vnd.oci.image.index.v1+json":
+    if manifest_ref["mediaType"] in ("application/vnd.oci.image.index.v1+json", "application/vnd.docker.distribution.manifest.list.v2+json"):
       nested_index_path = oci_path / "blobs" / manifest_ref["digest"].replace(":", "/")
       yield from iter_manifest_refs(oci_path, nested_index_path)
     elif manifest_ref["mediaType"] in ("application/vnd.oci.image.manifest.v1+json", "application/vnd.docker.distribution.manifest.v2+json"):

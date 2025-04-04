@@ -9,12 +9,13 @@ import sys
 import tempfile
 
 image_src = sys.argv[1]
+nix_instantiate_args = sys.argv[2:]
 this_script = pathlib.Path(__file__)
 
 nix_derivation_gcroot_path = pathlib.Path("check_reproducible_drv.gcroot")
 
 nix_derivation = subprocess.run(
-  ["nix-instantiate", str(this_script.parent / "image.nix"), "-I", f"src={image_src}", "--add-root", str(nix_derivation_gcroot_path)],
+  ["nix-instantiate", str(this_script.parent / "image.nix"), "-I", f"src={image_src}", "--add-root", str(nix_derivation_gcroot_path)] + nix_instantiate_args,
   stdout=subprocess.PIPE,
   check=True,
 ).stdout.decode("utf-8").strip()
