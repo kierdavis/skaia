@@ -482,8 +482,8 @@
     hash = "sha256:01hc5y5hzkmcdymk59a9q2karp9g7axjfykwrhimwnbny1fg9r5k";
   };
   xz-libs = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/xz-libs-5.4.5-r0.apk";
-    hash = "sha256:0slpb7z700gzgdv7ciymhp83yz47bbykd9ybz4hmj7ipqx1dys98";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/xz-libs-5.4.5-r1.apk";
+    hash = "sha256-oZnhFwZk7ZfY3YAjHRh8PYpCps1EufrZ5JGH1fxhyKI=";
   };
   zimg = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/zimg-3.0.5-r2.apk";

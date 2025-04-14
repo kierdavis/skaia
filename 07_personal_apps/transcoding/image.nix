@@ -2,7 +2,7 @@
 
 imageTools.customise {
   base = imageTools.bases.alpine;
-  # top-level: ffmpeg, libva-utils
+  # top-level: ffmpeg, intel-media-driver, libva-utils
   add = [(imageTools.fetchAPKs (pkgs: with pkgs; [
     alsa-lib
     aom-libs
@@ -26,6 +26,8 @@ imageTools.customise {
     graphite2
     harfbuzz
     hwdata-pci
+    intel-gmmlib
+    intel-media-driver
     lame-libs
     lcms2
     libass
@@ -110,5 +112,5 @@ imageTools.customise {
     zix-libs
   ]))];
   run = imageTools.installAPKs;
-  newLayerHash = "sha256-Dv7QkyJ+dqlG43+iPx4a0F94L8vYQo6waVdXdyQ3UNY=";
+  newLayerHash = "sha256-bNoYr/cPtvHdkt0fzLle2jQMaOcm1VCyf+9dE+rQb2w=";
 }
