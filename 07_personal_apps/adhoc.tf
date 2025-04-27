@@ -70,7 +70,8 @@
 resource "kubernetes_job" "archive_upload" {
   for_each = {
     # time format: "2012-11-01 22:08:41", or null for current time
-    #el-passport-photo = { volume_path = ".nobackup/e", mount_path = "/data/media/photos/el-passport-photo-2025", time = null }
+    #takeout = { pvc_name = module.storage.media_pvc_name, pvc_path = ".nobackup/tmp/Takeout", mount_path = "/data/accounts/google/redacted@example.net", time = "2025-04-27 17:53:47" }
+    #refern = { pvc_name = module.storage.media_pvc_name, pvc_path = ".nobackup/tmp/refern", mount_path = "/data/accounts/refern/redacted@example.net", time = null }
   }
   wait_for_completion = false
   metadata {
@@ -103,7 +104,7 @@ resource "kubernetes_job" "archive_upload" {
         volume {
           name = "media"
           persistent_volume_claim {
-            claim_name = module.storage.media_pvc_name
+            claim_name = each.value.pvc_name
           }
         }
         container {
@@ -123,7 +124,7 @@ resource "kubernetes_job" "archive_upload" {
           ])
           volume_mount {
             name       = "media"
-            sub_path   = each.value.volume_path
+            sub_path   = each.value.pvc_path
             mount_path = each.value.mount_path
             read_only  = true
           }
