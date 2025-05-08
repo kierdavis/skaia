@@ -75,6 +75,12 @@ module "paperless" {
   namespace = kubernetes_namespace.main.metadata[0].name
 }
 
+module "refern_backup" {
+  source              = "./refern_backup"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.storage.archive_secret_name
+}
+
 module "storage" {
   source    = "./storage"
   namespace = kubernetes_namespace.main.metadata[0].name

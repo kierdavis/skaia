@@ -13,9 +13,21 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/brotli-libs-1.1.0-r1.apk";
     hash = "sha256:05p5ffhflpw7wcbwlchsxqqlb1313hxp4mfnayncmbwayb9k1d9m";
   };
+  ca-certificates = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/ca-certificates-20241121-r1.apk";
+    hash = "sha256:1zgc6ld23d63wwvv4ndlbalnl8m43fsaaf62pz96kzlx7xf8xn5y";
+  };
+  c-ares = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/c-ares-1.27.0-r0.apk";
+    hash = "sha256:16ilchcnp1qmzc6clcd8nixdss6p9zs7g54ww050n9mi8x1gzbfp";
+  };
   cjson = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/cjson-1.7.17-r0.apk";
     hash = "sha256:088wiggiaa7wjfn2gc6jrmbq6rvxv1nczlz87k7addcb716vg8si";
+  };
+  curl = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/curl-8.12.1-r0.apk";
+    hash = "sha256:09yg29i7bp087rmqz5iqkwkw3091rab6j4j08212bzf57n03w5xn";
   };
   dbus-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/dbus-libs-1.14.10-r0.apk";
@@ -72,6 +84,10 @@
   fribidi = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/fribidi-1.0.13-r0.apk";
     hash = "sha256:102ny52pl2s4bhnhpanjs69wzd3m3f1f8qyx5936kwjqw37jv35q";
+  };
+  gdbm = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/gdbm-1.23-r1.apk";
+    hash = "sha256:1h5grsvcb5qshg9f0z5izz2qgy2hjdka5hfb9mmc25pdnl4cjfkq";
   };
   giflib = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/giflib-5.2.2-r0.apk";
@@ -153,6 +169,10 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libcap2-2.69-r1.apk";
     hash = "sha256:0dgmk8bfccq699x2dgqv65cna85q7vd64qyawi25df72zrvkfwz5";
   };
+  libcurl = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libcurl-8.12.1-r0.apk";
+    hash = "sha256:1nba8f5vmzqd6pj7bi4rld31dk79m2xlzb9hy9rl7r4ppjsf5nx8";
+  };
   libdav1d = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libdav1d-1.3.0-r1.apk";
     hash = "sha256:0c8ilqg8l4q9fb02jczzli1xvcbj6asw1ii2lflmsqj3jg8qrs21";
@@ -201,6 +221,10 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/libhwy-1.0.7-r0.apk";
     hash = "sha256:1mq926ncm5idhjl0k94b0xhy7g9cpi6sf957n1zcbs5r89kwfh8h";
   };
+  libidn2 = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libidn2-2.3.4-r4.apk";
+    hash = "sha256:0xxl2j6vnfj1nxj7b13xmf8g2n6xkr0yhfshm03vnskpjq6yd4kl";
+  };
   libintl = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libintl-0.22.3-r0.apk";
     hash = "sha256:0d4qhc0xk09lbxdb2ksw2iz1q9j9qfqa6har6bmfi59ww3yx3m98";
@@ -229,6 +253,10 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libmount-2.39.3-r0.apk";
     hash = "sha256:17h8ka3fy2v2qw9q9ij2mfxikrv1j96as62xfma3yijc91mavzlh";
   };
+  libncursesw = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libncursesw-6.4_p20231125-r0.apk";
+    hash = "sha256:1q7hvfpaq7j1b6fk6c9yc20m3a85dggvrhq1ivjhnj5lsmq0z0wl";
+  };
   libogg = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libogg-1.3.5-r5.apk";
     hash = "sha256:0x9jlx25yf6rhxq6ndiivm3bhww4q74lnc28990dcha9a4yzdp90";
@@ -236,6 +264,10 @@
   libopenmpt = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/libopenmpt-0.7.3-r1.apk";
     hash = "sha256:01p0015bl7wdbhfy0cqfj0lp0l5n3ki0m0szfcv4lrgghkk04wc7";
+  };
+  libpanelw = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libpanelw-6.4_p20231125-r0.apk";
+    hash = "sha256:1fg5gzc9ks9ychqfhb0h138zdgwdpily91bcx5w4dinr61z9n9yl";
   };
   libpciaccess = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libpciaccess-0.17-r2.apk";
@@ -248,6 +280,10 @@
   libpng = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libpng-1.6.44-r0.apk";
     hash = "sha256:1xgc41r1zwjl00whh10qa44n5xkxshkmp97q4lawi5r38cx1vqnm";
+  };
+  libpsl = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libpsl-0.21.5-r0.apk";
+    hash = "sha256:1iys67pwmxikn9cf1nsndfa9d2p388yahl4518ihp7sn6881qn4w";
   };
   libpulse = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/libpulse-16.1-r11.apk";
@@ -292,6 +328,10 @@
   libunibreak = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/libunibreak-5.1-r3.apk";
     hash = "sha256:1v643ca1y1lfzmngndky1c0555xn7v24fhzf9gw8ndf88n6z6lfz";
+  };
+  libunistring = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libunistring-1.1-r2.apk";
+    hash = "sha256:02zki3wav4h2sl7svamg6n2vc3il0ss0vj327ax9cdg0s806z0q8";
   };
   libva = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libva-2.20.0-r0.apk";
@@ -369,9 +409,21 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mbedtls-2.28.9-r0.apk";
     hash = "sha256:1z0r7k915zslmmnxzw49wgb60311kc8prhqs9mai3sdjw75hym96";
   };
+  mpdecimal = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mpdecimal-2.5.1-r2.apk";
+    hash = "sha256:03vkanhq9wcq1ws3hafhpa2dwg5afnxhkvn974l5igrqc18vb268";
+  };
   mpg123-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mpg123-libs-1.32.8-r0.apk";
     hash = "sha256:0ia6rbyzrild8hrlfhcn3jm49q9hcfa55hsj9p60qmm5g8zmql2s";
+  };
+  ncurses-terminfo-base = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/ncurses-terminfo-base-6.4_p20231125-r0.apk";
+    hash = "sha256:0h245xsz252rw7wx06zxqx646vx5nrnnm1swkbv9z8va4hpl57f8";
+  };
+  nghttp2-libs = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/nghttp2-libs-1.58.0-r0.apk";
+    hash = "sha256:07chyzdkd2l6y8fdl64f2qj7b27y4bq7xsf6br8rr69s4n04vgwn";
   };
   numactl = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/numactl-2.0.16-r4.apk";
@@ -413,9 +465,73 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/pcre2-10.42-r2.apk";
     hash = "sha256:16nsapgd6d3vp9vb7aa6apyv4jnc7x6jmjdkx0mk9i2f4c15nvys";
   };
+  py3-certifi = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-certifi-2024.2.2-r0.apk";
+    hash = "sha256:073ryirvl5gajnl6yxwnvv3kap82c78z8wz4dv2nqcwk44v0qhx3";
+  };
+  py3-certifi-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-certifi-pyc-2024.2.2-r0.apk";
+    hash = "sha256:0zc5byxypxgwka8gnyp851kwc209xvbgs4xa7wqlps3kbf5a6lb7";
+  };
+  py3-charset-normalizer = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-charset-normalizer-3.3.2-r0.apk";
+    hash = "sha256:1zfsck6awi10pp1sdqbixcsdcn6hzf6v10zp1943w4a32znm2ym8";
+  };
+  py3-charset-normalizer-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-charset-normalizer-pyc-3.3.2-r0.apk";
+    hash = "sha256:0z2rfawi1qqa3l1zv97vr5xsgffh4hzrxsdzc7nb740dk42akc6g";
+  };
+  py3-idna = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-idna-3.7-r0.apk";
+    hash = "sha256:0w5ihkmi6qgny60bmgn3b8qgh9nw0w86jpmcxkzjf95plxxshpb5";
+  };
+  py3-idna-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-idna-pyc-3.7-r0.apk";
+    hash = "sha256:00s599w3rh3jlqvr4i7inwb7jil308nsvxkgjpxzw3208z8wd4f2";
+  };
+  py3-requests = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-2.32.3-r0.apk";
+    hash = "sha256:0z0ssbm3hvbiph27cpdyjfgcvkrw9x3gnb6npar6krmdk1zx0gmc";
+  };
+  py3-requests-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-pyc-2.32.3-r0.apk";
+    hash = "sha256:1b4cn6xrc84had7kgcrwh757d2iwzrj63j8hbgdlkdrjjm3azidg";
+  };
+  py3-urllib3 = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-urllib3-1.26.18-r0.apk";
+    hash = "sha256:0phcplbp0ky6paddg54w1606p75cw84766zpingwldj0lyg8z6f1";
+  };
+  py3-urllib3-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-urllib3-pyc-1.26.18-r0.apk";
+    hash = "sha256:10z8qz7zxgj557rrssg4h36zrr8c8d13k2gd6l0b680kbxkn2nm2";
+  };
+  pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/pyc-3.11.12-r0.apk";
+    hash = "sha256:1223dd5v6sn08ca0l45xph9x22fm4g9cqaqalxznwfslcyhvkqdn";
+  };
+  python3 = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-3.11.12-r0.apk";
+    hash = "sha256:0dbwlkpqkj3wgacz974sxawwgf4s703b1dfnhvmgmwchf8bkkqjp";
+  };
+  python3-pyc = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pyc-3.11.12-r0.apk";
+    hash = "sha256:0rdyq833wh99gjs4r1yqs788v7an5f6ny48z4k97bcwgqamshbwk";
+  };
+  python3-pycache-pyc0 = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pycache-pyc0-3.11.12-r0.apk";
+    hash = "sha256:0y9qdi9f4l4c1vlc2w96lf0s3jvxjf2d70m7m4wk3fqdrvblfn64";
+  };
   rav1e-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/rav1e-libs-0.6.6-r2.apk";
     hash = "sha256:01zznsyiwwd1gs4i6lpp08dvzjphg4a76pgr56dpsac5zfpyvqps";
+  };
+  readline = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/readline-8.2.1-r2.apk";
+    hash = "sha256:0r93faij4ir2wnkxja9f6pq8dlqppd2kpy35h0qk08ps56mxwmwb";
+  };
+  restic = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/restic-0.16.4-r2.apk";
+    hash = "sha256:1mrrqbhav74wgr9gksljpgn0wyffw1z9px3i8qdc50dprqsx74qy";
   };
   sdl2 = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/sdl2-2.28.5-r0.apk";
@@ -445,6 +561,10 @@
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/spirv-tools-1.3.261.1-r0.apk";
     hash = "sha256:0g8j4bg0aw5qr9v8lg619wqyxfhq3iykjkg09z011wm7aipgmvww";
   };
+  sqlite-libs = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/sqlite-libs-3.44.2-r1.apk";
+    hash = "sha256:1wavxcpwijl8w8rcq3z3q0wlq4bvg6g2183pn1s05r3a88dgcb2f";
+  };
   sratom = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/sratom-0.6.16-r0.apk";
     hash = "sha256:1j5k19jbshi5dc15b9sh1lynyfdwlf65iayqyh60i21i650j7wr5";
@@ -452,6 +572,10 @@
   tdb-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/tdb-libs-1.4.9-r0.apk";
     hash = "sha256:1qyyw50l3vs5i2gw0wp2j858m2d0mz6x8mmxhv19wwynds9fwnfq";
+  };
+  unzip = fetchurl {
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/unzip-6.0-r14.apk";
+    hash = "sha256:0caicc5q55vkrh20gr3cha5ykpjjab4i8l4glx1xg40zny0kv21g";
   };
   v4l-utils-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/v4l-utils-libs-1.24.1-r1.apk";
