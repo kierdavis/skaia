@@ -1,4 +1,7 @@
 terraform {
+  backend "local" {
+    path = "/net/skaia/tfstate/skaia/02_talos_image.tfstate"
+  }
   required_providers {
     external = {
       source = "hashicorp/external"

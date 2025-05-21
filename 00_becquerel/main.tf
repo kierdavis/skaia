@@ -1,4 +1,7 @@
 terraform {
+  backend "local" {
+    path = "/net/skaia/tfstate/skaia/00_becquerel.tfstate"
+  }
   required_providers {
     cloudflare = {
       source = "cloudflare/cloudflare"

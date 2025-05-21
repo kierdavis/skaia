@@ -1,4 +1,7 @@
 terraform {
+  backend "local" {
+    path = "/net/skaia/tfstate/skaia/03_talos_linodes.tfstate"
+  }
   required_providers {
     cloudflare = {
       source = "cloudflare/cloudflare"
@@ -32,7 +35,7 @@ provider "linode" {
 data "terraform_remote_state" "image" {
   backend = "local"
   config = {
-    path = "${path.module}/../02_talos_image/terraform.tfstate"
+    path = "/net/skaia/tfstate/skaia/02_talos_image.tfstate"
   }
 }
 

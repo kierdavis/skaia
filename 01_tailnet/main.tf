@@ -1,4 +1,7 @@
 terraform {
+  backend "local" {
+    path = "/net/skaia/tfstate/skaia/01_tailnet.tfstate"
+  }
   required_providers {
     headscale = {
       source = "awlsring/headscale"
@@ -9,7 +12,7 @@ terraform {
 data "terraform_remote_state" "becquerel" {
   backend = "local"
   config = {
-    path = "${path.module}/../00_becquerel/terraform.tfstate"
+    path = "/net/skaia/tfstate/skaia/00_becquerel.tfstate"
   }
 }
 

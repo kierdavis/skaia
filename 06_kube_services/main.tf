@@ -1,4 +1,7 @@
 terraform {
+  backend "local" {
+    path = "/net/skaia/tfstate/skaia/06_kube_services.tfstate"
+  }
   required_providers {
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
@@ -28,7 +31,7 @@ locals {
 data "terraform_remote_state" "talos" {
   backend = "local"
   config = {
-    path = "${path.module}/../04_talos/terraform.tfstate"
+    path = "/net/skaia/tfstate/skaia/04_talos.tfstate"
   }
 }
 
