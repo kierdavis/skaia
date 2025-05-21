@@ -40,6 +40,16 @@ module "documents_backup" {
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
+module "tfstate_backup" {
+  source              = "../restic_cron_job"
+  name                = "tfstate-backup"
+  namespace           = var.namespace
+  schedule            = "0 2 * * *"
+  pvc_name            = kubernetes_persistent_volume_claim.tfstate.metadata[0].name
+  mount_path          = "/data/services/tfstate"
+  archive_secret_name = kubernetes_secret.archive.metadata[0].name
+}
+
 #resource "kubernetes_job" "restic_init" {
 #  metadata {
 #    name = "restic-init"
