@@ -20,16 +20,14 @@ locals {
     #  image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
     #}
   }
-
-  globals = yamldecode(file("${path.module}/../globals.yaml"))
 }
 
 provider "cloudflare" {
-  api_token = local.globals.cloudflare.token
+  api_token = var.cloudflare_token
 }
 
 provider "linode" {
-  token = local.globals.linode.token
+  token = var.linode_token
 }
 
 data "terraform_remote_state" "image" {
@@ -87,8 +85,8 @@ resource "linode_firewall" "main" {
   #  action   = "ACCEPT"
   #  protocol = "TCP"
   #  ports    = "50000"
-  #  ipv4     = toset(local.globals.authorized_ssh.nets.ipv4)
-  #  ipv6     = toset(local.globals.authorized_ssh.nets.ipv6)
+  #  ipv4     = var.authorized_ssh_ipv4_nets
+  #  ipv6     = var.authorized_ssh_ipv6_nets
   #}
   inbound {
     label    = "tailscale"
@@ -102,7 +100,7 @@ resource "linode_firewall" "main" {
 
 resource "cloudflare_record" "main" {
   for_each = local.nodes
-  zone_id  = local.globals.cloudflare.zone_id
+  zone_id  = var.cloudflare_zone_id
   name     = each.key
   type     = "A"
   value    = linode_instance.main[each.key].ip_address

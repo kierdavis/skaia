@@ -26,12 +26,12 @@ variable "mount_path" {
   type = string
 }
 
-variable "archive_secret_name" {
+variable "archive_bucket" {
   type = string
 }
 
-locals {
-  globals = yamldecode(file("${path.module}/../../globals.yaml"))
+variable "archive_secret_name" {
+  type = string
 }
 
 resource "kubernetes_cron_job_v1" "main" {
@@ -68,7 +68,7 @@ resource "kubernetes_cron_job_v1" "main" {
                 "--host=generic",
                 "--one-file-system",
                 "--read-concurrency=4",
-                "--repo=b2:${local.globals.b2.archive.bucket}:personal-restic",
+                "--repo=b2:${var.archive_bucket}:personal-restic",
                 var.mount_path,
               ]
               env_from {

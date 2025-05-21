@@ -37,7 +37,7 @@ locals {
 module "image" {
   source         = "../../modules/container_image"
   repo_name      = "skaia-personal-devenv"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   builder        = "nix"
   src            = "${path.module}/image.nix"
   args           = { personalUID = local.globals.personal_uid }

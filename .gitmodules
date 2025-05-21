@@ -1,0 +1,3 @@
+[submodule "secret"]
+	path = secret
+	url = ssh://git@git.personal.svc.kube.skaia.cloud/git-server/repos/skaia-secret

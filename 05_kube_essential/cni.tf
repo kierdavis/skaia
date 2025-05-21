@@ -1,21 +1,21 @@
 module "cni_plugin_installer_image" {
   source         = "../modules/container_image"
   repo_name      = "skaia-cni-plugin-installer"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/cni_images/plugin-installer"
 }
 
 module "cni_config_writer_image" {
   source         = "../modules/container_image"
   repo_name      = "skaia-cni-config-writer"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/cni_images/config-writer"
 }
 
 module "cni_route_advertiser_image" {
   source         = "../modules/container_image"
   repo_name      = "skaia-cni-route-advertiser"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/cni_images/route-advertiser"
 }
 

@@ -1,42 +1,10 @@
-authorized_ssh:
-  nets:
-    ipv4:
-    - REDACTED/32
-    - REDACTED/32
-    ipv6: []
-  public_keys:
-  - REDACTED
-  - REDACTED
-  - REDACTED
-  - REDACTED
-  - REDACTED
-
-b2:
-  account_id: REDACTED
-  account_key: REDACTED
-  archive:
-    bucket: redactedbucket
-    restic_password: REDACTED
-
-cloudflare:
-  token: REDACTED
-  zone_id: REDACTED
-
 docker_hub:
   username: kierdavis
-  password: REDACTED
-  namespace: kierdavis
 
 headscale:
   net:
     ipv4: 100.88.1.0/24
     ipv6: fd7a:115c:a1e0:88:1::/80
-
-letsencrypt:
-  email: redacted@example.net
-
-linode:
-  token: REDACTED
 
 kubernetes:
   pod_net:

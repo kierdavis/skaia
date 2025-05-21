@@ -25,7 +25,7 @@ locals {
 module "image" {
   source         = "../../modules/container_image_v2"
   repo_name      = "skaia-jellyfin"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/image.nix"
 }
 

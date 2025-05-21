@@ -28,7 +28,7 @@ locals {
   globals = yamldecode(file("${path.module}/../globals.yaml"))
 
   headscale_config = {
-    acme_email = local.globals.letsencrypt.email
+    acme_email = var.lets_encrypt_email
     acme_url   = "https://acme-v02.api.letsencrypt.org/directory"
     database = {
       type   = "sqlite"
@@ -94,11 +94,11 @@ locals {
 }
 
 provider "cloudflare" {
-  api_token = local.globals.cloudflare.token
+  api_token = var.cloudflare_token
 }
 
 provider "linode" {
-  token = local.globals.linode.token
+  token = var.linode_token
 }
 
 resource "tls_private_key" "ssh" {
@@ -223,7 +223,7 @@ resource "linode_instance_disk" "os" {
   size            = local.os_size
   image           = "linode/rocky9"
   stackscript_id  = linode_stackscript.main.id
-  authorized_keys = toset(local.globals.authorized_ssh.public_keys)
+  authorized_keys = var.authorized_ssh_public_keys
   lifecycle {
     replace_triggered_by = [linode_stackscript.main.script]
   }
@@ -280,8 +280,8 @@ resource "linode_firewall" "main" {
     action   = "ACCEPT"
     protocol = "TCP"
     ports    = "22"
-    ipv4     = toset(local.globals.authorized_ssh.nets.ipv4)
-    ipv6     = toset(local.globals.authorized_ssh.nets.ipv6)
+    ipv4     = var.authorized_ssh_ipv4_nets
+    ipv6     = var.authorized_ssh_ipv6_nets
   }
   inbound {
     label    = "headscale"
@@ -294,7 +294,7 @@ resource "linode_firewall" "main" {
 }
 
 resource "cloudflare_record" "main" {
-  zone_id = local.globals.cloudflare.zone_id
+  zone_id = var.cloudflare_zone_id
   name    = "becquerel"
   type    = "A"
   value   = linode_instance.main.ip_address
@@ -302,7 +302,7 @@ resource "cloudflare_record" "main" {
 }
 
 resource "cloudflare_record" "headscale" {
-  zone_id = local.globals.cloudflare.zone_id
+  zone_id = var.cloudflare_zone_id
   name    = "headscale"
   type    = "CNAME"
   value   = "${cloudflare_record.main.name}.skaia.cloud"

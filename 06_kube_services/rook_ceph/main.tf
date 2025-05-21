@@ -15,8 +15,6 @@ terraform {
 locals {
   rook_version = "1.14.9"
   ceph_version = "18.2.2"
-
-  globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 
 resource "kubernetes_namespace" "main" {

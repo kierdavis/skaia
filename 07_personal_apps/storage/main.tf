@@ -6,12 +6,28 @@ terraform {
   }
 }
 
-locals {
-  globals = yamldecode(file("${path.module}/../../globals.yaml"))
-}
-
 variable "namespace" {
   type = string
+}
+
+variable "b2_account_id" {
+  type = string
+}
+
+variable "b2_account_key" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
+}
+
+variable "b2_archive_bucket" {
+  type = string
+}
+
+variable "b2_archive_restic_password" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
 }
 
 output "downloads_pvc_name" {

@@ -10,21 +10,39 @@ variable "namespace" {
   type = string
 }
 
+variable "archive_bucket" {
+  type = string
+}
+
 variable "archive_secret_name" {
   type = string
+}
+
+variable "refern_email" {
+  type = string
+}
+
+variable "refern_identity_toolkit_api_key" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
+}
+
+variable "refern_password" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
 }
 
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
   labels  = { "app.kubernetes.io/name" = "refern-backup" }
-
-  refern_email = "redacted@example.net"
 }
 
 module "image" {
   source         = "../../modules/container_image_v2"
   repo_name      = "skaia-refern-backup"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/image.nix"
 }
 
@@ -35,9 +53,9 @@ resource "kubernetes_config_map" "main" {
     labels    = local.labels
   }
   data = {
-    REFERN_EMAIL        = local.refern_email
-    RESTIC_REPO         = "b2:${local.globals.b2.archive.bucket}:personal-restic"
-    RESTIC_VIRTUAL_PATH = "/data/accounts/refern/${local.refern_email}"
+    REFERN_EMAIL        = var.refern_email
+    RESTIC_REPO         = "b2:${var.archive_bucket}:personal-restic"
+    RESTIC_VIRTUAL_PATH = "/data/accounts/refern/${var.refern_email}"
     TMPDIR              = "/tmp"
   }
 }
@@ -49,8 +67,8 @@ resource "kubernetes_secret" "main" {
     labels    = local.labels
   }
   data = {
-    REFERN_IDENTITY_TOOLKIT_API_KEY = "REDACTED"
-    REFERN_PASSWORD                 = "REDACTED"
+    REFERN_IDENTITY_TOOLKIT_API_KEY = var.refern_identity_toolkit_api_key
+    REFERN_PASSWORD                 = var.refern_password
   }
 }
 

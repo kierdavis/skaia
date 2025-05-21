@@ -12,12 +12,8 @@ terraform {
   }
 }
 
-locals {
-  globals = yamldecode(file("${path.module}/../globals.yaml"))
-}
-
 provider "linode" {
-  token             = local.globals.linode.token
+  token             = var.linode_token
   obj_use_temp_keys = true
 }
 

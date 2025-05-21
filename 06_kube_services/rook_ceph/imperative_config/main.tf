@@ -21,7 +21,7 @@ locals {
 module "image" {
   source         = "../../../modules/container_image"
   repo_name      = "skaia-rook-ceph-imperative-config"
-  repo_namespace = local.globals.docker_hub.namespace
+  repo_namespace = local.globals.docker_hub.username
   src            = "${path.module}/image"
   args           = { rook_image = var.rook_image }
 }

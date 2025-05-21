@@ -18,7 +18,7 @@ locals {
 
 provider "dockerhub" {
   username = local.globals.docker_hub.username
-  password = local.globals.docker_hub.password
+  password = var.docker_hub_password
 }
 
 data "terraform_remote_state" "talos" {

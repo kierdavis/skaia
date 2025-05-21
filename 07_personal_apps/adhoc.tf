@@ -39,7 +39,7 @@
 #        container {
 #          name = "main"
 #          image = "docker.io/rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b"
-#          args = ["copy", ":b2:${local.globals.b2.archive.bucket}/${each.value.src_path}", "/scratch/downloaded/${each.value.dest_path}"]
+#          args = ["copy", ":b2:${var.b2_archive_bucket}/${each.value.src_path}", "/scratch/downloaded/${each.value.dest_path}"]
 #          volume_mount {
 #            name = "scratch"
 #            mount_path = "/scratch"
@@ -117,7 +117,7 @@ resource "kubernetes_job" "archive_upload" {
             "--host=generic",
             "--one-file-system",
             "--read-concurrency=4",
-            "--repo=b2:${local.globals.b2.archive.bucket}:/personal-restic",
+            "--repo=b2:${var.b2_archive_bucket}:/personal-restic",
             "--verbose",
             ], each.value.time != null ? ["--time=${each.value.time}"] : [], [
             each.value.mount_path,

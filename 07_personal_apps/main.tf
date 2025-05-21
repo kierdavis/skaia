@@ -25,7 +25,7 @@ data "terraform_remote_state" "talos" {
 
 provider "dockerhub" {
   username = local.globals.docker_hub.username
-  password = local.globals.docker_hub.password
+  password = var.docker_hub_password
 }
 
 provider "kubernetes" {
@@ -61,9 +61,10 @@ module "devenv" {
 }
 
 module "git" {
-  source              = "./git"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.storage.archive_secret_name
+  source                     = "./git"
+  namespace                  = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name        = module.storage.archive_secret_name
+  authorized_ssh_public_keys = var.authorized_ssh_public_keys
 }
 
 module "jellyfin" {
@@ -79,14 +80,22 @@ module "paperless" {
 }
 
 module "refern_backup" {
-  source              = "./refern_backup"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.storage.archive_secret_name
+  source                          = "./refern_backup"
+  namespace                       = kubernetes_namespace.main.metadata[0].name
+  archive_bucket                  = var.b2_archive_bucket
+  archive_secret_name             = module.storage.archive_secret_name
+  refern_email                    = var.refern_email
+  refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key
+  refern_password                 = var.refern_password
 }
 
 module "storage" {
-  source    = "./storage"
-  namespace = kubernetes_namespace.main.metadata[0].name
+  source                     = "./storage"
+  namespace                  = kubernetes_namespace.main.metadata[0].name
+  b2_account_id              = var.b2_account_id
+  b2_account_key             = var.b2_account_key
+  b2_archive_bucket          = var.b2_archive_bucket
+  b2_archive_restic_password = var.b2_archive_restic_password
 }
 
 module "transcoding" {
