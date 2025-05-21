@@ -16,7 +16,7 @@ variable "archive_secret_name" {
 
 locals {
   globals         = yamldecode(file("${path.module}/../../globals.yaml"))
-  authorized_keys = join("\n", local.globals.authorized_ssh.public_keys)
+  authorized_keys = join("\n", toset(local.globals.authorized_ssh.public_keys))
 }
 
 resource "kubernetes_config_map" "authorized_keys" {
