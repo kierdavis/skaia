@@ -6,6 +6,7 @@ pub fn configure() -> Result<(), Error> {
   Namespace::Global.ensure_with_context("mds_cache_memory_limit", "268435456")?;
   Namespace::Global.ensure_with_context("osd_deep_scrub_interval", "9676800.000000")?;
   Namespace::Global.ensure_with_context("osd_memory_target", "1073741824")?;
+  Namespace::Global.ensure_with_context("osd_pool_default_pg_autoscale_mode", "warn")?;
   Namespace::Global.ensure_with_context("osd_pool_default_size", "2")?;
   Namespace::Global.ensure_with_context("osd_scrub_max_interval", "2419200.000000")?;
   Namespace::Global.ensure_with_context("osd_scrub_min_interval", "1209600.000000")?;
