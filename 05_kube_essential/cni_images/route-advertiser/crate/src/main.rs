@@ -311,9 +311,9 @@ fn compute_service_routes(
 }
 
 fn shrink_endpoint_slice_memory_usage(eps: &mut EndpointSlice) {
-  eps.address_type.clear();
+  eps.address_type = String::new();
   for ep in eps.endpoints.iter_mut() {
-    ep.addresses.clear();
+    ep.addresses = Vec::new();
     // ep.conditions owns no heap allocations
     ep.deprecated_topology = None;
     ep.hints = None;
