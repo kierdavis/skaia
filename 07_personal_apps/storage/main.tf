@@ -38,6 +38,10 @@ output "media_pvc_name" {
   value = kubernetes_persistent_volume_claim.video.metadata[0].name
 }
 
+output "photography_pvc_name" {
+  value = kubernetes_persistent_volume_claim.photography.metadata[0].name
+}
+
 output "projects_pvc_name" {
   value = kubernetes_persistent_volume_claim.projects.metadata[0].name
 }

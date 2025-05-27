@@ -21,6 +21,17 @@ module "media_backup" {
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
+module "photography_backup" {
+  source              = "../restic_cron_job"
+  name                = "photography-backup"
+  namespace           = var.namespace
+  schedule            = "0 2 * * 3"
+  pvc_name            = kubernetes_persistent_volume_claim.photography.metadata[0].name
+  mount_path          = "/data/photography"
+  archive_bucket      = var.b2_archive_bucket
+  archive_secret_name = kubernetes_secret.archive.metadata[0].name
+}
+
 module "projects_backup" {
   source              = "../restic_cron_job"
   name                = "projects-backup"

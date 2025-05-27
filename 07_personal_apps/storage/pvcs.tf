@@ -43,6 +43,21 @@ resource "kubernetes_persistent_volume_claim" "music" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "photography" {
+  metadata {
+    name      = "photography"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = "cephfs-photography0"
+    volume_mode        = "Filesystem"
+    resources {
+      requests = { storage = "100Gi" }
+    }
+  }
+}
+
 resource "kubernetes_persistent_volume_claim" "projects" {
   metadata {
     name      = "projects-x"
