@@ -1,71 +1,74 @@
-#resource "kubernetes_job" "archive_download" {
-#  for_each = {
-#    #media = { src_path = "media", dest_path = "media" }
-#  }
-#  wait_for_completion = false
-#  metadata {
-#    name = "archive-download-${each.key}"
-#    namespace = kubernetes_namespace.main.metadata[0].name
-#    labels = { app = "archive-download", instance = each.key }
-#  }
-#  spec {
-#    backoff_limit = 0
-#    template {
-#      metadata {
-#        labels = { app = "archive-download", instance = each.key }
-#      }
-#      spec {
-#        restart_policy = "Never"
-#        affinity {
-#          node_affinity {
-#            preferred_during_scheduling_ignored_during_execution {
-#              weight = 50
-#              preference {
-#                match_expressions {
-#                  key      = "topology.kubernetes.io/zone"
-#                  operator = "In"
-#                  values   = ["z-adw"]
-#                }
-#              }
-#            }
-#          }
-#        }
-#        volume {
-#          name = "scratch"
-#          persistent_volume_claim {
-#            claim_name = module.storage.archive_scratch_pvc_name
-#          }
-#        }
-#        container {
-#          name = "main"
-#          image = "docker.io/rclone/rclone@sha256:74c51b8817e5431bd6d7ed27cb2a50d8ee78d77f6807b72a41ef6f898845942b"
-#          args = ["copy", ":b2:${var.b2_archive_bucket}/${each.value.src_path}", "/scratch/downloaded/${each.value.dest_path}"]
-#          volume_mount {
-#            name = "scratch"
-#            mount_path = "/scratch"
-#          }
-#          env_from {
-#            secret_ref {
-#              name = module.storage.archive_secret_name
-#            }
-#          }
-#          env {
-#            name  = "RCLONE_B2_ACCOUNT"
-#            value = "$(B2_ACCOUNT_ID)"
-#          }
-#          env {
-#            name  = "RCLONE_B2_KEY"
-#            value = "$(B2_ACCOUNT_KEY)"
-#          }
-#          security_context {
-#            run_as_user = local.globals.personal_uid
-#            run_as_group = local.globals.personal_uid
-#          }
-#        }
-#      }
-#    }
-#  }
-#}
+resource "kubernetes_job" "archive_download" {
+  for_each = {
+    #foobar = {
+    #  src_snapshot = "d3df90e2"
+    #  src_path = "/data/foo/bar"
+    #  dest_pvc = module.storage.photography_pvc_name
+    #  dest_path = "foo/bar"
+    #}
+  }
+  wait_for_completion = false
+  metadata {
+    name      = "archive-download-${each.key}"
+    namespace = kubernetes_namespace.main.metadata[0].name
+    labels    = { app = "archive-download", instance = each.key }
+  }
+  spec {
+    backoff_limit = 0
+    template {
+      metadata {
+        labels = { app = "archive-download", instance = each.key }
+      }
+      spec {
+        restart_policy = "Never"
+        affinity {
+          node_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 50
+              preference {
+                match_expressions {
+                  key      = "topology.kubernetes.io/zone"
+                  operator = "In"
+                  values   = ["z-adw"]
+                }
+              }
+            }
+          }
+        }
+        volume {
+          name = "dest"
+          persistent_volume_claim {
+            claim_name = each.value.dest_pvc
+          }
+        }
+        container {
+          name  = "main"
+          image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
+          args = [
+            "restore",
+            "--repo=b2:${var.b2_archive_bucket}:personal-restic",
+            "--target=/dest/${each.value.dest_path}",
+            "--verbose",
+            "${each.value.src_snapshot}:${each.value.src_path}",
+          ]
+          volume_mount {
+            name       = "dest"
+            mount_path = "/dest"
+          }
+          env_from {
+            secret_ref {
+              name = module.storage.archive_secret_name
+            }
+          }
+          security_context {
+            run_as_user  = local.globals.personal_uid
+            run_as_group = local.globals.personal_uid
+          }
+        }
+      }
+    }
+  }
+}
 
 resource "kubernetes_job" "archive_upload" {
   for_each = {
@@ -102,7 +105,7 @@ resource "kubernetes_job" "archive_upload" {
           }
         }
         volume {
-          name = "media"
+          name = "src"
           persistent_volume_claim {
             claim_name = each.value.pvc_name
           }
@@ -123,7 +126,7 @@ resource "kubernetes_job" "archive_upload" {
             each.value.mount_path,
           ])
           volume_mount {
-            name       = "media"
+            name       = "src"
             sub_path   = each.value.pvc_path
             mount_path = each.value.mount_path
             read_only  = true
