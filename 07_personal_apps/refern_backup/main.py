@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import pathlib
 import requests
@@ -13,13 +14,31 @@ def main():
   staging_dir = pathlib.Path(os.environ["RESTIC_VIRTUAL_PATH"])
   restic_repo = os.environ["RESTIC_REPO"]
 
+  download_dir.mkdir(parents=True, exist_ok=True)
+  staging_dir.mkdir(parents=True, exist_ok=True)
+
   user = login()
-  collections = [
-    {**item, "folder": folder}
-    for folder in get_folders(user)
-    for item in get_folder_items(user, folder["_id"])
-    if item["type"] == "collection"
-  ]
+  folders = {x["_id"]: x for x in get_folders(user)}
+  folder_items = [{**item, "parentFolderId": folder_id} for folder_id in folders for item in get_folder_items(user, folder_id)]
+
+  for folder_id, folder in folders.items():
+    fullname = folder["name"].replace("/", "_")
+    if folder["parentFolderId"]:
+      fullname = folders[folder["parentFolderId"]]["__fullname"] + "/" + fullname
+    folder["__fullname"] = fullname
+  for item in folder_items:
+    item["__fullname"] = folders[item["parentFolderId"]]["__fullname"] + "/" + item["name"].replace("/", "_")
+
+  boards = [item for item in folder_items if item["type"] == "board"]
+  collections = [item for item in folder_items if item["type"] == "collection"]
+
+  for b in boards:
+    log(f"collection {b['_id']} \"{b['__fullname']}\": downloading...")
+    board_data = get_board(user, b["_id"])
+    board_dir = staging_dir / b["__fullname"]
+    board_dir.mkdir(parents=True, exist_ok=True)
+    with open(board_dir / "board.json", "w") as f:
+      json.dump(board_data, f, separators=(',', ':'))
 
   export_statuses = {
     c["_id"]: get_export_status(user, c["_id"])
@@ -29,17 +48,17 @@ def main():
   for c in collections:
     xs = export_statuses[c["_id"]]
     if xs is None:
-      log(f"collection {c['_id']} \"{c['folder']['name']}/{c['name']}\": has never been exported; initiating export")
+      log(f"collection {c['_id']} \"{c['__fullname']}\": has never been exported; initiating export")
       export_statuses[c["_id"]] = initiate_export(user, c["_id"])
     else:
       last_export = datetime.datetime.fromtimestamp(max(xs["exportTimes"]) / 1000, datetime.timezone.utc)
       age = datetime.datetime.now(tz=datetime.timezone.utc) - last_export
       if age > MAX_SNAPSHOT_AGE:
-        log(f"collection {c['_id']} \"{c['folder']['name']}/{c['name']}\": last export was at {last_export}; initiating new export")
+        log(f"collection {c['_id']} \"{c['__fullname']}\": last export was at {last_export}; initiating new export")
         delete_export(user, c["_id"], xs["_id"])
         export_statuses[c["_id"]] = initiate_export(user, c["_id"])
       else:
-        log(f"collection {c['_id']} \"{c['folder']['name']}/{c['name']}\": using recent export from {last_export}")
+        log(f"collection {c['_id']} \"{c['__fullname']}\": using recent export from {last_export}")
 
   while True:
     pending_cids = [c["_id"] for c in collections if export_statuses[c["_id"]]["status"] != "completed"]
@@ -55,18 +74,16 @@ def main():
 
   log("all exports ready for download")
 
-  download_dir.mkdir(parents=True, exist_ok=True)
-  staging_dir.mkdir(parents=True, exist_ok=True)
   for c in collections:
     zip_path = download_dir / (c["_id"] + ".zip")
-    extract_dir = staging_dir / c["folder"]["name"] / c["name"]
+    extract_dir = staging_dir / c["__fullname"]
     extract_dir.mkdir(parents=True, exist_ok=True)
-    log(f"collection {c['_id']} \"{c['folder']['name']}/{c['name']}\": downloading...")
+    log(f"collection {c['_id']} \"{c['__fullname']}\": downloading...")
     subprocess.run(
       ["curl", "--location", "--silent", "--show-error", "--fail", "--output", str(zip_path), export_statuses[c["_id"]]["downloadUrl"]],
       check=True,
     )
-    log(f"collection {c['_id']} \"{c['folder']['name']}/{c['name']}\": extracting...")
+    log(f"collection {c['_id']} \"{c['__fullname']}\": extracting...")
     subprocess.run(
       ["unzip", str(zip_path)],
       cwd=str(extract_dir),
@@ -151,6 +168,18 @@ def get_folder_items(user, folder_id):
   """
   resp = requests.get(
     f"https://prod.api.refern.app/folder/{folder_id}/item",
+    headers={
+      "Authorization": user["idToken"],
+      "Origin": "https://my.refern.app",
+      "Referer": "https://my.refern.app",
+    },
+  )
+  resp.raise_for_status()
+  return resp.json()
+
+def get_board(user, board_id):
+  resp = requests.get(
+    f"https://prod.api.refern.app/board/{board_id}",
     headers={
       "Authorization": user["idToken"],
       "Origin": "https://my.refern.app",
