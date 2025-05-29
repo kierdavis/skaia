@@ -101,6 +101,7 @@ def main():
       "--one-file-system",
       "--read-concurrency=4",
       f"--repo={restic_repo}",
+      "--tag=auto",
       str(staging_dir),
     ],
     check=True,

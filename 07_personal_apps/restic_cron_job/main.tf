@@ -69,6 +69,7 @@ resource "kubernetes_cron_job_v1" "main" {
                 "--one-file-system",
                 "--read-concurrency=4",
                 "--repo=b2:${var.archive_bucket}:personal-restic",
+                "--tag=auto",
                 var.mount_path,
               ]
               env_from {
