@@ -3,9 +3,6 @@ terraform {
     path = "/net/skaia/tfstate/skaia/03_talos_linodes.tfstate"
   }
   required_providers {
-    cloudflare = {
-      source = "cloudflare/cloudflare"
-    }
     linode = {
       source = "linode/linode"
     }
@@ -20,10 +17,6 @@ locals {
     #  image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
     #}
   }
-}
-
-provider "cloudflare" {
-  api_token = var.cloudflare_token
 }
 
 provider "linode" {
@@ -98,11 +91,6 @@ resource "linode_firewall" "main" {
   }
 }
 
-resource "cloudflare_record" "main" {
-  for_each = local.nodes
-  zone_id  = var.cloudflare_zone_id
-  name     = each.key
-  type     = "A"
-  value    = linode_instance.main[each.key].ip_address
-  proxied  = false
+output "ip_address" {
+  value = { for name, inst in linode_instance.main : name => inst.ip_address }
 }

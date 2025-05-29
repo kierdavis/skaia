@@ -46,7 +46,7 @@ locals {
     #nitram = {
     #  role                     = "controlplane"
     #  boot_disk                = "/dev/sda"
-    #  bootstrap_endpoint       = "nitram.skaia.cloud"
+    #  bootstrap_endpoint       = data.terraform_remote_state.linodes.ip_address["nitram"]
     #  force_bootstrap_endpoint = false # set to true if tailscaled is broken
     #  labels = {
     #    "hwcaps.skaia.cloud/qsv"        = "none"
@@ -75,6 +75,13 @@ data "terraform_remote_state" "tailnet" {
   backend = "local"
   config = {
     path = "/net/skaia/tfstate/skaia/01_tailnet.tfstate"
+  }
+}
+
+data "terraform_remote_state" "linodes" {
+  backend = "local"
+  config = {
+    path = "/net/skaia/tfstate/skaia/03_talos_linodes.tfstate"
   }
 }
 
