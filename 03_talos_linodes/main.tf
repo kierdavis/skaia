@@ -42,7 +42,7 @@ resource "linode_instance_disk" "talos" {
   for_each  = local.nodes
   label     = "talos"
   linode_id = linode_instance.main[each.key].id
-  size      = 25 * 1024 # MiB
+  size      = linode_instance.main[each.key].specs[0].disk
   image     = each.value.image
 }
 
