@@ -82,7 +82,6 @@ module "paperless" {
 module "refern_backup" {
   source                          = "./refern_backup"
   namespace                       = kubernetes_namespace.main.metadata[0].name
-  archive_bucket                  = var.b2_archive_bucket
   archive_secret_name             = module.storage.archive_secret_name
   refern_email                    = var.refern_email
   refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key

@@ -10,10 +10,6 @@ variable "namespace" {
   type = string
 }
 
-variable "archive_bucket" {
-  type = string
-}
-
 variable "archive_secret_name" {
   type = string
 }
@@ -54,7 +50,6 @@ resource "kubernetes_config_map" "main" {
   }
   data = {
     REFERN_EMAIL        = var.refern_email
-    RESTIC_REPO         = "b2:${var.archive_bucket}:personal-restic"
     RESTIC_VIRTUAL_PATH = "/data/accounts/refern/${var.refern_email}"
     TMPDIR              = "/tmp"
   }

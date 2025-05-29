@@ -26,10 +26,6 @@ variable "mount_path" {
   type = string
 }
 
-variable "archive_bucket" {
-  type = string
-}
-
 variable "archive_secret_name" {
   type = string
 }
@@ -68,7 +64,6 @@ resource "kubernetes_cron_job_v1" "main" {
                 "--host=generic",
                 "--one-file-system",
                 "--read-concurrency=4",
-                "--repo=b2:${var.archive_bucket}:personal-restic",
                 "--tag=auto",
                 var.mount_path,
               ]

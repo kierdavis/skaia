@@ -46,7 +46,6 @@ resource "kubernetes_job" "archive_download" {
           image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
           args = [
             "restore",
-            "--repo=b2:${var.b2_archive_bucket}:personal-restic",
             "--target=/dest/${each.value.dest_path}",
             "--verbose",
             "${each.value.src_snapshot}:${each.value.src_path}",
@@ -120,7 +119,6 @@ resource "kubernetes_job" "archive_upload" {
             "--host=generic",
             "--one-file-system",
             "--read-concurrency=4",
-            "--repo=b2:${var.b2_archive_bucket}:/personal-restic",
             "--verbose",
             ], each.value.time != null ? ["--time=${each.value.time}"] : [], [
             each.value.mount_path,

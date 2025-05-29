@@ -12,7 +12,6 @@ MAX_SNAPSHOT_AGE = datetime.timedelta(hours=12)
 def main():
   download_dir = pathlib.Path(os.environ.get("TMPDIR", "/tmp"))
   staging_dir = pathlib.Path(os.environ["RESTIC_VIRTUAL_PATH"])
-  restic_repo = os.environ["RESTIC_REPO"]
 
   download_dir.mkdir(parents=True, exist_ok=True)
   staging_dir.mkdir(parents=True, exist_ok=True)
@@ -100,7 +99,6 @@ def main():
       "--host=generic",
       "--one-file-system",
       "--read-concurrency=4",
-      f"--repo={restic_repo}",
       "--tag=auto",
       str(staging_dir),
     ],
