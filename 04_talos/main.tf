@@ -136,7 +136,7 @@ data "talos_machine_configuration" "main" {
   talos_version    = "v${local.api_contract_version}"
   config_patches = [
     yamlencode({
-      cluster = {
+      cluster = merge({
         allowSchedulingOnControlPlanes = true
         apiServer = {
           certSANs                 = ["kubeapi.skaia.cloud"]
@@ -150,10 +150,6 @@ data "talos_machine_configuration" "main" {
           }
         }
         discovery = { enabled = false }
-        etcd = {
-          advertisedSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
-          listenSubnets     = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
-        }
         network = {
           cni            = { name = "none" }
           dnsDomain      = "kube.skaia.cloud"
@@ -170,12 +166,17 @@ data "talos_machine_configuration" "main" {
             bind-address = "0.0.0.0" # so Prometheus can scrape
           }
         }
-      }
+        }, each.value.role == "controlplane" ? {
+        etcd = {
+          advertisedSubnets = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+          listenSubnets     = [local.globals.headscale.net.ipv4, local.globals.headscale.net.ipv6]
+        }
+      } : {})
       machine = {
         certSANs = [each.key, "${each.key}.skaia.cloud"]
         features = {
           kubernetesTalosAPIAccess = {
-            enabled                     = true
+            enabled                     = each.value.role == "controlplane"
             allowedRoles                = ["os:admin"]
             allowedKubernetesNamespaces = ["system"]
           }
@@ -195,6 +196,7 @@ data "talos_machine_configuration" "main" {
           extraHostEntries = [
             for node_name, endpoint in local.node_endpoints :
             { ip = endpoint, aliases = [node_name, "${node_name}.skaia.cloud", "kubeapi.skaia.cloud"] }
+            if local.nodes[node_name].role == "controlplane"
           ]
           nameservers = ["1.1.1.1", "1.0.0.1"]
         }
