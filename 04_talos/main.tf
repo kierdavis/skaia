@@ -58,6 +58,19 @@ locals {
     #    "skaia.cloud/control-only" = "true:NoSchedule"
     #  }
     #}
+    # Worker node.
+    zahhak = {
+      role                     = "worker"
+      boot_disk                = "/dev/sda"
+      bootstrap_endpoint       = data.terraform_remote_state.linodes.outputs.ip_address["zahhak"]
+      force_bootstrap_endpoint = false # set to true if tailscaled is broken
+      labels = {
+        "hwcaps.skaia.cloud/qsv"        = "none"
+        "topology.kubernetes.io/region" = "r-lhr"
+        "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
+        "topology.rook.io/chassis"      = "c-zahhak"
+      }
+    }
   }
   arbitrary_node = "vantas"
 

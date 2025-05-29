@@ -16,6 +16,11 @@ locals {
     #  type  = "g6-standard-1"
     #  image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
     #}
+    # Worker node.
+    zahhak = {
+      type  = "g6-standard-2"
+      image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
+    }
   }
 }
 
