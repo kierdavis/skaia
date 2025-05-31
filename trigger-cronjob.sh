@@ -8,13 +8,4 @@ if [[ -z "$namespace" || -z "$name" ]]; then
   exit 1
 fi
 
-kubectl --namespace="$namespace" get cronjob "$name" --output=json \
-  | jq --compact-output '.spec.jobTemplate * {
-    apiVersion: "batch/v1",
-    kind: "Job",
-    metadata: {
-      name: "\(.metadata.name)-\(now|round)-adhoc",
-      namespace: .metadata.namespace,
-    },
-  }' \
-  | kubectl apply -f -
+exec kubectl --namespace="$namespace" create job "$name-$(date +%s)-adhoc" --from="cronjob/$name"
