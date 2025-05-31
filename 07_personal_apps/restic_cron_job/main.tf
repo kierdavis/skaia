@@ -61,6 +61,7 @@ resource "kubernetes_cron_job_v1" "main" {
                 "backup",
                 "--exclude=lost+found",
                 "--exclude=.nobackup",
+                "--exclude=.Trash-*",
                 "--host=generic",
                 "--one-file-system",
                 "--read-concurrency=4",

@@ -116,6 +116,7 @@ resource "kubernetes_job" "archive_upload" {
             "backup",
             "--exclude=lost+found",
             "--exclude=.nobackup",
+            "--exclude=.Trash-*",
             "--host=generic",
             "--one-file-system",
             "--read-concurrency=4",
