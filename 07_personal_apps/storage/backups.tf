@@ -25,7 +25,7 @@ module "photography_backup" {
   source              = "../restic_cron_job"
   name                = "photography-backup"
   namespace           = var.namespace
-  schedule            = "0 2 * * 3"
+  schedule            = "0 2 * * *"
   pvc_name            = kubernetes_persistent_volume_claim.photography.metadata[0].name
   mount_path          = "/data/photography"
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
