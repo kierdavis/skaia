@@ -69,8 +69,9 @@ module "devenv" {
 module "git" {
   source                     = "./git"
   namespace                  = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name        = module.storage.archive_secret_name
   authorized_ssh_public_keys = var.authorized_ssh_public_keys
+  archive_secret_name        = module.storage.archive_secret_name
+  restic_sidecar_image       = module.restic_sidecar.image
 }
 
 module "jellyfin" {
@@ -81,8 +82,10 @@ module "jellyfin" {
 }
 
 module "paperless" {
-  source    = "./paperless"
-  namespace = kubernetes_namespace.main.metadata[0].name
+  source               = "./paperless"
+  namespace            = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name  = module.storage.archive_secret_name
+  restic_sidecar_image = module.restic_sidecar.image
 }
 
 module "refern_backup" {
@@ -92,6 +95,10 @@ module "refern_backup" {
   refern_email                    = var.refern_email
   refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key
   refern_password                 = var.refern_password
+}
+
+module "restic_sidecar" {
+  source = "./restic_sidecar"
 }
 
 module "storage" {

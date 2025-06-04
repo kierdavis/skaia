@@ -10,6 +10,14 @@ variable "namespace" {
   type = string
 }
 
+variable "archive_secret_name" {
+  type = string
+}
+
+variable "restic_sidecar_image" {
+  type = string
+}
+
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
@@ -129,6 +137,33 @@ resource "kubernetes_stateful_set" "main" {
             name       = "media"
             mount_path = "/usr/src/paperless/media"
             read_only  = false
+          }
+        }
+        container {
+          name  = "backup"
+          image = var.restic_sidecar_image
+          env {
+            name  = "SCHEDULE"
+            value = "0 2 * * 5"
+          }
+          env {
+            name  = "DIR"
+            value = "/data/documents/paperless"
+          }
+          env_from {
+            secret_ref {
+              name = var.archive_secret_name
+            }
+          }
+          volume_mount {
+            name       = "database"
+            mount_path = "/data/documents/paperless/data"
+            read_only  = true
+          }
+          volume_mount {
+            name       = "media"
+            mount_path = "/data/documents/paperless/media"
+            read_only  = true
           }
         }
       }

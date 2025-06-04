@@ -10,12 +10,16 @@ variable "namespace" {
   type = string
 }
 
+variable "authorized_ssh_public_keys" {
+  type = set(string)
+}
+
 variable "archive_secret_name" {
   type = string
 }
 
-variable "authorized_ssh_public_keys" {
-  type = set(string)
+variable "restic_sidecar_image" {
+  type = string
 }
 
 locals {
@@ -82,6 +86,28 @@ resource "kubernetes_stateful_set" "main" {
               cpu    = "1m"
               memory = "5Mi"
             }
+          }
+        }
+        container {
+          name  = "backup"
+          image = var.restic_sidecar_image
+          env {
+            name  = "SCHEDULE"
+            value = "0 2 * * 3"
+          }
+          env {
+            name  = "DIR"
+            value = "/data/git-repositories"
+          }
+          env_from {
+            secret_ref {
+              name = var.archive_secret_name
+            }
+          }
+          volume_mount {
+            name       = "repositories"
+            mount_path = "/data/git-repositories"
+            read_only  = true
           }
         }
       }
