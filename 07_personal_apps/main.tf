@@ -50,6 +50,12 @@ resource "kubernetes_namespace" "main" {
   }
 }
 
+module "backup_ageout" {
+  source              = "./backup_ageout"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.storage.archive_secret_name
+}
+
 module "devenv" {
   source              = "./devenv"
   namespace           = kubernetes_namespace.main.metadata[0].name
