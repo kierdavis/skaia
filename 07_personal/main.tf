@@ -1,6 +1,6 @@
 terraform {
   backend "local" {
-    path = "/net/skaia/tfstate/skaia/07_personal_apps.tfstate"
+    path = "/net/skaia/tfstate/skaia/07_personal.tfstate"
   }
   required_providers {
     dockerhub = {
