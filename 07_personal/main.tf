@@ -134,3 +134,11 @@ module "valheim_common" {
 #  source    = "./vaultwarden"
 #  namespace = kubernetes_namespace.main.metadata[0].name
 #}
+
+output "downloads_pvc_name" {
+  value = module.storage.downloads_pvc_name
+}
+
+output "archive_secret_name" {
+  value = module.storage.archive_secret_name
+}
