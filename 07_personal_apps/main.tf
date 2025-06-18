@@ -117,6 +117,19 @@ module "transcoding" {
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
 
+module "valheim_common" {
+  source = "./valheim/common"
+}
+
+#module "valheim_foo" {
+#  source          = "./valheim/instance"
+#  name            = "valheim-foo"
+#  namespace       = kubernetes_namespace.main.metadata[0].name
+#  server_name     = "my server name"
+#  server_password = "super secret"
+#  common          = module.valheim_common
+#}
+
 #module "vaultwarden" {
 #  source    = "./vaultwarden"
 #  namespace = kubernetes_namespace.main.metadata[0].name
