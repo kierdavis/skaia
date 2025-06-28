@@ -60,9 +60,13 @@ locals {
     groups = {
       "group:system" = ["skaia"]
       "group:admins" = ["kier"]
+      # Not sure if this is a headscale bug, but using a username in the
+      # src/dst of an ACL doesn't seem to have any effect. Need to create
+      # a group.
+      "group:kier" = ["kier"]
     }
     acls = [
-      # Allow communications within the cluster, and allow group:admins to connect to the cluster.
+      # Allow communications within the cluster, and allow group:admins to connect to anything in the cluster.
       {
         action = "accept"
         src = [
@@ -81,6 +85,8 @@ locals {
           "${local.globals.kubernetes.svc_net.ipv6}:*",
         ]
       },
+      # Allow communications between users' personal devices.
+      { action = "accept", src = ["group:kier"], dst = ["group:kier:*"] },
     ]
     autoApprovers = {
       routes = {
