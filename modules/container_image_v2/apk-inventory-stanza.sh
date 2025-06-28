@@ -1,8 +1,10 @@
 #!/bin/sh
 set -o errexit -o nounset -o pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 image=$(nix --extra-experimental-features nix-command eval --impure --raw --expr '
-  with (import <nixpkgs> { overlays = [(import ../modules/container_image_v2/overlay.nix)]; }).imageTools.bases.alpine;
+  with (import <nixpkgs> { overlays = [(import ./overlay.nix)]; }).imageTools.bases.alpine;
   imageName + "@" + imageDigest
 ')
 

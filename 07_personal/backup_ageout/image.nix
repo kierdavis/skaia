@@ -25,7 +25,7 @@ imageTools.customise {
       xz-libs
     ]))];
     run = imageTools.installAPKs;
-    newLayerHash = "sha256-8HZ2GjeN93VyxjSgR21je49j5bZMTcEICtxr2aA15Zs=";
+    newLayerHash = "sha256-H68WxQpOEBfA8zz0rdZLI/czMwCrnh7YeN8OusE3/6Q=";
   };
   add = [{
     src = ./main.py;

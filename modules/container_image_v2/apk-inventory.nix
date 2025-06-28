@@ -490,12 +490,12 @@
     hash = "sha256:00s599w3rh3jlqvr4i7inwb7jil308nsvxkgjpxzw3208z8wd4f2";
   };
   py3-requests = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-2.32.3-r0.apk";
-    hash = "sha256:0z0ssbm3hvbiph27cpdyjfgcvkrw9x3gnb6npar6krmdk1zx0gmc";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-2.32.4-r0.apk";
+    hash = "sha256:0ri3djpj8chyi8hhyj1zbz9csxqs347l1qmssq6p406v1fw7a64l";
   };
   py3-requests-pyc = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-pyc-2.32.3-r0.apk";
-    hash = "sha256:1b4cn6xrc84had7kgcrwh757d2iwzrj63j8hbgdlkdrjjm3azidg";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-requests-pyc-2.32.4-r0.apk";
+    hash = "sha256:1a7iwphsdnafj05ppnldv6m2bqwf3biqww8nkkah0nvii5000l7v";
   };
   py3-urllib3 = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/py3-urllib3-1.26.18-r0.apk";
@@ -506,20 +506,20 @@
     hash = "sha256:10z8qz7zxgj557rrssg4h36zrr8c8d13k2gd6l0b680kbxkn2nm2";
   };
   pyc = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/pyc-3.11.12-r1.apk";
-    hash = "sha256:1w4pqc551xr067p4di4ipbiqdjyblmpmb20h8qs79y6ka6bx5m92";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/pyc-3.11.13-r0.apk";
+    hash = "sha256:03hq6xva8j696wn6aafbs3jpjqp24nxsyrxm8br7l3b3vsqdk91a";
   };
   python3 = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-3.11.12-r1.apk";
-    hash = "sha256:1pirgld4cp3a9hypz9yzs0bmsnrqrrkx5m56fzry7dpizawj3029";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-3.11.13-r0.apk";
+    hash = "sha256:0py86qccrjqv80szbb1zzm3dsj4cw62qfyd5bm386hjkgy5rp2ch";
   };
   python3-pyc = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pyc-3.11.12-r1.apk";
-    hash = "sha256:1kycqbbpy336547pzh4gnsvb131fq55wrhipchrr02k5sr1621bp";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pyc-3.11.13-r0.apk";
+    hash = "sha256:1vzd60imbv76jffd2jdr7ajlvbh1q4z48v6i0jnh8w0wsxl244by";
   };
   python3-pycache-pyc0 = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pycache-pyc0-3.11.12-r1.apk";
-    hash = "sha256:1j4vfni2lwwzq9qddd444hxj6ymhdxbr36bcx9sqfpdyglj35wdj";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/python3-pycache-pyc0-3.11.13-r0.apk";
+    hash = "sha256:1hh0hfx1l72k2k1i75p6qj29v7iqxqbjzg726k4z4c7xak33rq4x";
   };
   rav1e-libs = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/rav1e-libs-0.6.6-r2.apk";
