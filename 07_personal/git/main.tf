@@ -48,7 +48,7 @@ resource "kubernetes_stateful_set" "main" {
     }
     template {
       metadata {
-        labels      = { "app.kubernetes.io/name" = "git" }
+        labels = { "app.kubernetes.io/name" = "git" }
         annotations = {
           "confighash.skaia.cloud/authorizedkeys" = nonsensitive(md5(jsonencode(kubernetes_config_map.authorized_keys.data)))
         }
