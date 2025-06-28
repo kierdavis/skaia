@@ -6,11 +6,11 @@ terraform {
   }
 }
 
-variable "name" {
+variable "namespace" {
   type = string
 }
 
-variable "namespace" {
+variable "instance_name" {
   type = string
 }
 
@@ -40,11 +40,11 @@ variable "common" {
 
 resource "kubernetes_secret" "main" {
   metadata {
-    name      = var.name
+    name      = "valheim-${var.instance_name}"
     namespace = var.namespace
     labels = {
       "app.kubernetes.io/name"     = "valheim"
-      "app.kubernetes.io/instance" = var.name
+      "app.kubernetes.io/instance" = "valheim-${var.instance_name}"
     }
   }
   data = {
@@ -55,27 +55,27 @@ resource "kubernetes_secret" "main" {
 resource "kubernetes_stateful_set" "main" {
   wait_for_rollout = false
   metadata {
-    name      = var.name
+    name      = "valheim-${var.instance_name}"
     namespace = var.namespace
     labels = {
       "app.kubernetes.io/name"     = "valheim"
-      "app.kubernetes.io/instance" = var.name
+      "app.kubernetes.io/instance" = "valheim-${var.instance_name}"
     }
   }
   spec {
     replicas     = 1
-    service_name = var.name
+    service_name = "valheim-${var.instance_name}"
     selector {
       match_labels = {
         "app.kubernetes.io/name"     = "valheim"
-        "app.kubernetes.io/instance" = var.name
+        "app.kubernetes.io/instance" = "valheim-${var.instance_name}"
       }
     }
     template {
       metadata {
         labels = {
           "app.kubernetes.io/name"     = "valheim"
-          "app.kubernetes.io/instance" = var.name
+          "app.kubernetes.io/instance" = "valheim-${var.instance_name}"
         }
       }
       spec {
@@ -168,7 +168,7 @@ resource "kubernetes_stateful_set" "main" {
         name = "installation"
         labels = {
           "app.kubernetes.io/name"      = "valheim"
-          "app.kubernetes.io/instance"  = var.name
+          "app.kubernetes.io/instance"  = "valheim-${var.instance_name}"
           "app.kubernetes.io/component" = "installation"
         }
         annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "45 4 * * *" }
@@ -187,7 +187,7 @@ resource "kubernetes_stateful_set" "main" {
         name = "gamedata"
         labels = {
           "app.kubernetes.io/name"      = "valheim"
-          "app.kubernetes.io/instance"  = var.name
+          "app.kubernetes.io/instance"  = "valheim-${var.instance_name}"
           "app.kubernetes.io/component" = "gamedata"
         }
         annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "50 4 * * *" }
