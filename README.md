@@ -11,7 +11,7 @@ This repo contains the configuration for my home Kubernetes cluster.
 * Networking: [tailscale][] (node agent), [headscale][] (control server), [code to glue this into Kubernetes CNI][cni-images].
 * Storage: [rook-ceph][], Backblaze B2
 * Cluster services: [prometheus][], [grafana][], [kube-network-policies][], [generic-device-plugin][], [csi-addons][]
-* Applications: [jellyfin][], [paperless-ngx][], private git server, network filesystems, backups
+* Applications: [jellyfin][], [multiplayer game servers][valheim], [paperless-ngx][], private git server, network filesystems, backups
 
 ## Design principles
 
@@ -50,3 +50,4 @@ But, this is for my personal use alone. The only criteria are that it's secure _
 [rook-ceph-imperative-config]: ./06_kube_services/rook_ceph/imperative_config_image/crate
 [tailscale]: https://tailscale.com/
 [talos]: https://www.talos.dev/
+[valheim]: ./07_personal/valheim
