@@ -22,10 +22,6 @@ variable "restic_sidecar_image" {
   type = string
 }
 
-locals {
-  authorized_keys = join("\n", var.authorized_ssh_public_keys)
-}
-
 resource "kubernetes_config_map" "authorized_keys" {
   metadata {
     name      = "git-authorized-keys"
@@ -33,7 +29,7 @@ resource "kubernetes_config_map" "authorized_keys" {
     labels    = { "app.kubernetes.io/name" = "git" }
   }
   data = {
-    "all.pub" = local.authorized_keys
+    "all.pub" = join("\n", var.authorized_ssh_public_keys)
   }
 }
 
@@ -53,7 +49,9 @@ resource "kubernetes_stateful_set" "main" {
     template {
       metadata {
         labels      = { "app.kubernetes.io/name" = "git" }
-        annotations = { "skaia.cloud/confighash" = md5(local.authorized_keys) }
+        annotations = {
+          "confighash.skaia.cloud/authorizedkeys" = nonsensitive(md5(jsonencode(kubernetes_config_map.authorized_keys.data)))
+        }
       }
       spec {
         enable_service_links             = false
