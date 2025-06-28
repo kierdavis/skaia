@@ -100,15 +100,15 @@ resource "kubernetes_stateful_set" "main" {
         init_container {
           name    = "chown"
           image   = var.common.image
-          command = ["chown", "steam:steam", "/installation", "/gamedata"]
+          command = ["chown", "steam:steam", "/installation", "/state"]
           volume_mount {
             name       = "installation"
             mount_path = "/installation"
             read_only  = false
           }
           volume_mount {
-            name       = "gamedata"
-            mount_path = "/gamedata"
+            name       = "state"
+            mount_path = "/state"
             read_only  = false
           }
           security_context {
@@ -139,7 +139,7 @@ resource "kubernetes_stateful_set" "main" {
           args = [
             "-name", var.server_name,
             "-world", "MyWorld",
-            "-savedir", "/gamedata",
+            "-savedir", "/state",
             "-password", "$(VALHEIM_SERVER_PASSWORD)",
             "-public", var.public ? "1" : "0",
             "-crossplay",
@@ -156,8 +156,8 @@ resource "kubernetes_stateful_set" "main" {
             read_only  = true
           }
           volume_mount {
-            name       = "gamedata"
-            mount_path = "/gamedata"
+            name       = "state"
+            mount_path = "/state"
             read_only  = false
           }
         }
@@ -184,11 +184,11 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name = "gamedata"
+        name = "state"
         labels = {
           "app.kubernetes.io/name"      = "valheim"
           "app.kubernetes.io/instance"  = "valheim-${var.instance_name}"
-          "app.kubernetes.io/component" = "gamedata"
+          "app.kubernetes.io/component" = "state"
         }
         annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "50 4 * * *" }
       }
