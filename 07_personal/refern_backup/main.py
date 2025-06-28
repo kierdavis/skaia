@@ -32,7 +32,7 @@ def main():
   collections = [item for item in folder_items if item["type"] == "collection"]
 
   for b in boards:
-    log(f"collection {b['_id']} \"{b['__fullname']}\": downloading...")
+    log(f"board {b['_id']} \"{b['__fullname']}\": downloading...")
     board_data = get_board(user, b["_id"])
     board_dir = staging_dir / b["__fullname"]
     board_dir.mkdir(parents=True, exist_ok=True)
