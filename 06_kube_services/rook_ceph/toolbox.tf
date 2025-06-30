@@ -3,7 +3,10 @@ resource "kubernetes_deployment" "toolbox" {
   metadata {
     name      = "rook-ceph-tools"
     namespace = local.namespace
-    labels    = { "app.kubernetes.io/name" = "rook-ceph-tools" }
+    labels = {
+      "app.kubernetes.io/name" = "rook-ceph-tools"
+      "app"                    = "rook-ceph-tools" # required by rook-ceph kubectl plugin
+    }
   }
   spec {
     replicas = 1
@@ -15,11 +18,16 @@ resource "kubernetes_deployment" "toolbox" {
       }
     }
     selector {
-      match_labels = { "app.kubernetes.io/name" = "rook-ceph-tools" }
+      match_labels = {
+        "app.kubernetes.io/name" = "rook-ceph-tools"
+      }
     }
     template {
       metadata {
-        labels = { "app.kubernetes.io/name" = "rook-ceph-tools" }
+        labels = {
+          "app.kubernetes.io/name" = "rook-ceph-tools"
+          "app"                    = "rook-ceph-tools" # required by rook-ceph kubectl plugin
+        }
       }
       spec {
         automount_service_account_token  = false
@@ -27,7 +35,7 @@ resource "kubernetes_deployment" "toolbox" {
         restart_policy                   = "Always"
         termination_grace_period_seconds = 1
         container {
-          name    = "main"
+          name    = "rook-ceph-tools" # required by rook-ceph kubectl plugin
           image   = local.rook_image
           command = ["/usr/local/bin/toolbox.sh"]
           env {
