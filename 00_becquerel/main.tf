@@ -39,9 +39,15 @@ locals {
       urls   = ["https://controlplane.tailscale.com/derpmap/default"]
     }
     disable_check_updates = true
-    dns                   = { magic_dns = false }
-    listen_addr           = "0.0.0.0:443"
-    noise                 = { private_key_path = "/var/lib/headscale/noise.key" }
+    dns = {
+      base_domain = "tail.skaia.cloud"
+      magic_dns   = true
+      nameservers = {
+        global = ["1.1.1.1", "1.0.0.1"]
+      }
+    }
+    listen_addr = "0.0.0.0:443"
+    noise       = { private_key_path = "/var/lib/headscale/noise.key" }
     policy = {
       mode = "file"
       path = "/etc/headscale/acls.json"
