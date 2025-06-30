@@ -211,7 +211,7 @@ data "talos_machine_configuration" "main" {
             { ip = endpoint, aliases = [node_name, "${node_name}.skaia.cloud", "kubeapi.skaia.cloud"] }
             if local.nodes[node_name].role == "controlplane"
           ]
-          nameservers = ["1.1.1.1", "1.0.0.1"]
+          nameservers = ["100.100.100.100", "1.1.1.1", "1.0.0.1"]
         }
         nodeLabels = each.value.labels
         nodeTaints = lookup(each.value, "taints", {})
@@ -227,7 +227,7 @@ data "talos_machine_configuration" "main" {
       name       = "tailscale"
       environment = [
         "TS_AUTHKEY=${headscale_pre_auth_key.main[each.key].key}",
-        "TS_EXTRA_ARGS=--accept-routes --advertise-routes= --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
+        "TS_EXTRA_ARGS=--accept-dns=false --accept-routes=true --advertise-routes= --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
         "TS_HOSTNAME=${each.key}",
         "TS_USERSPACE=false",
       ]
