@@ -19,23 +19,6 @@ provider "linode" {
 
 locals {
   instances = {
-    "1.9.5" = {
-      version = "1.9.5"
-      schematic = {
-        customization = {
-          systemExtensions = {
-            officialExtensions = [
-              "siderolabs/i915",
-              "siderolabs/tailscale",
-            ]
-          }
-          extraKernelArgs = [
-            "console=ttyS0,19200n8", # Linode
-            "console=tty1",          # Bare metal
-          ]
-        }
-      }
-    }
     "1.10.4" = {
       version = "1.10.4"
       schematic = {
