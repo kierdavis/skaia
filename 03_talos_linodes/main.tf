@@ -12,10 +12,10 @@ terraform {
 locals {
   nodes = {
     # Temporary master for upgrades.
-    #nitram = {
-    #  type  = "g6-standard-1"
-    #  image = data.terraform_remote_state.image.outputs.linode_image_id["1.9.5"]
-    #}
+    nitram = {
+      type  = "g6-standard-1"
+      image = data.terraform_remote_state.image.outputs.linode_image_id["1.10.4"]
+    }
     # Worker node.
     #zahhak = {
     #  type  = "g6-standard-2"

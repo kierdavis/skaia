@@ -43,21 +43,21 @@ locals {
       }
     }
     # Temporary master for upgrades.
-    #nitram = {
-    #  role                     = "controlplane"
-    #  boot_disk                = "/dev/sda"
-    #  bootstrap_endpoint       = data.terraform_remote_state.linodes.ip_address["nitram"]
-    #  force_bootstrap_endpoint = false # set to true if tailscaled is broken
-    #  labels = {
-    #    "hwcaps.skaia.cloud/qsv"        = "none"
-    #    "topology.kubernetes.io/region" = "r-lhr"
-    #    "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
-    #    "topology.rook.io/chassis"      = "c-nitram"
-    #  }
-    #  taints = {
-    #    "skaia.cloud/control-only" = "true:NoSchedule"
-    #  }
-    #}
+    nitram = {
+      role                     = "controlplane"
+      boot_disk                = "/dev/sda"
+      bootstrap_endpoint       = data.terraform_remote_state.linodes.outputs.ip_address["nitram"]
+      force_bootstrap_endpoint = false # set to true if tailscaled is broken
+      labels = {
+        "hwcaps.skaia.cloud/qsv"        = "none"
+        "topology.kubernetes.io/region" = "r-lhr"
+        "topology.kubernetes.io/zone"   = "z-linode-gb-lon"
+        "topology.rook.io/chassis"      = "c-nitram"
+      }
+      taints = {
+        "skaia.cloud/control-only" = "true:NoSchedule"
+      }
+    }
     # Worker node.
     #zahhak = {
     #  role                     = "worker"
@@ -227,7 +227,7 @@ data "talos_machine_configuration" "main" {
       name       = "tailscale"
       environment = [
         "TS_AUTHKEY=${headscale_pre_auth_key.main[each.key].key}",
-        "TS_EXTRA_ARGS=--accept-dns=false --accept-routes=true --advertise-routes= --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
+        "TS_EXTRA_ARGS=--accept-routes=true --advertise-routes= --login-server=${data.terraform_remote_state.becquerel.outputs.headscale.endpoint} --netfilter-mode=off",
         "TS_HOSTNAME=${each.key}",
         "TS_USERSPACE=false",
       ]
