@@ -211,7 +211,7 @@ data "talos_machine_configuration" "main" {
             { ip = endpoint, aliases = [node_name, "${node_name}.skaia.cloud", "kubeapi.skaia.cloud"] }
             if local.nodes[node_name].role == "controlplane"
           ]
-          nameservers = ["100.100.100.100", "1.1.1.1", "1.0.0.1"]
+          nameservers = ["1.1.1.1", "1.0.0.1"]
         }
         nodeLabels = each.value.labels
         nodeTaints = lookup(each.value, "taints", {})
