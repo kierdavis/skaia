@@ -9,7 +9,7 @@ terraform {
     }
     talos = {
       source  = "siderolabs/talos"
-      version = "~> 0.5"
+      version = "~> 0.8.1"
     }
   }
 }
@@ -73,6 +73,16 @@ locals {
     #}
   }
   arbitrary_node = "vantas"
+
+  user_volumes = {
+    "annas-archive-downloads0" = {
+      node = "pyrope"
+      provisioning = {
+        diskSelector = { match = "'/dev/disk/by-id/ata-TOSHIBA_MQ04ABF100_21S6PPHMT' in disk.symlinks" }
+        minSize      = "100GB"
+      }
+    }
+  }
 
   globals = yamldecode(file("${path.module}/../globals.yaml"))
 }
@@ -147,7 +157,7 @@ data "talos_machine_configuration" "main" {
   machine_secrets  = talos_machine_secrets.main.machine_secrets
   machine_type     = each.value.role
   talos_version    = "v${local.api_contract_version}"
-  config_patches = [
+  config_patches = concat([
     yamlencode({
       cluster = merge({
         allowSchedulingOnControlPlanes = true
@@ -232,7 +242,16 @@ data "talos_machine_configuration" "main" {
         "TS_USERSPACE=false",
       ]
     }),
-  ]
+    ], [
+    for uv_name, uv in local.user_volumes :
+    yamlencode({
+      apiVersion   = "v1alpha1"
+      kind         = "UserVolumeConfig"
+      name         = uv_name
+      provisioning = uv.provisioning
+    })
+    if uv.node == each.key
+  ])
 }
 
 resource "talos_machine_configuration_apply" "main" {
