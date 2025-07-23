@@ -110,6 +110,14 @@ module "storage" {
   b2_archive_restic_password = var.b2_archive_restic_password
 }
 
+module "todoist_automation" {
+  source              = "./todoist_automation"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.storage.archive_secret_name
+  todoist_email       = var.todoist_email
+  todoist_api_token   = var.todoist_api_token
+}
+
 module "transcoding" {
   source             = "./transcoding"
   namespace          = kubernetes_namespace.main.metadata[0].name

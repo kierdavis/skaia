@@ -43,3 +43,13 @@ variable "refern_password" {
   sensitive = true
   ephemeral = false # because it's persisted into a kubernetes_secret
 }
+
+variable "todoist_api_token" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
+}
+
+variable "todoist_email" {
+  type = string
+}
