@@ -112,5 +112,5 @@ imageTools.customise {
     zix-libs
   ]))];
   run = imageTools.installAPKs;
-  newLayerHash = "sha256-bNoYr/cPtvHdkt0fzLle2jQMaOcm1VCyf+9dE+rQb2w=";
+  newLayerHash = "sha256-5LiXl1ubURCXm5yqvbO8sbMKm0Hg0NhFAUoJv517nyI=";
 }

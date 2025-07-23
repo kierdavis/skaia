@@ -386,8 +386,8 @@
     hash = "sha256:046c0rd1r2nbzazq4xk5ja70wrrycxmvp6h076gq3qsgsjc9mz7l";
   };
   libxml2 = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libxml2-2.11.8-r2.apk";
-    hash = "sha256:0vcf0gzwcl60xrmi3gh6nc02rxgwbaqw84m8w67fy6gpd4jfsq49";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libxml2-2.11.8-r3.apk";
+    hash = "sha256:19ax1ai1hpahs2swyqlq914fxpjqimjlzkn77mv1fdhgsh7zndbr";
   };
   libzmq = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/libzmq-4.3.5-r2.apk";
@@ -406,8 +406,8 @@
     hash = "sha256:1zpd2h92xsa8aizwf73n8yrhmz9kflg8wpsqifl2b7z691i3bl88";
   };
   mbedtls = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mbedtls-2.28.9-r0.apk";
-    hash = "sha256:1z0r7k915zslmmnxzw49wgb60311kc8prhqs9mai3sdjw75hym96";
+    url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mbedtls-2.28.10-r0.apk";
+    hash = "sha256:1f1pnbir0za1qdcagl2pw0als0qrr7z38c1xscpswx4dz10p22ja";
   };
   mpdecimal = fetchurl {
     url = "https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/mpdecimal-2.5.1-r2.apk";
