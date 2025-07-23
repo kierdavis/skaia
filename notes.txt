@@ -72,3 +72,34 @@ Do not use `talosctl upgrade`!!! This will blow away OSDs located on the same bl
 
 Checking if connections are being dropped by firewall rules:
   talosctl logs ext-tailscale | grep Drop:
+
+
+
+To re-image Raspberry Pi 3 SD card:
+  url=$(terraform -chdir=02_talos_image output -json rpi_image | jq -r '.["1.10.4-rpi"]')
+  wget -O metal-arm64.raw.xz "$url"
+  unxz -c metal-arm64.raw.xz | sudo dd of=/dev/sdc bs=4M
+  sudo gdisk /dev/sdc
+    r (enter recovery/transformation menu)
+    p (list the GPT)
+    h (begin making a hybrid MBR)
+      1 (the number of the partition that contains bootcode.bin - this should be labelled "EFI")
+      n (no, don't place EFI GPT partition first in MBR)
+      c (set partition type to 'W95 FAT32 (LBA)')
+      n (no, don't set the bootable flag)
+      y (yes, protect more partitions)
+      hit return (use the default partition type code)
+    o (list the newly created MBR)
+    w (write changes to disk and exit)
+      y (yes, move the secondary header to the end of the disk)
+      y (yes, proceed)
+  sudo mount /dev/sdc1 /mnt
+  sudo sed -i -e "s/BOOT_UART=0/BOOT_UART=1/" /mnt/bootcode.bin
+  sudo umount /mnt
+  sudo sync
+
+The ROM firmware requires bootcode.bin to be the partition 1 of the MBR,
+which much have partition type c (W95 FAT32).
+bootcode.bin is okay with this layout, since it's able to find config.txt & start.elf.
+Not sure if start.elf is okay with this layout though?
+Next: try creating cmdline.txt and see if start.elf still says it can't find it.

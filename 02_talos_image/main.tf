@@ -20,7 +20,8 @@ provider "linode" {
 locals {
   instances = {
     "1.10.4" = {
-      version = "1.10.4"
+      platforms = toset(["linode", "pc"])
+      version   = "1.10.4"
       schematic = {
         customization = {
           systemExtensions = {
@@ -34,6 +35,34 @@ locals {
             "console=ttyS0,19200n8", # Linode
             "console=tty1",          # Bare metal
           ]
+        }
+      }
+    }
+    "1.10.4-rpi" = {
+      platforms = toset(["rpi"])
+      version   = "1.10.4"
+      schematic = {
+        customization = {
+          systemExtensions = {
+            officialExtensions = [
+              "siderolabs/tailscale",
+            ]
+          }
+          extraKernelArgs = [
+            "-console",               # Remove any console= arguments from the default command line.
+            "console=serial0,115200", # Raspberry Pi UART
+            "console=tty1",           # Raspberry Pi HDMI
+          ]
+        }
+        overlay = {
+          image = "siderolabs/sbc-raspberrypi"
+          name  = "rpi_generic"
+          options = {
+            configTxtAppend = <<-EOT
+              enable_uart=1
+              uart_2ndstage=1
+            EOT
+          }
         }
       }
     }
@@ -56,23 +85,17 @@ locals {
   }
 }
 
-output "installer_image" {
-  value = {
-    for key, inst in local.instances2 :
-    key => "factory.talos.dev/installer/${inst.schematic_id}:v${inst.version}"
-  }
-}
-
 locals {
   linode_image_path = {
     for key, inst in local.instances2 :
     key => "${path.module}/work/talos-${inst.version}-${inst.schematic_id}-linode.img.gz"
+    if contains(inst.platforms, "linode")
   }
 }
 
 resource "terraform_data" "convert_for_linode" {
-  for_each         = local.instances2
-  triggers_replace = local.linode_image_path[each.key]
+  for_each         = local.linode_image_path
+  triggers_replace = each.value
   provisioner "local-exec" {
     command = <<EOF
       mkdir -p "$(dirname "$dest")"
@@ -81,15 +104,15 @@ resource "terraform_data" "convert_for_linode" {
         | pigz --stdout > "$dest"
     EOF
     environment = {
-      src  = "https://factory.talos.dev/image/${each.value.schematic_id}/v${each.value.version}/metal-amd64.raw.xz"
-      dest = local.linode_image_path[each.key]
+      src  = "https://factory.talos.dev/image/${local.instances2[each.key].schematic_id}/v${local.instances2[each.key].version}/metal-amd64.raw.xz"
+      dest = each.value
     }
   }
 }
 
 resource "linode_image" "main" {
-  for_each   = local.instances2
-  label      = "skaia-talos-${each.value.version}-${each.value.schematic_id_short}"
+  for_each   = terraform_data.convert_for_linode
+  label      = "skaia-talos-${local.instances2[each.key].version}-${local.instances2[each.key].schematic_id_short}"
   file_path  = local.linode_image_path[each.key]
   file_hash  = try(filemd5(local.linode_image_path[each.key]), null)
   region     = "fr-par" # Only using fr-par due to a Linode outage; go back to gb-lon next time.
@@ -98,8 +121,8 @@ resource "linode_image" "main" {
 
 output "linode_image_id" {
   value = {
-    for key, inst in local.instances2 :
-    key => linode_image.main[key].id
+    for key, lin_img in linode_image.main :
+    key => lin_img.id
   }
 }
 
@@ -121,4 +144,12 @@ resource "linode_object_storage_object" "bare_metal" {
 
 output "bare_metal_script_url" {
   value = "https://${linode_object_storage_object.bare_metal.bucket}.${linode_object_storage_object.bare_metal.endpoint}/${linode_object_storage_object.bare_metal.key}"
+}
+
+output "rpi_image" {
+  value = {
+    for key, inst in local.instances2 :
+    key => "https://factory.talos.dev/image/${inst.schematic_id}/v${inst.version}/metal-arm64.raw.xz"
+    if contains(inst.platforms, "rpi")
+  }
 }
