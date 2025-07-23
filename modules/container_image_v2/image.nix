@@ -1,9 +1,11 @@
 let
   bootstrapPkgs = import <nixpkgs> {};
 
-  pkgs = import (bootstrapPkgs.fetchzip {
-    url = "https://github.com/NixOS/nixpkgs/archive/9ecb50d2fae8680be74c08bb0a995c5383747f89.tar.gz";
-    hash = "sha256-b4JrUmqT0vFNx42aEN9LTWOHomkTKL/ayLopflVf81U=";
+  pkgs = import (bootstrapPkgs.fetchFromGitHub {
+    owner = "NixOS";
+    repo = "nixpkgs";
+    rev = "f81bb6b77e190eb6f93053fb3e917501dbaf6291";
+    hash = "sha256-4UkojxOwl+VdkAbFIUXr7a9r6p0XdLUd8lUJVeUWqTM=";
   }) {
     overlays = [ (import ./overlay.nix) ];
   };
