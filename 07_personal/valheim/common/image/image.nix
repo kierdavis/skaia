@@ -1,15 +1,13 @@
-{ fetchurl, imageTools }:
+{ fetchurl, stamp }:
 
-imageTools.customise {
-  base = imageTools.fetch {
-    imageName = "docker.io/cm2network/steamcmd";
-    imageDigest = "sha256:5c8e64503d264b406e81cdb0d6b2d53757b10fb887fd8b5454d664c503bd34f4"; # 'latest' tag
-    hash = "sha256-t7SmcaCiWkEc4/K+rCyZSnYduzD/WPQPxVVicWkAeqE=";
+stamp.installDebianPkgs {
+  name = "stamp-img-skaia-valheim";
+  base = stamp.fetch {
+    repository = "docker.io/cm2network/steamcmd";
+    digest = "sha256:5c8e64503d264b406e81cdb0d6b2d53757b10fb887fd8b5454d664c503bd34f4"; # 'latest' tag
+    hash = "sha256-cdlV2MmkYAnnPyDyi43dSpe5PXuUWg0nsuV/h+4YAF8=";
   };
-  add = builtins.map (src: { inherit src; dest = "/imgbuild/pkgs/${src.name}"; }) [
-    # Top-level packages to install: libatomic1 libpulse-dev procps
-    # Discover dependencies using: apt-get install -y --no-install-recommends libatomic1 libpulse-dev procps
-    # Generate URLs and hashes using: apt-get download --print-uris PACKAGE...
+  pkgs = [
     (fetchurl {
       url = "http://deb.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.14.10-1%7edeb12u1_amd64.deb";
       hash = "sha256:18ee0ce5fab9f7b671e87da1e9fa18660e36e04a3402f24bdb8635e0ba1d35f6";
@@ -283,6 +281,5 @@ imageTools.customise {
       hash = "sha256:f60f122accb0ddaa348e3345d16816278d85ba99fa41b0a2395212d5f3e08729";
     })
   ];
-  run = imageTools.installDEBs;
-  newLayerHash = "sha256-DIRp4qjn4e750CSgCX31cjKam1V11n7G2Gby7QKymqs=";
+  layerHash = "sha256-l51/tD+W0IfJHl0dRYrNdaMmFKqGg1hpoizECkOOuuY=";
 }

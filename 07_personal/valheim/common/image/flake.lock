@@ -1,0 +1,49 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1751492013,
+        "narHash": "sha256-4UkojxOwl+VdkAbFIUXr7a9r6p0XdLUd8lUJVeUWqTM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f81bb6b77e190eb6f93053fb3e917501dbaf6291",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "f81bb6b77e190eb6f93053fb3e917501dbaf6291",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "stamp": "stamp"
+      }
+    },
+    "stamp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1753231498,
+        "narHash": "sha256-1nGmfGz5PGGyHx7wb+xKY16Rt3pia0Whm3R6sY090kk=",
+        "owner": "kierdavis",
+        "repo": "stamp",
+        "rev": "475e570d045b3d6e4f1b4ef61c2fa147eff17cd1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kierdavis",
+        "ref": "main",
+        "repo": "stamp",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

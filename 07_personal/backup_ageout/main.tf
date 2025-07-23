@@ -20,10 +20,10 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image_v2"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-backup-ageout"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/image.nix"
+  flake          = "path:${path.module}/image"
 }
 
 resource "kubernetes_cron_job_v1" "main" {
@@ -52,7 +52,7 @@ resource "kubernetes_cron_job_v1" "main" {
             restart_policy = "Never"
             container {
               name  = "main"
-              image = module.image.name_and_tag
+              image = module.image.repo_tag
               args  = ["--force"]
               env_from {
                 secret_ref {

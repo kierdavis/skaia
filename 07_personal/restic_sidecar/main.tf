@@ -3,12 +3,12 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image_v2"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-restic-sidecar"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/image.nix"
+  flake          = "path:${path.module}/image"
 }
 
 output "image" {
-  value = module.image.name_and_tag
+  value = module.image.repo_tag
 }
