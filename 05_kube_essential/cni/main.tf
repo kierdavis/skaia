@@ -15,24 +15,24 @@ locals {
 }
 
 module "plugin_installer_image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-plugin-installer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/plugin_installer"
+  flake          = "path:${path.module}/images/plugin_installer"
 }
 
 module "config_writer_image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-config-writer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/config_writer"
+  flake          = "path:${path.module}/images/config_writer"
 }
 
 module "route_advertiser_image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-route-advertiser"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/route_advertiser"
+  flake          = "path:${path.module}/images/route_advertiser"
 }
 
 resource "kubernetes_service_account" "main" {
@@ -106,7 +106,7 @@ resource "kubernetes_daemonset" "main" {
         termination_grace_period_seconds = 1
         init_container {
           name  = "plugin-installer"
-          image = module.plugin_installer_image.tag
+          image = module.plugin_installer_image.repo_tag
           volume_mount {
             name       = "cni-plugins"
             mount_path = "/dest"
@@ -114,7 +114,7 @@ resource "kubernetes_daemonset" "main" {
         }
         container {
           name  = "config-writer"
-          image = module.config_writer_image.tag
+          image = module.config_writer_image.repo_tag
           env {
             name = "THIS_NODE_NAME"
             value_from {
@@ -144,7 +144,7 @@ resource "kubernetes_daemonset" "main" {
         }
         container {
           name  = "route-advertiser"
-          image = module.route_advertiser_image.tag
+          image = module.route_advertiser_image.repo_tag
           env {
             name = "THIS_NODE_NAME"
             value_from {
