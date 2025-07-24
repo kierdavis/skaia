@@ -61,14 +61,8 @@
 , zip
 }:
 
-stamp.fromNix {
-  name = "stamp-img-skaia-devenv";
-  entrypoint = [ "${dumb-init}/bin/dumb-init" ];
-  cmd = [ "${coreutils-full}/bin/sleep" "infinity" ];
-  workingDir = "/net/skaia";
-  #user = "kier:kier";
-  #env.USER = "kier";
-  env.PATH = lib.makeBinPath [
+let
+  pkgs = [
     backblaze-b2
     bc
     cargo
@@ -127,4 +121,13 @@ stamp.fromNix {
     which
     zip
   ];
+in stamp.fromNix {
+  name = "stamp-img-skaia-devenv";
+  entrypoint = [ "${dumb-init}/bin/dumb-init" ];
+  cmd = [ "${coreutils-full}/bin/sleep" "infinity" ];
+  workingDir = "/net/skaia";
+  #user = "kier:kier";
+  #env.USER = "kier";
+  env.PATH = lib.makeBinPath pkgs;
+  env.MANPATH = lib.makeSearchPathOutput "man" "share/man" pkgs;
 }
