@@ -18,21 +18,21 @@ module "plugin_installer_image" {
   source         = "../../modules/container_image"
   repo_name      = "skaia-cni-plugin-installer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/plugin-installer"
+  src            = "${path.module}/images/plugin_installer"
 }
 
 module "config_writer_image" {
   source         = "../../modules/container_image"
   repo_name      = "skaia-cni-config-writer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/config-writer"
+  src            = "${path.module}/images/config_writer"
 }
 
 module "route_advertiser_image" {
   source         = "../../modules/container_image"
   repo_name      = "skaia-cni-route-advertiser"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/images/route-advertiser"
+  src            = "${path.module}/images/route_advertiser"
 }
 
 resource "kubernetes_service_account" "main" {
