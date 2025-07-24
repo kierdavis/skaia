@@ -15,11 +15,10 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-debug"
   repo_namespace = local.globals.docker_hub.username
-  builder        = "nix"
-  src            = "${path.module}/image.nix"
+  flake          = "path:${path.module}/image"
 }
 
 # TODO: resources
@@ -54,7 +53,7 @@ resource "kubernetes_daemonset" "main" {
         termination_grace_period_seconds = 1
         container {
           name  = "main"
-          image = module.image.tag
+          image = module.image.repo_tag
           security_context {
             privileged = true
           }
