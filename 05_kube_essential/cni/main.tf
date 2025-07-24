@@ -1,33 +1,49 @@
-module "cni_plugin_installer_image" {
-  source         = "../modules/container_image"
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
+  }
+}
+
+variable "system_namespace" {
+  type = string
+}
+
+locals {
+  globals = yamldecode(file("${path.module}/../../globals.yaml"))
+}
+
+module "plugin_installer_image" {
+  source         = "../../modules/container_image"
   repo_name      = "skaia-cni-plugin-installer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/cni_images/plugin-installer"
+  src            = "${path.module}/images/plugin-installer"
 }
 
-module "cni_config_writer_image" {
-  source         = "../modules/container_image"
+module "config_writer_image" {
+  source         = "../../modules/container_image"
   repo_name      = "skaia-cni-config-writer"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/cni_images/config-writer"
+  src            = "${path.module}/images/config-writer"
 }
 
-module "cni_route_advertiser_image" {
-  source         = "../modules/container_image"
+module "route_advertiser_image" {
+  source         = "../../modules/container_image"
   repo_name      = "skaia-cni-route-advertiser"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/cni_images/route-advertiser"
+  src            = "${path.module}/images/route-advertiser"
 }
 
-resource "kubernetes_service_account" "cni" {
+resource "kubernetes_service_account" "main" {
   metadata {
     name      = "cni"
-    namespace = kubernetes_namespace.system.metadata[0].name
+    namespace = var.system_namespace
     labels    = { "app.kubernetes.io/name" = "cni" }
   }
 }
 
-resource "kubernetes_cluster_role" "cni" {
+resource "kubernetes_cluster_role" "main" {
   metadata {
     name   = "cni"
     labels = { "app.kubernetes.io/name" = "cni" }
@@ -44,7 +60,7 @@ resource "kubernetes_cluster_role" "cni" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "cni" {
+resource "kubernetes_cluster_role_binding" "main" {
   metadata {
     name   = "cni"
     labels = { "app.kubernetes.io/name" = "cni" }
@@ -52,21 +68,21 @@ resource "kubernetes_cluster_role_binding" "cni" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.cni.metadata[0].name
+    name      = kubernetes_cluster_role.main.metadata[0].name
   }
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.cni.metadata[0].name
-    namespace = kubernetes_service_account.cni.metadata[0].namespace
+    name      = kubernetes_service_account.main.metadata[0].name
+    namespace = kubernetes_service_account.main.metadata[0].namespace
   }
 }
 
 # TODO: resources
-resource "kubernetes_daemonset" "cni" {
+resource "kubernetes_daemonset" "main" {
   wait_for_rollout = false
   metadata {
     name      = "cni"
-    namespace = kubernetes_namespace.system.metadata[0].name
+    namespace = var.system_namespace
     labels    = { "app.kubernetes.io/name" = "cni" }
   }
   spec {
@@ -86,11 +102,11 @@ resource "kubernetes_daemonset" "cni" {
         host_network                     = true
         priority_class_name              = "system-node-critical"
         restart_policy                   = "Always"
-        service_account_name             = kubernetes_service_account.cni.metadata[0].name
+        service_account_name             = kubernetes_service_account.main.metadata[0].name
         termination_grace_period_seconds = 1
         init_container {
           name  = "plugin-installer"
-          image = module.cni_plugin_installer_image.tag
+          image = module.plugin_installer_image.tag
           volume_mount {
             name       = "cni-plugins"
             mount_path = "/dest"
@@ -98,7 +114,7 @@ resource "kubernetes_daemonset" "cni" {
         }
         container {
           name  = "config-writer"
-          image = module.cni_config_writer_image.tag
+          image = module.config_writer_image.tag
           env {
             name = "THIS_NODE_NAME"
             value_from {
@@ -128,7 +144,7 @@ resource "kubernetes_daemonset" "cni" {
         }
         container {
           name  = "route-advertiser"
-          image = module.cni_route_advertiser_image.tag
+          image = module.route_advertiser_image.tag
           env {
             name = "THIS_NODE_NAME"
             value_from {

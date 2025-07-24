@@ -1,17 +1,33 @@
-module "debug_image" {
-  source         = "../modules/container_image"
+terraform {
+  required_providers {
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+    }
+  }
+}
+
+variable "system_namespace" {
+  type = string
+}
+
+locals {
+  globals = yamldecode(file("${path.module}/../../globals.yaml"))
+}
+
+module "image" {
+  source         = "../../modules/container_image"
   repo_name      = "skaia-debug"
   repo_namespace = local.globals.docker_hub.username
   builder        = "nix"
-  src            = "${path.module}/debug_image.nix"
+  src            = "${path.module}/image.nix"
 }
 
 # TODO: resources
-resource "kubernetes_daemonset" "node_debug" {
+resource "kubernetes_daemonset" "main" {
   wait_for_rollout = false
   metadata {
     name      = "node-debug"
-    namespace = kubernetes_namespace.system.metadata[0].name
+    namespace = var.system_namespace
     labels    = { "app.kubernetes.io/name" = "node-debug" }
   }
   spec {
@@ -38,7 +54,7 @@ resource "kubernetes_daemonset" "node_debug" {
         termination_grace_period_seconds = 1
         container {
           name  = "main"
-          image = module.debug_image.tag
+          image = module.image.tag
           security_context {
             privileged = true
           }

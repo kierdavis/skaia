@@ -48,3 +48,13 @@ resource "kubernetes_namespace" "system" {
     }
   }
 }
+
+module "cni" {
+  source           = "./cni"
+  system_namespace = kubernetes_namespace.system.metadata[0].name
+}
+
+module "debug" {
+  source           = "./debug"
+  system_namespace = kubernetes_namespace.system.metadata[0].name
+}
