@@ -25,9 +25,10 @@ resource "dockerhub_repository" "main" {
 }
 
 module "image" {
-  source = "github.com/kierdavis/stamp?ref=6db482bd0bd13dad72899ebccd4b880cff0b3e5b"
-  flake  = var.flake
-  repo   = "docker.io/${var.repo_namespace}/${var.repo_name}"
+  source             = "github.com/kierdavis/stamp?ref=ab142b3a0e8f975f38e6790ec3ad3f137db6ac7c"
+  flake              = var.flake
+  repo               = "docker.io/${var.repo_namespace}/${var.repo_name}"
+  derivation_symlink = "${path.module}/.drv-cache/${var.repo_namespace}/${var.repo_name}"
 }
 
 output "repo_tag" {
