@@ -23,10 +23,10 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image_v2"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-transcode"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/image.nix"
+  flake          = "path:${path.module}/image"
 }
 
 # Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.
@@ -80,7 +80,7 @@ resource "kubernetes_job" "hevc10_to_avc" {
         }
         container {
           name  = "main"
-          image = module.image.name_and_tag
+          image = module.image.repo_tag
           command = [
             "sh", "-c",
             <<-EOS
