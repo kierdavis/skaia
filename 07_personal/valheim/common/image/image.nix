@@ -8,6 +8,9 @@ stamp.installDebianPkgs {
     hash = "sha256-cdlV2MmkYAnnPyDyi43dSpe5PXuUWg0nsuV/h+4YAF8=";
   };
   pkgs = [
+    # Top-level packages to install: libatomic1 libpulse-dev procps
+    # Discover dependencies using: apt-get install -y --no-install-recommends libatomic1 libpulse-dev procps
+    # Generate URLs and hashes using: apt-get download --print-uris PACKAGE...
     (fetchurl {
       url = "http://deb.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.14.10-1%7edeb12u1_amd64.deb";
       hash = "sha256:18ee0ce5fab9f7b671e87da1e9fa18660e36e04a3402f24bdb8635e0ba1d35f6";
@@ -281,5 +284,5 @@ stamp.installDebianPkgs {
       hash = "sha256:f60f122accb0ddaa348e3345d16816278d85ba99fa41b0a2395212d5f3e08729";
     })
   ];
-  layerHash = "sha256-l51/tD+W0IfJHl0dRYrNdaMmFKqGg1hpoizECkOOuuY=";
+  layerHash = "sha256-cjzcSNrefqz5+qbi1nWY16S+10Y2KDeMuP0SxjABYXk=";
 }
