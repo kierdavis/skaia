@@ -24,8 +24,8 @@ Some technologies (Kubernetes, Linode) easily lend themselves to this model; oth
 
 * Linux OS config: [implemented as a shell script that gets run at first boot][becquerel-tf]. Altering the script causes `terraform apply` to re-create the machine from a pristine image and re-run the script.
   * Yeah, I should probably have used `cloud-init` here.
-* Docker images: [built and pushed via a Terraform provisioner whenever any source file is changed][container-image-tf].
-  * This has become a puddle of issues with binary reproducibility and limitations of existing tools, and led to me pretty much [writing my own image-building toolchain from scratch][container-image-v2-mod]. I'm hoping to spin this out into its own project in the future.
+* Docker images: built and pushed via a Terraform provisioner whenever any source file is changed.
+  * This has become a puddle of issues with binary reproducibility and limitations of existing tools, and led to me [writing a new image-building toolchain from scratch][stamp].
 * Ceph configuration: this is traditionally done imperatively with CLI commands, so I wrapped it up in [an idempotent script][rook-ceph-imperative-config].
 
 ### Why [technology]? Wouldn't [different technology] be more efficient / secure / maintainable / cost-effective?
@@ -36,8 +36,6 @@ But, this is for my personal use alone. The only criteria are that it's secure _
 
 [becquerel-tf]: ./00_becquerel/main.tf
 [cni-images]: ./05_kube_essential/cni_images
-[container-image-tf]: ./modules/container_image/main.tf
-[container-image-v2-mod]: ./modules/container_image_v2
 [csi-addons]: https://github.com/csi-addons/kubernetes-csi-addons
 [generic-device-plugin]: https://github.com/squat/generic-device-plugin
 [grafana]: https://grafana.com/
@@ -48,6 +46,7 @@ But, this is for my personal use alone. The only criteria are that it's secure _
 [prometheus]: https://prometheus.io/
 [rook-ceph]: https://rook.io/
 [rook-ceph-imperative-config]: ./06_kube_services/rook_ceph/imperative_config_image/crate
+[stamp]: https://github.com/kierdavis/stamp
 [tailscale]: https://tailscale.com/
 [talos]: https://www.talos.dev/
 [valheim]: ./07_personal/valheim
