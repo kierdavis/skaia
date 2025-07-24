@@ -35,12 +35,10 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-personal-devenv"
   repo_namespace = local.globals.docker_hub.username
-  builder        = "nix"
-  src            = "${path.module}/image.nix"
-  args           = { personalUID = local.globals.personal_uid }
+  flake          = "path:${path.module}/image"
 }
 
 resource "kubernetes_deployment" "main" {
@@ -66,7 +64,7 @@ resource "kubernetes_deployment" "main" {
         termination_grace_period_seconds = 30
         container {
           name  = "main"
-          image = module.image.tag
+          image = module.image.repo_tag
           env {
             name  = "TZ"
             value = "Europe/London"
