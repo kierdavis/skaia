@@ -23,10 +23,10 @@ locals {
 }
 
 module "image" {
-  source         = "../../modules/container_image_v2"
+  source         = "../../modules/stamp_image"
   repo_name      = "skaia-jellyfin"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/image.nix"
+  flake          = "path:${path.module}/image"
 }
 
 resource "kubernetes_stateful_set" "main" {
@@ -74,7 +74,7 @@ resource "kubernetes_stateful_set" "main" {
         }
         container {
           name  = "main"
-          image = module.image.name_and_tag
+          image = module.image.repo_tag
           env {
             name  = "TZ"
             value = "Europe/London"

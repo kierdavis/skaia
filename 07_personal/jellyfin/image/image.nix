@@ -1,13 +1,16 @@
-{ fetchurl, imageTools }:
+{ fetchurl, stamp }:
 
-imageTools.customise {
-  base = imageTools.fetch {
-    imageName = "docker.io/linuxserver/jellyfin";
-    imageDigest = "sha256:a893c3ca1c0ff89f13a0877c6e8caf285a482aa188c6ee20e1cfdfdb6d52e906";
-    hash = "sha256-NtcW3RRTLV4n7NvNuLJ0epOaHsm2TQKFlu2N0RP9nWc=";
+stamp.installDebianPkgs {
+  name = "stamp-img-skaia-jellyfin";
+  base = stamp.fetch {
+    repository = "docker.io/linuxserver/jellyfin";
+    digest = "sha256:a893c3ca1c0ff89f13a0877c6e8caf285a482aa188c6ee20e1cfdfdb6d52e906";
+    hash = "sha256-XnSgx18nslDvBcGMQbO+mNwFB1fNGsYv8SayWwXrVnU=";
   };
-  add = builtins.map (src: { inherit src; dest = "/imgbuild/pkgs/${src.name}"; }) [
-    # generate URLs and SHA512s using: apt-get download --print-uris intel-opencl-icd
+  pkgs = [
+    # Top-level packages to install: intel-opencl-icd
+    # Discover dependencies using: apt-get install -y --no-install-recommends intel-opencl-icd
+    # Generate URLs and hashes using: apt-get download --print-uris PACKAGE...
     (fetchurl {
       url = "http://archive.ubuntu.com/ubuntu/pool/universe/i/intel-compute-runtime/intel-opencl-icd_23.43.27642.40-1ubuntu3_amd64.deb";
       hash = "sha512:6206d64006feb4f0c8384e3b6f218f0737bc1924d470e97292f71b752947a987f801ca4967dbea4bef46c9ca17cc2e0653f415071315ba1b9e017ef48c580751";
@@ -41,6 +44,5 @@ imageTools.customise {
       hash = "sha512:1b8c2ebdc724e365896a6766504b01b84cb7ac6e5a358cf069411b5cf32735df7c90f3c9f27dd44fb08a23b986bf3a10bd9a6ea60ebfe181642c2ce9006b7173";
     })
   ];
-  run = imageTools.installDEBs;
-  newLayerHash = "sha256-HL3KR0cuHsQgFAj3WzgPKu5hM/+ft2k47jFRA1mm29Q=";
+  layerHash = "sha256-EC+oFuyEHMD66o2HGOCZ7QFeVUEnB33/mR6fVSLNma0=";
 }
