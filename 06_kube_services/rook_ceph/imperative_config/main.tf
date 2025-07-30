@@ -100,7 +100,7 @@ resource "kubernetes_job" "main" {
   }
   wait_for_completion = true
   timeouts {
-    create = "2m"
-    update = "2m"
+    create = "5m"
+    update = "5m"
   }
 }
