@@ -116,8 +116,8 @@
       },
       "original": {
         "owner": "nix-community",
+        "ref": "master",
         "repo": "crate2nix",
-        "rev": "be31feae9a82c225c0fd1bdf978565dc452a483a",
         "type": "github"
       }
     },
@@ -652,17 +652,17 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1751492013,
-        "narHash": "sha256-4UkojxOwl+VdkAbFIUXr7a9r6p0XdLUd8lUJVeUWqTM=",
+        "lastModified": 1753831152,
+        "narHash": "sha256-WBDg7SpWkBeC8vOSQy/yXcdpCa0GJngDdo0EyudtGt8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f81bb6b77e190eb6f93053fb3e917501dbaf6291",
+        "rev": "a8cdf49e219969f25fdfda5a5e0b0b59f3fa3ca7",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
+        "ref": "release-25.05",
         "repo": "nixpkgs",
-        "rev": "f81bb6b77e190eb6f93053fb3e917501dbaf6291",
         "type": "github"
       }
     },

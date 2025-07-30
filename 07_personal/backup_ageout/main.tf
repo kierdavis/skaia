@@ -23,7 +23,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-backup-ageout"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/image"
+  flake          = "path:${path.module}/../..#personal.backupAgeout.image"
 }
 
 resource "kubernetes_cron_job_v1" "main" {

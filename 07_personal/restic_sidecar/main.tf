@@ -6,7 +6,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-restic-sidecar"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/image"
+  flake          = "path:${path.module}/../..#personal.resticSidecar.image"
 }
 
 output "image" {

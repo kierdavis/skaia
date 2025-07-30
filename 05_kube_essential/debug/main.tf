@@ -18,7 +18,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-debug"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/image"
+  flake          = "path:${path.module}/../..#kubeEssential.debug.image"
 }
 
 # TODO: resources
