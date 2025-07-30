@@ -28,7 +28,7 @@ module "image" {
   source             = "github.com/kierdavis/stamp?ref=ab142b3a0e8f975f38e6790ec3ad3f137db6ac7c"
   flake              = var.flake
   repo               = "docker.io/${var.repo_namespace}/${var.repo_name}"
-  derivation_symlink = "${path.module}/.drv-cache/${var.repo_namespace}/${var.repo_name}"
+  derivation_symlink = "/home/kier/.cache/skaia/stamp-drvs/${var.repo_namespace}/${var.repo_name}"
 }
 
 output "repo_tag" {
