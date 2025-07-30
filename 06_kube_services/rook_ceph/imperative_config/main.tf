@@ -10,20 +10,15 @@ variable "namespace" {
   type = string
 }
 
-variable "rook_image" {
-  type = string
-}
-
 locals {
   globals = yamldecode(file("${path.module}/../../../globals.yaml"))
 }
 
 module "image" {
-  source         = "../../../modules/container_image"
+  source         = "../../../modules/stamp_image"
   repo_name      = "skaia-rook-ceph-imperative-config"
   repo_namespace = local.globals.docker_hub.username
-  src            = "${path.module}/image"
-  args           = { rook_image = var.rook_image }
+  flake          = "path:${path.module}/image"
 }
 
 resource "kubernetes_job" "main" {
@@ -49,7 +44,7 @@ resource "kubernetes_job" "main" {
         termination_grace_period_seconds = 30
         container {
           name  = "main"
-          image = module.image.tag
+          image = module.image.repo_tag
           env {
             name = "ROOK_CEPH_MON_HOST"
             value_from {

@@ -30,7 +30,7 @@
       };
       rec {
         crate = (crate2nix.tools."x86_64-linux".appliedCargoNix {
-          name = "config-writer";
+          name = "rook-ceph-imperative-config";
           src = builtins.filterSource (path: type: baseNameOf path != "target") ./crate;
         }).rootCrate.build;
         default = callPackage ./image.nix { inherit crate; };

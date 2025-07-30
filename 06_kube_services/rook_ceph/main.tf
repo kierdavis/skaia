@@ -39,5 +39,4 @@ module "imperative_config" {
   source     = "./imperative_config"
   depends_on = [kubectl_manifest.cluster]
   namespace  = local.namespace
-  rook_image = local.rook_image
 }

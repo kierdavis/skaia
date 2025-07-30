@@ -31,7 +31,7 @@
       rec {
         crate = (crate2nix.tools."x86_64-linux".appliedCargoNix {
           name = "route-advertiser";
-          src = ./crate;
+          src = builtins.filterSource (path: type: baseNameOf path != "target") ./crate;
         }).rootCrate.build;
         default = callPackage ./image.nix { inherit crate; };
       };
