@@ -6,6 +6,9 @@ terraform {
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
+    kubectl = {
+      source = "gavinbunney/kubectl"
+    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -26,6 +29,13 @@ data "terraform_remote_state" "talos" {
 provider "dockerhub" {
   username = local.globals.docker_hub.username
   password = var.docker_hub_password
+}
+
+provider "kubectl" {
+  host                   = data.terraform_remote_state.talos.outputs.kubernetes.host
+  cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
+  client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
+  client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
 provider "kubernetes" {
@@ -69,9 +79,17 @@ module "devenv" {
 module "git" {
   source                     = "./git"
   namespace                  = kubernetes_namespace.main.metadata[0].name
-  authorized_ssh_public_keys = var.authorized_ssh_public_keys
+  authorized_ssh_public_keys = setunion(var.authorized_ssh_public_keys, toset([module.hydra.ssh_public_key]))
   archive_secret_name        = module.storage.archive_secret_name
   restic_sidecar_image       = module.restic_sidecar.image
+}
+
+module "hydra" {
+  source                 = "./hydra"
+  namespace              = kubernetes_namespace.main.metadata[0].name
+  nix_signing_secret_key = var.hydra_nix_signing_secret_key
+  postgres_password      = var.hydra_postgres_password
+  nix_cache              = module.nix_cache
 }
 
 module "jellyfin" {
@@ -79,6 +97,11 @@ module "jellyfin" {
   namespace          = kubernetes_namespace.main.metadata[0].name
   media_pvc_name     = module.storage.media_pvc_name
   downloads_pvc_name = module.storage.downloads_pvc_name
+}
+
+module "nix_cache" {
+  source    = "./nix_cache"
+  namespace = kubernetes_namespace.main.metadata[0].name
 }
 
 module "paperless" {
@@ -149,4 +172,8 @@ output "downloads_pvc_name" {
 
 output "archive_secret_name" {
   value = module.storage.archive_secret_name
+}
+
+output "hydra_ssh_public_key" {
+  value = module.hydra.ssh_public_key
 }

@@ -38,6 +38,17 @@ resource "headscale_pre_auth_key" "workstation" {
   time_to_expire = "1h"
 }
 
+data "headscale_device" "main" {
+  for_each = toset(["coloris"])
+  name = each.key
+}
+
+# If only `tailscale up --advertise-tags` worked...
+resource "headscale_device_tags" "coloris" {
+  device_id = data.headscale_device.main["coloris"].id
+  tags = ["tag:nix-builder"]
+}
+
 output "system_user_name" {
   value = headscale_user.system.name
 }

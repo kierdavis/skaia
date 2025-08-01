@@ -93,6 +93,8 @@ locals {
       },
       # Allow communications between users' personal devices.
       { action = "accept", src = ["group:kier"], dst = ["group:kier:*"] },
+      # Allow hydra pods to SSH to bare-metal machines for Nix builds.
+      { action = "accept", src = ["group:system"], dst = ["tag:nix-builder:22"] },
     ]
     autoApprovers = {
       routes = {
@@ -102,6 +104,11 @@ locals {
         "${local.globals.kubernetes.svc_net.ipv6}" = ["group:system"]
       }
     }
+    # XXX: if I enable this, it will likely lock out all access to coloris except for ACLs that refer to it by tag!
+    # https://www.reddit.com/r/Tailscale/comments/1c9i3ww/comment/l0mgkdw/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    #tagOwners = {
+    #  "tag:nix-builder" = ["group:admins"]
+    #}
   }
 }
 
