@@ -25,7 +25,7 @@ resource "dockerhub_repository" "main" {
 }
 
 module "image" {
-  source             = "github.com/kierdavis/stamp?ref=ab142b3a0e8f975f38e6790ec3ad3f137db6ac7c"
+  source             = "github.com/kierdavis/stamp?ref=250e6f6e747db48d8b3f9400f7c158a6c1bf37df"
   flake              = var.flake
   repo               = "docker.io/${var.repo_namespace}/${var.repo_name}"
   derivation_symlink = "/home/kier/.cache/skaia/stamp-drvs/${var.repo_namespace}/${var.repo_name}"
