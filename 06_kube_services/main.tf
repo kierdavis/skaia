@@ -60,6 +60,10 @@ provider "kubernetes" {
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
 }
 
+module "coredns" {
+  source = "./coredns"
+}
+
 module "csi_addons" {
   source = "./csi_addons"
 }
