@@ -22,7 +22,7 @@
     };
   };
 
-  outputs = inputs @ { crate2nix, stamp, ... }: {
+  outputs = inputs @ { self, crate2nix, stamp, ... }: {
     packages."x86_64-linux" = let
       nixpkgs = import inputs.nixpkgs {
         system = "x86_64-linux";
@@ -31,7 +31,7 @@
       };
       callPackage = nixpkgs.callPackage;
       appliedCargoNix = crate2nix.tools."x86_64-linux".appliedCargoNix;
-    in rec {
+    in {
       kubeEssential.cni.images.configWriter = callPackage 05_kube_essential/cni/images/config_writer { inherit appliedCargoNix; };
       kubeEssential.cni.images.pluginInstaller = callPackage 05_kube_essential/cni/images/plugin_installer {};
       kubeEssential.cni.images.routeAdvertiser = callPackage 05_kube_essential/cni/images/route_advertiser { inherit appliedCargoNix; };
@@ -49,5 +49,6 @@
       personal.valheim.common.image = callPackage 07_personal/valheim/common/image.nix {};
       secret = import secret/packages.nix { inherit nixpkgs; };
     };
+    hydraJobs = self.packages."x86_64-linux";
   };
 }
