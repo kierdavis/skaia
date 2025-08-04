@@ -780,11 +780,11 @@
         ]
       },
       "locked": {
-        "lastModified": 0,
-        "narHash": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        "lastModified": 1753993906,
+        "narHash": "sha256-Qq0I6jHJ4nTCN2auZbFsqH6yvrD+vm6u0AvnglujPYc=",
         "owner": "kierdavis",
         "repo": "stamp",
-        "rev": "0000000000000000000000000000000000000000",
+        "rev": "250e6f6e747db48d8b3f9400f7c158a6c1bf37df",
         "type": "github"
       },
       "original": {

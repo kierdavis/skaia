@@ -1,0 +1,15 @@
+#!/bin/bash
+set -o errexit -o nounset -o pipefail
+
+ensure_stamp_revs_agree() {
+  local flake_rev=$(git show :flake.lock | jq -r .nodes.stamp.locked.rev)
+  local tf_rev=$(git show :modules/stamp_image/main.tf | grep -oP '(?<=github.com/kierdavis/stamp\?ref=)\w{40}')
+  if [[ "$flake_rev" != "$tf_rev" ]]; then
+    echo >&2 "validation error: pinned version of Stamp in flake.lock does not match that in modules/stamp_image/main.tf"
+    echo >&2 "                   flake.lock: $flake_rev"
+    echo >&2 "  modules/stamp_image/main.tf: $tf_rev"
+    exit 1
+  fi
+}
+
+ensure_stamp_revs_agree
