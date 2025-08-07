@@ -98,6 +98,10 @@ resource "kubernetes_deployment" "main" {
             name       = "documents"
             mount_path = "/net/skaia/documents"
           }
+          resources {
+            requests = { cpu = "1m", memory = "5Mi" }
+            limits   = { memory = "4Gi" }
+          }
         }
         volume {
           name = "media"

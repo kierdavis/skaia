@@ -92,13 +92,8 @@ resource "helm_release" "main" {
       alertmanagerSpec = {
         replicas = 1
         resources = {
-          requests = {
-            cpu    = "2m"
-            memory = "40Mi"
-          }
-          limits = {
-            memory = "120Mi"
-          }
+          requests = { cpu = "2m", memory = "40Mi" }
+          limits   = { memory = "120Mi" }
         }
         storage = {
           volumeClaimTemplate = {
@@ -128,23 +123,13 @@ resource "helm_release" "main" {
       }
       replicas = 1
       resources = {
-        requests = {
-          cpu    = "5m"
-          memory = "120Mi"
-        }
-        limits = {
-          memory = "300Mi"
-        }
+        requests = { cpu = "5m", memory = "120Mi" }
+        limits   = { memory = "300Mi" }
       }
       sidecar = {
         resources = {
-          requests = {
-            cpu    = "5m"
-            memory = "80Mi"
-          }
-          limits = {
-            memory = "200Mi"
-          }
+          requests = { cpu = "5m", memory = "80Mi" }
+          limits   = { memory = "200Mi" }
         }
       }
     }
@@ -170,13 +155,8 @@ resource "helm_release" "main" {
     kube-state-metrics = {
       fullnameOverride = "kube-state-metrics"
       resources = {
-        requests = {
-          cpu    = "1m"
-          memory = "25Mi"
-        }
-        limits = {
-          memory = "75Mi"
-        }
+        requests = { cpu = "3m", memory = "50Mi" }
+        limits   = { memory = "150Mi" }
       }
     }
     prometheus = {
@@ -186,13 +166,8 @@ resource "helm_release" "main" {
         podMonitorSelectorNilUsesHelmValues = false
         replicas                            = 1
         resources = {
-          requests = {
-            cpu    = "250m"
-            memory = "1Gi"
-          }
-          limits = {
-            memory = "2Gi"
-          }
+          requests = { cpu = "250m", memory = "1Gi" }
+          limits   = { memory = "2Gi" }
         }
         retentionSize                           = "15GiB"
         ruleNamespaceSelector                   = { any = true }
@@ -220,35 +195,20 @@ resource "helm_release" "main" {
       fullnameOverride = "operator"
       prometheusConfigReloader = {
         resources = {
-          requests = {
-            cpu    = "1m"
-            memory = "20Mi"
-          }
-          limits = {
-            memory = "60Mi"
-          }
+          requests = { cpu = "1m", memory = "20Mi" }
+          limits   = { memory = "60Mi" }
         }
       }
       resources = {
-        requests = {
-          cpu    = "2m"
-          memory = "40Mi"
-        }
-        limits = {
-          memory = "120Mi"
-        }
+        requests = { cpu = "5m", memory = "40Mi" }
+        limits   = { memory = "120Mi" }
       }
     }
     prometheus-node-exporter = {
       fullnameOverride = "node-exporter"
       resources = {
-        requests = {
-          cpu    = "4m"
-          memory = "20Mi"
-        }
-        limits = {
-          memory = "60Mi"
-        }
+        requests = { cpu = "6m", memory = "25Mi" }
+        limits   = { memory = "60Mi" }
       }
     }
   })]

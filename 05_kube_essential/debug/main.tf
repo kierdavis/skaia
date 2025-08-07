@@ -66,13 +66,8 @@ resource "kubernetes_daemonset" "main" {
             mount_path = "/var/run/tailscale/tailscaled.sock"
           }
           resources {
-            requests = {
-              cpu    = "1m"
-              memory = "20Mi"
-            }
-            limits = {
-              memory = "4Gi"
-            }
+            requests = { cpu = "1m", memory = "5Mi" }
+            limits   = { memory = "4Gi" }
           }
         }
         volume {

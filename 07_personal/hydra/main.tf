@@ -180,13 +180,8 @@ resource "kubernetes_stateful_set" "main" {
             failure_threshold     = 3
           }
           resources {
-            requests = {
-              cpu    = "100m"
-              memory = "100Mi"
-            }
-            limits = {
-              memory = "7Gi"
-            }
+            requests = { cpu = "10m", memory = "500Mi" }
+            limits   = { memory = "6Gi" }
           }
         }
         volume {

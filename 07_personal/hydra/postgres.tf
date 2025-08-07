@@ -82,12 +82,8 @@ resource "kubernetes_stateful_set" "postgres" {
             read_only  = false
           }
           resources {
-            requests = {
-              memory = "100Mi"
-            }
-            limits = {
-              memory = "1Gi"
-            }
+            requests = { cpu = "2m", memory = "60Mi" }
+            limits   = { memory = "200Mi" }
           }
         }
       }

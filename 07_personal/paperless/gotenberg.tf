@@ -39,13 +39,8 @@ resource "kubernetes_deployment" "gotenberg" {
             protocol       = "TCP"
           }
           resources {
-            requests = {
-              cpu    = "1m"
-              memory = "200Mi"
-            }
-            limits = {
-              memory = "400Mi"
-            }
+            requests = { cpu = "1m", memory = "100Mi" }
+            limits   = { memory = "400Mi" }
           }
         }
       }

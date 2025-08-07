@@ -61,13 +61,8 @@ resource "kubernetes_deployment" "toolbox" {
             read_only  = true
           }
           resources {
-            requests = {
-              cpu    = "2m"
-              memory = "5Mi"
-            }
-            limits = {
-              memory = "4Gi"
-            }
+            requests = { cpu = "2m", memory = "5Mi" }
+            limits   = { memory = "6Gi" }
           }
         }
         volume {

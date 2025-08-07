@@ -80,10 +80,8 @@ resource "kubernetes_stateful_set" "main" {
             read_only  = true
           }
           resources {
-            requests = {
-              cpu    = "1m"
-              memory = "5Mi"
-            }
+            requests = { cpu = "1m", memory = "20Mi" }
+            limits   = { memory = "1Gi" }
           }
         }
         container {
@@ -106,6 +104,10 @@ resource "kubernetes_stateful_set" "main" {
             name       = "repositories"
             mount_path = "/data/git-repositories"
             read_only  = true
+          }
+          resources {
+            requests = { cpu = "1m", memory = "5Mi" }
+            limits   = { memory = "500Mi" }
           }
         }
       }

@@ -39,13 +39,8 @@ resource "kubernetes_stateful_set" "redis" {
             protocol       = "TCP"
           }
           resources {
-            requests = {
-              cpu    = "2m"
-              memory = "5Mi"
-            }
-            limits = {
-              memory = "20Mi"
-            }
+            requests = { cpu = "3m", memory = "5Mi" }
+            limits   = { memory = "20Mi" }
           }
           volume_mount {
             name       = "state"

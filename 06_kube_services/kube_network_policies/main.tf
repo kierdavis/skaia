@@ -113,10 +113,8 @@ resource "kubernetes_daemonset" "main" {
             protocol       = "TCP"
           }
           resources {
-            requests = {
-              cpu    = "100m"
-              memory = "50Mi"
-            }
+            requests = { cpu = "1m", memory = "30Mi" }
+            limits   = { memory = "100Mi" }
           }
           security_context {
             privileged = true

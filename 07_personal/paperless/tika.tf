@@ -38,13 +38,8 @@ resource "kubernetes_deployment" "tika" {
             protocol       = "TCP"
           }
           resources {
-            requests = {
-              cpu    = "5m"
-              memory = "250Mi"
-            }
-            limits = {
-              memory = "500Mi"
-            }
+            requests = { cpu = "5m", memory = "350Mi" }
+            limits   = { memory = "500Mi" }
           }
         }
       }

@@ -120,13 +120,8 @@ resource "kubernetes_stateful_set" "main" {
             }
           }
           resources {
-            requests = {
-              cpu    = "20m"
-              memory = "1Gi"
-            }
-            limits = {
-              memory = "2Gi"
-            }
+            requests = { cpu = "10m", memory = "600Mi" }
+            limits   = { memory = "2Gi" }
           }
           volume_mount {
             name       = "database"
@@ -164,6 +159,10 @@ resource "kubernetes_stateful_set" "main" {
             name       = "media"
             mount_path = "/data/documents/paperless/media"
             read_only  = true
+          }
+          resources {
+            requests = { cpu = "1m", memory = "5Mi" }
+            limits   = { memory = "500Mi" }
           }
         }
       }

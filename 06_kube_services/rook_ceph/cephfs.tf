@@ -96,13 +96,8 @@ resource "kubectl_manifest" "cephfs" {
           }]
         }
         resources = {
-          requests = {
-            cpu    = "300m"
-            memory = "300Mi"
-          }
-          limits = {
-            memory = "2Gi"
-          }
+          requests = { cpu = "100m", memory = "200Mi" }
+          limits   = { memory = "2Gi" }
         }
       }
     }
