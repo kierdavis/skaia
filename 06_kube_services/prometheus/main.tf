@@ -254,6 +254,37 @@ resource "helm_release" "main" {
   })]
 }
 
+data "kubernetes_service" "ui_backend" {
+  depends_on = [helm_release.main]
+  for_each   = toset(["prometheus", "alertmanager"])
+  metadata {
+    name      = "prometheus-${each.key}"
+    namespace = local.namespace
+  }
+}
+
+resource "kubernetes_service" "ui" {
+  for_each = data.kubernetes_service.ui_backend
+  metadata {
+    name      = each.key
+    namespace = local.namespace
+  }
+  spec {
+    selector = each.value.spec[0].selector
+    port {
+      name         = "ui"
+      port         = 80
+      protocol     = "TCP"
+      app_protocol = "http"
+      target_port = one([
+        for p in each.value.spec[0].port :
+        p.target_port
+        if p.name == "http-web"
+      ])
+    }
+  }
+}
+
 resource "kubectl_manifest" "rules" {
   depends_on = [helm_release.main]
   yaml_body = yamlencode({
