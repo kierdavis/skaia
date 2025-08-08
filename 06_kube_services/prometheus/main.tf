@@ -268,7 +268,7 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoCPURequest"
               expr   = <<-EOF
-                kube_pod_container_info
+                kube_pod_container_info{namespace!="kube-system"}
                 unless on (namespace, pod) kube_pod_completion_time
                 unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="cpu"}
               EOF
@@ -281,7 +281,7 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoMemoryRequest"
               expr   = <<-EOF
-                kube_pod_container_info
+                kube_pod_container_info{namespace!="kube-system"}
                 unless on (namespace, pod) kube_pod_completion_time
                 unless on (namespace, pod, container) kube_pod_container_resource_requests{resource="memory"}
               EOF
@@ -294,7 +294,7 @@ resource "kubectl_manifest" "rules" {
             {
               alert  = "NoMemoryLimit"
               expr   = <<-EOF
-                kube_pod_container_info
+                kube_pod_container_info{namespace!="kube-system"}
                 unless on (namespace, pod) kube_pod_completion_time
                 unless on (namespace, pod, container) kube_pod_container_resource_limits{resource="memory"}
               EOF
