@@ -90,6 +90,12 @@ resource "helm_release" "main" {
   values = [yamlencode({
     alertmanager = {
       alertmanagerSpec = {
+        alertmanagerConfigNamespaceSelector = {
+          matchExpressions = [{
+            key      = "skaia.cloud/allow-alertmanager-configs"
+            operator = "Exists"
+          }]
+        }
         replicas = 1
         resources = {
           requests = { cpu = "2m", memory = "40Mi" }
