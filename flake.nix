@@ -1,5 +1,6 @@
 {
   inputs = {
+    self.submodules = true;
     crate2nix = {
       type = "github";
       owner = "nix-community";
