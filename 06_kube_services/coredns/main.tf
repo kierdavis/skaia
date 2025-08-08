@@ -8,7 +8,7 @@ terraform {
 
 resource "kubernetes_config_map" "main" {
   metadata {
-    name = "coredns"
+    name      = "coredns"
     namespace = "kube-system"
   }
   data = {
