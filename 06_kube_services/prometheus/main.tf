@@ -175,7 +175,7 @@ resource "helm_release" "main" {
           requests = { cpu = "250m", memory = "1Gi" }
           limits   = { memory = "2Gi" }
         }
-        retentionSize                           = "15GiB"
+        retentionSize                           = "31GiB"
         ruleNamespaceSelector                   = { any = true }
         ruleSelector                            = {}
         ruleSelectorNilUsesHelmValues           = false
@@ -191,7 +191,7 @@ resource "helm_release" "main" {
             spec = {
               accessModes      = ["ReadWriteOnce"]
               storageClassName = "rbd-monitoring0"
-              resources        = { requests = { storage = "16Gi" } }
+              resources        = { requests = { storage = "32Gi" } }
             }
           }
         }
