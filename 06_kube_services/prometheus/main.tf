@@ -175,7 +175,8 @@ resource "helm_release" "main" {
           requests = { cpu = "250m", memory = "1Gi" }
           limits   = { memory = "2Gi" }
         }
-        retentionSize                           = "31GiB"
+        # https://prometheus.io/docs/prometheus/latest/storage/#right-sizing-retention-size
+        retentionSize                           = "26GiB"
         ruleNamespaceSelector                   = { any = true }
         ruleSelector                            = {}
         ruleSelectorNilUsesHelmValues           = false
