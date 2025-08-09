@@ -25,7 +25,7 @@ resource "dockerhub_repository" "main" {
 }
 
 module "image" {
-  source       = "github.com/kierdavis/stamp?ref=c2607f69832b86ee13bc54ab0c54c3d32347589e"
+  source       = "github.com/kierdavis/stamp?ref=5236e8adb01e0099c512d6b9521c995e57ce3bd7"
   flake_output = var.flake_output
   repo         = "docker.io/${var.repo_namespace}/${var.repo_name}"
 }
