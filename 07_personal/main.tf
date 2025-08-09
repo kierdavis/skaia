@@ -89,8 +89,7 @@ module "git" {
   source                     = "./git"
   namespace                  = kubernetes_namespace.main.metadata[0].name
   authorized_ssh_public_keys = setunion(var.authorized_ssh_public_keys, toset([module.hydra.ssh_public_key]))
-  archive_secret_name        = module.backup_common.archive_secret_name
-  restic_sidecar_image       = module.restic_sidecar.image
+  backup                     = module.backup_common
 }
 
 module "hydra" {
@@ -114,10 +113,9 @@ module "nix_cache" {
 }
 
 module "paperless" {
-  source               = "./paperless"
-  namespace            = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name  = module.backup_common.archive_secret_name
-  restic_sidecar_image = module.restic_sidecar.image
+  source    = "./paperless"
+  namespace = kubernetes_namespace.main.metadata[0].name
+  backup    = module.backup_common
 }
 
 module "refern_backup" {
@@ -127,10 +125,6 @@ module "refern_backup" {
   refern_email                    = var.refern_email
   refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key
   refern_password                 = var.refern_password
-}
-
-module "restic_sidecar" {
-  source = "./restic_sidecar"
 }
 
 module "storage" {

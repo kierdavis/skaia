@@ -38,13 +38,13 @@
       kubeEssential.cni.images.routeAdvertiser = callPackage 05_kube_essential/cni/images/route_advertiser { inherit appliedCargoNix; };
       kubeEssential.debug.image = callPackage 05_kube_essential/debug/image.nix {};
       kubeServices.rookCeph.imperativeConfig.image = callPackage 06_kube_services/rook_ceph/imperative_config/image.nix { inherit appliedCargoNix; };
+      personal.backup.common.image = callPackage 07_personal/backup/common/image.nix {};
       personal.backupAgeout.image = callPackage 07_personal/backup_ageout/image.nix {};
       personal.devenv.image = callPackage 07_personal/devenv/image.nix {};
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
       personal.paperless.image = callPackage 07_personal/paperless/image.nix {};
       personal.refernBackup.image = callPackage 07_personal/refern_backup/image.nix {};
-      personal.resticSidecar.image = callPackage 07_personal/restic_sidecar/image.nix {};
       personal.todoistAutomation.image = callPackage 07_personal/todoist_automation/image.nix {};
       personal.transcoding.image = callPackage 07_personal/transcoding/image.nix {};
       personal.valheim.common.image = callPackage 07_personal/valheim/common/image.nix {};

@@ -14,12 +14,19 @@ variable "authorized_ssh_public_keys" {
   type = set(string)
 }
 
-variable "archive_secret_name" {
-  type = string
-}
-
-variable "restic_sidecar_image" {
-  type = string
+variable "backup" {
+  type = object({
+    image               = string
+    archive_secret_name = string
+    sidecar = object({
+      secret_name        = string
+      secret_mount_point = string
+      port               = number
+      requests           = map(string)
+      limits             = map(string)
+    })
+    sidecar_client_secret_name = string
+  })
 }
 
 resource "kubernetes_config_map" "authorized_keys" {
@@ -63,6 +70,13 @@ resource "kubernetes_stateful_set" "main" {
             name = kubernetes_config_map.authorized_keys.metadata[0].name
           }
         }
+        volume {
+          name = "backup-sc"
+          secret {
+            secret_name  = var.backup.sidecar.secret_name
+            default_mode = "0600"
+          }
+        }
         container {
           name  = "main"
           image = "docker.io/jkarlos/git-server-docker@sha256:61b2d972b2f82ba31db22a090f3b9ac9388827556eca1b34879f449acb58995f"
@@ -85,29 +99,36 @@ resource "kubernetes_stateful_set" "main" {
           }
         }
         container {
-          name  = "backup"
-          image = var.restic_sidecar_image
-          env {
-            name  = "SCHEDULE"
-            value = "0 2 * * 3"
-          }
-          env {
-            name  = "DIR"
-            value = "/data/git-repositories"
-          }
-          env_from {
-            secret_ref {
-              name = var.archive_secret_name
-            }
-          }
+          name  = "backup-sc"
+          image = var.backup.image
+          args  = ["sidecar"]
           volume_mount {
             name       = "repositories"
             mount_path = "/data/git-repositories"
             read_only  = true
           }
+          env {
+            name  = "DATA_PATH"
+            value = "/data/git-repositories"
+          }
+          env_from {
+            secret_ref {
+              name = var.backup.archive_secret_name
+            }
+          }
+          volume_mount {
+            name       = "backup-sc"
+            mount_path = var.backup.sidecar.secret_mount_point
+            read_only  = true
+          }
+          port {
+            name           = "backup-sc"
+            container_port = var.backup.sidecar.port
+            protocol       = "TCP"
+          }
           resources {
-            requests = { cpu = "1m", memory = "5Mi" }
-            limits   = { memory = "500Mi" }
+            requests = var.backup.sidecar.requests
+            limits   = var.backup.sidecar.limits
           }
         }
       }
@@ -143,5 +164,19 @@ resource "kubernetes_service" "main" {
       port        = 22
       target_port = "ssh"
     }
+    port {
+      name        = "backup-sc"
+      port        = var.backup.sidecar.port
+      target_port = "backup-sc"
+    }
   }
+}
+
+module "backup" {
+  source          = "../backup/sidecar_cron_job"
+  name            = "git-backup"
+  namespace       = var.namespace
+  schedule        = "0 2 * * 3"
+  sidecar_address = kubernetes_service.main.metadata[0].name
+  common          = var.backup
 }

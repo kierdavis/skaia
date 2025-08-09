@@ -1,0 +1,40 @@
+container {
+  name  = "backup-sc"
+  image = var.backup.image
+  args  = ["sidecar"]
+  volume_mount {
+    name       = "data"
+    mount_path = "/data/foo/bar"
+    read_only  = true
+  }
+  env {
+    name  = "DATA_PATH"
+    value = "/data/foo/bar"
+  }
+  env_from {
+    secret_ref {
+      name = var.backup.archive_secret_name
+    }
+  }
+  volume_mount {
+    name       = "backup-sc"
+    mount_path = var.backup.sidecar.secret_mount_point
+    read_only  = true
+  }
+  port {
+    name           = "backup-sc"
+    container_port = var.backup.sidecar.port
+    protocol       = "TCP"
+  }
+  resources {
+    requests = var.backup.sidecar.requests
+    limits   = var.backup.sidecar.limits
+  }
+}
+volume {
+  name = "backup-sc"
+  secret {
+    secret_name  = var.backup.sidecar.secret_name
+    default_mode = "0600"
+  }
+}
