@@ -26,7 +26,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-paperless"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/../..#personal.paperless.image"
+  flake          = "./${path.module}/../..#personal.paperless.image"
 }
 
 resource "kubernetes_stateful_set" "main" {

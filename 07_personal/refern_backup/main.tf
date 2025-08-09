@@ -39,7 +39,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-refern-backup"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/../..#personal.refernBackup.image"
+  flake          = "./${path.module}/../..#personal.refernBackup.image"
 }
 
 resource "kubernetes_config_map" "main" {

@@ -18,7 +18,7 @@ module "image" {
   source         = "../../../modules/stamp_image"
   repo_name      = "skaia-rook-ceph-imperative-config"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/../../..#kubeServices.rookCeph.imperativeConfig.image"
+  flake          = "./${path.module}/../../..#kubeServices.rookCeph.imperativeConfig.image"
 }
 
 resource "kubernetes_job" "main" {

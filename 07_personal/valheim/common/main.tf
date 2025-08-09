@@ -6,7 +6,7 @@ module "image" {
   source         = "../../../modules/stamp_image"
   repo_name      = "skaia-valheim"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "path:${path.module}/../../..#personal.valheim.common.image"
+  flake          = "./${path.module}/../../..#personal.valheim.common.image"
 }
 
 output "image" {
