@@ -49,7 +49,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-hydra"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#personal.hydra.image"
+  flake_output   = "./${path.module}/../..#personal.hydra.image"
 }
 
 resource "kubernetes_secret" "main" {

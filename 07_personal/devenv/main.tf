@@ -38,7 +38,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-personal-devenv"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#personal.devenv.image"
+  flake_output   = "./${path.module}/../..#personal.devenv.image"
 }
 
 resource "kubernetes_deployment" "main" {

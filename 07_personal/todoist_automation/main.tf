@@ -33,7 +33,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-todoist-automation"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#personal.todoistAutomation.image"
+  flake_output   = "./${path.module}/../..#personal.todoistAutomation.image"
 }
 
 resource "kubernetes_secret" "main" {

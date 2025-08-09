@@ -41,7 +41,7 @@ module "image" {
   source         = "../../../modules/stamp_image"
   repo_name      = "skaia-backup"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../../..#personal.backup.common.image"
+  flake_output   = "./${path.module}/../../..#personal.backup.common.image"
 }
 
 output "image" {

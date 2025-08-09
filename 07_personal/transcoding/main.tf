@@ -26,7 +26,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-transcode"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#personal.transcoding.image"
+  flake_output   = "./${path.module}/../..#personal.transcoding.image"
 }
 
 # Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.

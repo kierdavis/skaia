@@ -14,7 +14,7 @@ variable "repo_namespace" {
   type = string
 }
 
-variable "flake" {
+variable "flake_output" {
   type = string
 }
 
@@ -25,10 +25,9 @@ resource "dockerhub_repository" "main" {
 }
 
 module "image" {
-  source             = "github.com/kierdavis/stamp?ref=d89302f420377c6bdfd342387e38e38eba1351b6"
-  flake              = var.flake
-  repo               = "docker.io/${var.repo_namespace}/${var.repo_name}"
-  derivation_symlink = "/home/kier/.cache/skaia/stamp-drvs/${var.repo_namespace}/${var.repo_name}"
+  source       = "github.com/kierdavis/stamp?ref=c2607f69832b86ee13bc54ab0c54c3d32347589e"
+  flake_output = var.flake_output
+  repo         = "docker.io/${var.repo_namespace}/${var.repo_name}"
 }
 
 output "repo_tag" {

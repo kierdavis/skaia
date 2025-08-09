@@ -18,21 +18,21 @@ module "plugin_installer_image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-plugin-installer"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#kubeEssential.cni.images.pluginInstaller"
+  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.pluginInstaller"
 }
 
 module "config_writer_image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-config-writer"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#kubeEssential.cni.images.configWriter"
+  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.configWriter"
 }
 
 module "route_advertiser_image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-route-advertiser"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#kubeEssential.cni.images.routeAdvertiser"
+  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.routeAdvertiser"
 }
 
 resource "kubernetes_service_account" "main" {

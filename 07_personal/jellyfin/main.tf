@@ -26,7 +26,7 @@ module "image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-jellyfin"
   repo_namespace = local.globals.docker_hub.username
-  flake          = "./${path.module}/../..#personal.jellyfin.image"
+  flake_output   = "./${path.module}/../..#personal.jellyfin.image"
 }
 
 resource "kubernetes_stateful_set" "main" {
