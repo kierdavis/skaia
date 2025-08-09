@@ -23,23 +23,23 @@
     };
   };
 
-  outputs = inputs @ { self, crate2nix, stamp, ... }: {
-    packages."x86_64-linux" = let
-      nixpkgs = import inputs.nixpkgs {
-        system = "x86_64-linux";
-        overlays = [ stamp.overlays.default ];
-        config.allowUnfree = true; # for terraform (as used in devenv)
-      };
-      callPackage = nixpkgs.callPackage;
-      appliedCargoNix = crate2nix.tools."x86_64-linux".appliedCargoNix;
-    in {
+  outputs = inputs @ { self, crate2nix, stamp, ... }: let
+    system = "x86_64-linux";
+    nixpkgs = import inputs.nixpkgs {
+      inherit system;
+      overlays = [ stamp.overlays.default ];
+      config.allowUnfree = true; # for terraform (as used in devenv)
+    };
+    lib = nixpkgs.lib;
+    callPackage = nixpkgs.callPackage;
+    appliedCargoNix = crate2nix.tools.${system}.appliedCargoNix;
+    packages = rec {
       kubeEssential.cni.images.configWriter = callPackage 05_kube_essential/cni/images/config_writer { inherit appliedCargoNix; };
       kubeEssential.cni.images.pluginInstaller = callPackage 05_kube_essential/cni/images/plugin_installer {};
       kubeEssential.cni.images.routeAdvertiser = callPackage 05_kube_essential/cni/images/route_advertiser { inherit appliedCargoNix; };
       kubeEssential.debug.image = callPackage 05_kube_essential/debug/image.nix {};
       kubeServices.rookCeph.imperativeConfig.image = callPackage 06_kube_services/rook_ceph/imperative_config/image.nix { inherit appliedCargoNix; };
       personal.backup.common.image = callPackage 07_personal/backup/common/image.nix {};
-      personal.backupAgeout.image = callPackage 07_personal/backup_ageout/image.nix {};
       personal.devenv.image = callPackage 07_personal/devenv/image.nix {};
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
@@ -50,6 +50,19 @@
       personal.valheim.common.image = callPackage 07_personal/valheim/common/image.nix {};
       secret = import secret/packages.nix { inherit nixpkgs; };
     };
-    hydraJobs = self.packages."x86_64-linux";
+  in {
+    packages.${system} = packages;
+    hydraJobs = packages // {
+      crate2nix = crate2nix.packages.${system}.default;
+      packingPlans = let
+        recurse = attrs: lib.attrsets.filterAttrs
+          (_: val: !(val == null || (builtins.isAttrs val && builtins.length (builtins.attrNames val) == 0)))
+          (lib.attrsets.mapAttrs
+            (_: val: if lib.attrsets.isDerivation val
+              then (if val ? packingPlan then val.packingPlan else null)
+              else recurse val)
+            attrs);
+      in recurse packages;
+    };
   };
 }
