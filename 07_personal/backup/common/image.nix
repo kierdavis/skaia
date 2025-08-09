@@ -1,4 +1,14 @@
-{ bash, dumb-init, lib, openssh, restic, shadow, stamp, writeShellScriptBin, writeText }:
+{ bash
+, dumb-init
+, lib
+, openssh
+, python3
+, restic
+, shadow
+, stamp
+, writeShellScriptBin
+, writeText
+}:
 
 let
   passwd = writeText "passwd" ''
@@ -72,6 +82,9 @@ let
     X11Forwarding no
   '';
   scripts = {
+    ageout = writeShellScriptBin "ageout" ''
+      exec ${python3}/bin/python ${./ageout.py} "$@"
+    '';
     backup = writeShellScriptBin "backup" ''
       exec ${restic}/bin/restic backup \
         --exclude=lost+found \
@@ -102,5 +115,5 @@ in stamp.fromNix {
     ln -sfT ${sshdConfig} etc/ssh/sshd_config
   '';
   entrypoint = [ "${dumb-init}/bin/dumb-init" ];
-  env.PATH = lib.makeBinPath (lib.attrValues scripts);
+  env.PATH = lib.makeBinPath (lib.attrValues scripts ++ [ restic ]);
 }
