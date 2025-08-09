@@ -56,7 +56,7 @@ resource "kubernetes_job" "archive_download" {
           }
           env_from {
             secret_ref {
-              name = module.storage.archive_secret_name
+              name = module.backup_common.archive_secret_name
             }
           }
           security_context {
@@ -132,7 +132,7 @@ resource "kubernetes_job" "archive_upload" {
           }
           env_from {
             secret_ref {
-              name = module.storage.archive_secret_name
+              name = module.backup_common.archive_secret_name
             }
           }
           security_context {
@@ -216,7 +216,7 @@ resource "kubernetes_job" "archive_upload" {
 #          ]
 #          env_from {
 #            secret_ref {
-#              name = module.storage.archive_secret_name
+#              name = module.backup_common.archive_secret_name
 #            }
 #          }
 #          # for restic

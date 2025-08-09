@@ -63,7 +63,16 @@ resource "kubernetes_namespace" "main" {
 module "backup_ageout" {
   source              = "./backup_ageout"
   namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.storage.archive_secret_name
+  archive_secret_name = module.backup_common.archive_secret_name
+}
+
+module "backup_common" {
+  source                     = "./backup/common"
+  namespace                  = kubernetes_namespace.main.metadata[0].name
+  b2_account_id              = var.b2_account_id
+  b2_account_key             = var.b2_account_key
+  b2_archive_bucket          = var.b2_archive_bucket
+  b2_archive_restic_password = var.b2_archive_restic_password
 }
 
 module "devenv" {
@@ -73,14 +82,14 @@ module "devenv" {
   downloads_pvc_name  = module.storage.downloads_pvc_name
   projects_pvc_name   = module.storage.projects_pvc_name
   documents_pvc_name  = module.storage.documents_pvc_name
-  archive_secret_name = module.storage.archive_secret_name
+  archive_secret_name = module.backup_common.archive_secret_name
 }
 
 module "git" {
   source                     = "./git"
   namespace                  = kubernetes_namespace.main.metadata[0].name
   authorized_ssh_public_keys = setunion(var.authorized_ssh_public_keys, toset([module.hydra.ssh_public_key]))
-  archive_secret_name        = module.storage.archive_secret_name
+  archive_secret_name        = module.backup_common.archive_secret_name
   restic_sidecar_image       = module.restic_sidecar.image
 }
 
@@ -107,14 +116,14 @@ module "nix_cache" {
 module "paperless" {
   source               = "./paperless"
   namespace            = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name  = module.storage.archive_secret_name
+  archive_secret_name  = module.backup_common.archive_secret_name
   restic_sidecar_image = module.restic_sidecar.image
 }
 
 module "refern_backup" {
   source                          = "./refern_backup"
   namespace                       = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name             = module.storage.archive_secret_name
+  archive_secret_name             = module.backup_common.archive_secret_name
   refern_email                    = var.refern_email
   refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key
   refern_password                 = var.refern_password
@@ -125,18 +134,15 @@ module "restic_sidecar" {
 }
 
 module "storage" {
-  source                     = "./storage"
-  namespace                  = kubernetes_namespace.main.metadata[0].name
-  b2_account_id              = var.b2_account_id
-  b2_account_key             = var.b2_account_key
-  b2_archive_bucket          = var.b2_archive_bucket
-  b2_archive_restic_password = var.b2_archive_restic_password
+  source              = "./storage"
+  namespace           = kubernetes_namespace.main.metadata[0].name
+  archive_secret_name = module.backup_common.archive_secret_name
 }
 
 module "todoist_automation" {
   source              = "./todoist_automation"
   namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.storage.archive_secret_name
+  archive_secret_name = module.backup_common.archive_secret_name
   todoist_email       = var.todoist_email
   todoist_api_token   = var.todoist_api_token
 }
@@ -171,7 +177,7 @@ output "downloads_pvc_name" {
 }
 
 output "archive_secret_name" {
-  value = module.storage.archive_secret_name
+  value = module.backup_common.archive_secret_name
 }
 
 output "hydra_ssh_public_key" {
