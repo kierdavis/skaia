@@ -26,8 +26,11 @@ variable "mount_path" {
   type = string
 }
 
-variable "archive_secret_name" {
-  type = string
+variable "common" {
+  type = object({
+    image               = string
+    archive_secret_name = string
+  })
 }
 
 resource "kubernetes_cron_job_v1" "main" {
@@ -56,27 +59,21 @@ resource "kubernetes_cron_job_v1" "main" {
             restart_policy = "Never"
             container {
               name  = "main"
-              image = "docker.io/restic/restic@sha256:157243d77bc38be75a7b62b0c00453683251310eca414b9389ae3d49ea426c16"
-              args = [
-                "backup",
-                "--exclude=lost+found",
-                "--exclude=.nobackup",
-                "--exclude=.Trash-*",
-                "--host=generic",
-                "--one-file-system",
-                "--read-concurrency=4",
-                "--tag=auto",
-                var.mount_path,
-              ]
-              env_from {
-                secret_ref {
-                  name = var.archive_secret_name
-                }
-              }
+              image = var.common.image
+              args  = ["backup"]
               volume_mount {
                 name       = "data"
                 mount_path = var.mount_path
                 read_only  = true
+              }
+              env {
+                name  = "DATA_PATH"
+                value = var.mount_path
+              }
+              env_from {
+                secret_ref {
+                  name = var.common.archive_secret_name
+                }
               }
             }
             volume {

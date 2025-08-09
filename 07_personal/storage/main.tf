@@ -10,8 +10,11 @@ variable "namespace" {
   type = string
 }
 
-variable "archive_secret_name" {
-  type = string
+variable "backup" {
+  type = object({
+    image               = string
+    archive_secret_name = string
+  })
 }
 
 output "downloads_pvc_name" {

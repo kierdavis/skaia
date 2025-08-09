@@ -128,9 +128,9 @@ module "refern_backup" {
 }
 
 module "storage" {
-  source              = "./storage"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.backup_common.archive_secret_name
+  source    = "./storage"
+  namespace = kubernetes_namespace.main.metadata[0].name
+  backup    = module.backup_common
 }
 
 module "todoist_automation" {
@@ -170,8 +170,8 @@ output "downloads_pvc_name" {
   value = module.storage.downloads_pvc_name
 }
 
-output "archive_secret_name" {
-  value = module.backup_common.archive_secret_name
+output "backup" {
+  value = module.backup_common
 }
 
 output "hydra_ssh_public_key" {
