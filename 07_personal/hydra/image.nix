@@ -53,7 +53,7 @@ let
     { url = "ssh://localhost"; system = "x86_64-linux"; speedFactor = cores; }
     { url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
   ]);
-  nixConf = writeText "nix.conf" ''
+  baseNixConf = writeText "nix.conf" ''
     builders = @${nixMachines}
     builders-use-substitutes = true
     cores = ${builtins.toString cores}
@@ -64,6 +64,7 @@ let
     substituters = https://cache.nixos.org/
     trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.personal.svc.kube.skaia.cloud-1:SFVF30Hf3FSqd3VX8nHhymQN9HkFL1PdLHQLmdMbDwE=
   '';
+  finalNixConf = "/etc/nix/nix.conf";
 
   baseHydraConf = writeText "hydra.conf" ''
     use-substitutes = 1
@@ -109,11 +110,14 @@ let
   '';
 
   main = writeShellScript "main" ''
-    ${nix}/bin/nix-store --load-db < /nix-path-registration
-    ls /nix/store | ${gnused}/bin/sed s,^,/nix/store/, | ${nix}/bin/nix store sign --key-file /nix-signing-secret-key --stdin
+    cat ${baseNixConf} > ${finalNixConf}
+    echo "extra-substituters = s3://$BUCKET_NAME?endpoint=http://$BUCKET_HOST&region=$BUCKET_REGION" >> ${finalNixConf}
 
     cat ${baseHydraConf} > ${finalHydraConf}
     echo "store_uri = s3://$BUCKET_NAME?compression=zstd&endpoint=http://$BUCKET_HOST&log-compression=br&ls-compression=br&parallel-compression=true&region=$BUCKET_REGION&secret-key=/nix-signing-secret-key&write-nar-listing=1" >> ${finalHydraConf}
+
+    ${nix}/bin/nix-store --load-db < /nix-path-registration
+    ls /nix/store | ${gnused}/bin/sed s,^,/nix/store/, | ${nix}/bin/nix store sign --key-file /nix-signing-secret-key --stdin
 
     exec ${python3Packages.supervisor}/bin/supervisord --configuration=${supervisorConf}
   '';
@@ -126,7 +130,6 @@ in stamp.fromNix {
     ln -sfT ${shadow} etc/shadow
     ln -sfT ${group} etc/group
     ln -sfT ${sshConf} etc/ssh/ssh_config
-    ln -sfT ${nixConf} etc/nix/nix.conf
   '';
   entrypoint = [ "${dumb-init}/bin/dumb-init" ];
   cmd = [ "${main}" ];
