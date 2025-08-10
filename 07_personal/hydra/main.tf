@@ -168,6 +168,11 @@ resource "kubernetes_stateful_set" "main" {
             container_port = 80
             protocol       = "TCP"
           }
+          port {
+            name = "metrics"
+            container_port = 9198
+            protocol = "TCP"
+          }
           readiness_probe {
             http_get {
               path = "/"
@@ -253,5 +258,37 @@ resource "kubernetes_service" "main" {
       app_protocol = "http"
       target_port  = "ui"
     }
+    port {
+      name = "metrics"
+      port = 9198
+      protocol = "TCP"
+      app_protocol = "http"
+      target_port = "metrics"
+    }
   }
+}
+
+resource "kubectl_manifest" "service_monitor" {
+  yaml_body = yamlencode({
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "ServiceMonitor"
+    metadata = {
+      name      = "hydra"
+      namespace = var.namespace
+      labels = {
+        "app.kubernetes.io/name"      = "hydra"
+        "app.kubernetes.io/component" = "webapp"
+        "app.kubernetes.io/part-of"   = "hydra"
+      }
+    }
+    spec = {
+      selector = {
+        matchLabels = { "app.kubernetes.io/name" = "hydra" }
+      }
+      endpoints = [{
+        port   = "metrics"
+        scheme = "http"
+      }]
+    }
+  })
 }
