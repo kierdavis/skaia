@@ -86,12 +86,16 @@ let
       exec ${python3}/bin/python ${./ageout.py} "$@"
     '';
     backup = writeShellScriptBin "backup" ''
+      one_file_system=--one-file-system
+      if [[ -n "''${ALLOW_CROSSING_FS_BOUNDARIES:-}" ]]; then
+        one_file_system=
+      fi
       exec ${restic}/bin/restic backup \
         --exclude=lost+found \
         --exclude=.nobackup \
         --exclude='.Trash-*' \
         --host=generic \
-        --one-file-system \
+        $one_file_system \
         --read-concurrency=4 \
         --tag=auto \
         "$DATA_PATH"

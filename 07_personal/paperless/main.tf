@@ -159,6 +159,10 @@ resource "kubernetes_stateful_set" "main" {
             name  = "DATA_PATH"
             value = "/data/documents/paperless"
           }
+          env {
+            name = "ALLOW_CROSSING_FS_BOUNDARIES"
+            value = "1"
+          }
           env_from {
             secret_ref {
               name = var.backup.archive_secret_name
