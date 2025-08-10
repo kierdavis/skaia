@@ -16,6 +16,8 @@
 
 let
   maxJobs = 1;
+  cores = 2;
+
   nixbldUIDs = builtins.map builtins.toString (lib.lists.range 1 maxJobs);
   passwd = let
     rootEntry = "root:x:0:0:System administrator:/root:${bash}/bin/bash\n";
@@ -48,13 +50,13 @@ let
     (m.sshHostKeyBase64 or "-")
   ]) + "\n";
   nixMachines = writeText "machines" (lib.strings.concatMapStrings nixMachinesEntry [
-    { url = "ssh://localhost"; system = "x86_64-linux"; speedFactor = 1; }
+    { url = "ssh://localhost"; system = "x86_64-linux"; speedFactor = cores; }
     { url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
   ]);
   nixConf = writeText "nix.conf" ''
     builders = @${nixMachines}
     builders-use-substitutes = true
-    cores = 1
+    cores = ${builtins.toString cores}
     extra-experimental-features = flakes nix-command
     max-jobs = ${builtins.toString maxJobs}
     require-sigs = true
