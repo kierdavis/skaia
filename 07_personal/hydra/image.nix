@@ -67,6 +67,7 @@ let
   finalNixConf = "/etc/nix/nix.conf";
 
   baseHydraConf = writeText "hydra.conf" ''
+    queue_runner_metrics_address = 0.0.0.0:9198
     use-substitutes = 1
   '';
   finalHydraConf = "/etc/hydra.conf";
