@@ -58,6 +58,7 @@
   in {
     packages.${system} = packages;
     hydraJobs = packages // {
+      crate2nix = builtins.elemAt (builtins.filter (x: lib.strings.hasPrefix "rust_crate2nix-" x.name) packages.kubeEssential.cni.images.routeAdvertiser.cargoNix.buildInputs) 0;
       cargoNix = getDerivAttrRecursive "cargoNix" packages;
       packingPlan = getDerivAttrRecursive "packingPlan" packages;
     };
