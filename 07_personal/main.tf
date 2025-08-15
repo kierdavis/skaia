@@ -91,6 +91,7 @@ module "hydra" {
   namespace              = kubernetes_namespace.main.metadata[0].name
   nix_signing_secret_key = var.hydra_nix_signing_secret_key
   postgres_password      = var.hydra_postgres_password
+  projects_pvc_name      = module.storage.projects_pvc_name
   nix_cache              = module.nix_cache
 }
 

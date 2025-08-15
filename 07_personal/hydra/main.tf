@@ -28,6 +28,10 @@ variable "postgres_password" {
   ephemeral = false
 }
 
+variable "projects_pvc_name" {
+  type = string
+}
+
 variable "nix_cache" {
   type = object({
     config_map_name = string
@@ -166,6 +170,11 @@ resource "kubernetes_stateful_set" "main" {
             mount_path = "/var/lib/hydra/build-logs"
             read_only  = false
           }
+          volume_mount {
+            name       = "projects"
+            mount_path = "/net/skaia/projects"
+            read_only  = true
+          }
           port {
             name           = "ui"
             container_port = 80
@@ -197,6 +206,12 @@ resource "kubernetes_stateful_set" "main" {
           secret {
             secret_name  = kubernetes_secret.main.metadata[0].name
             default_mode = "0600"
+          }
+        }
+        volume {
+          name = "projects"
+          persistent_volume_claim {
+            claim_name = var.projects_pvc_name
           }
         }
       }
