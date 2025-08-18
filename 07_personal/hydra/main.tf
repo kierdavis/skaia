@@ -181,9 +181,9 @@ resource "kubernetes_stateful_set" "main" {
             protocol       = "TCP"
           }
           port {
-            name = "metrics"
+            name           = "metrics"
             container_port = 9198
-            protocol = "TCP"
+            protocol       = "TCP"
           }
           readiness_probe {
             http_get {
@@ -277,11 +277,11 @@ resource "kubernetes_service" "main" {
       target_port  = "ui"
     }
     port {
-      name = "metrics"
-      port = 9198
-      protocol = "TCP"
+      name         = "metrics"
+      port         = 9198
+      protocol     = "TCP"
       app_protocol = "http"
-      target_port = "metrics"
+      target_port  = "metrics"
     }
   }
 }

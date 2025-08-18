@@ -160,7 +160,7 @@ resource "kubernetes_stateful_set" "main" {
             value = "/data/documents/paperless"
           }
           env {
-            name = "ALLOW_CROSSING_FS_BOUNDARIES"
+            name  = "ALLOW_CROSSING_FS_BOUNDARIES"
             value = "1"
           }
           env_from {
