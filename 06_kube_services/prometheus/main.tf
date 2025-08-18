@@ -104,7 +104,7 @@ resource "helm_release" "main" {
   name       = "main"
   chart      = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
-  version    = "58.4.0"
+  version    = "76.4.0"
   namespace  = local.namespace
   values = [yamlencode({
     alertmanager = {
@@ -153,6 +153,11 @@ resource "helm_release" "main" {
         limits   = { memory = "300Mi" }
       }
       sidecar = {
+        # ConfigMaps with a grafana_dashboard=1 label will be automatically imported into Grafana:
+        dashboards = {
+          enabled    = true
+          "provider" = { folder = "Static" }
+        }
         resources = {
           requests = { cpu = "5m", memory = "80Mi" }
           limits   = { memory = "200Mi" }

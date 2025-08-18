@@ -6,6 +6,9 @@ terraform {
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
+    grafana = {
+      source = "grafana/grafana"
+    }
     helm = {
       source = "hashicorp/helm"
     }
@@ -35,6 +38,11 @@ data "terraform_remote_state" "talos" {
 provider "dockerhub" {
   username = local.globals.docker_hub.username
   password = var.docker_hub_password
+}
+
+provider "grafana" {
+  url  = module.prometheus.grafana.url
+  auth = module.prometheus.grafana.auth
 }
 
 provider "helm" {
@@ -74,6 +82,7 @@ module "generic_device_plugin" {
 
 module "grafana_backup" {
   source              = "./grafana_backup"
+  grafana             = module.prometheus.grafana
   archive_secret_name = kubernetes_secret.archive.metadata[0].name
 }
 
