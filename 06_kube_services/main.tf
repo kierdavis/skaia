@@ -72,17 +72,23 @@ module "generic_device_plugin" {
   source = "./generic_device_plugin"
 }
 
+module "grafana_backup" {
+  source              = "./grafana_backup"
+  archive_secret_name = kubernetes_secret.archive.metadata[0].name
+}
+
 module "kube_network_policies" {
   source     = "./kube_network_policies"
   depends_on = [module.prometheus]
 }
 
 module "prometheus" {
-  source         = "./prometheus"
-  depends_on     = [module.rook_ceph]
-  node_endpoints = data.terraform_remote_state.talos.outputs.node_endpoints
-  etcd_ca_cert   = data.terraform_remote_state.talos.outputs.etcd_ca_cert
-  etcd_ca_key    = data.terraform_remote_state.talos.outputs.etcd_ca_key
+  source                 = "./prometheus"
+  depends_on             = [module.rook_ceph]
+  node_endpoints         = data.terraform_remote_state.talos.outputs.node_endpoints
+  etcd_ca_cert           = data.terraform_remote_state.talos.outputs.etcd_ca_cert
+  etcd_ca_key            = data.terraform_remote_state.talos.outputs.etcd_ca_key
+  grafana_admin_password = var.grafana_admin_password
 }
 
 module "rook_ceph" {

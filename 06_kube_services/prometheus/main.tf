@@ -26,6 +26,13 @@ variable "etcd_ca_cert" {
 variable "etcd_ca_key" {
   type      = string
   sensitive = true
+  ephemeral = false
+}
+
+variable "grafana_admin_password" {
+  type      = string
+  sensitive = true
+  ephemeral = false
 }
 
 resource "kubernetes_namespace" "main" {
@@ -44,8 +51,9 @@ resource "kubernetes_namespace" "main" {
 }
 
 locals {
-  namespace         = kubernetes_namespace.main.metadata[0].name
-  node_endpoint_set = toset([for _, addr in var.node_endpoints : addr])
+  namespace          = kubernetes_namespace.main.metadata[0].name
+  grafana_admin_user = "admin"
+  node_endpoint_set  = toset([for _, addr in var.node_endpoints : addr])
 }
 
 resource "tls_private_key" "etcd_client" {
@@ -78,6 +86,17 @@ resource "kubernetes_secret" "etcd" {
     "ca.crt"     = var.etcd_ca_cert
     "client.crt" = tls_locally_signed_cert.etcd_client.cert_pem
     "client.key" = tls_private_key.etcd_client.private_key_pem
+  }
+}
+
+resource "kubernetes_secret" "grafana_admin" {
+  metadata {
+    name      = "grafana-admin"
+    namespace = local.namespace
+  }
+  data = {
+    admin-user     = local.grafana_admin_user
+    admin-password = var.grafana_admin_password
   }
 }
 
@@ -118,6 +137,7 @@ resource "helm_release" "main" {
     cleanPrometheusOperatorObjectNames = true
     fullnameOverride                   = "prometheus"
     grafana = {
+      admin            = { existingSecret = kubernetes_secret.grafana_admin.metadata[0].name }
       fullnameOverride = "grafana"
       persistence = {
         accessModes      = ["ReadWriteOnce"]
@@ -336,4 +356,12 @@ resource "kubectl_manifest" "rules" {
       ]
     }
   })
+}
+
+output "grafana" {
+  depends_on = [helm_release.main]
+  value = {
+    url  = "http://grafana.${local.namespace}.svc.kube.skaia.cloud"
+    auth = "${local.grafana_admin_user}:${var.grafana_admin_password}"
+  }
 }
