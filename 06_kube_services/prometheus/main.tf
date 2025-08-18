@@ -160,6 +160,14 @@ resource "helm_release" "main" {
     }
     kube-state-metrics = {
       fullnameOverride = "kube-state-metrics"
+      # Syntax reference: https://github.com/prometheus-community/helm-charts/blob/1c5eb8f/charts/kube-state-metrics/values.yaml#L385-L392
+      metricLabelsAllowlist = [
+        "deployments=[app.kubernetes.io/name,app.kubernetes.io/instance]",
+        "persistentvolumeclaims=[app.kubernetes.io/name,app.kubernetes.io/instance]",
+        "persistentvolumes=[app.kubernetes.io/name,app.kubernetes.io/instance]",
+        "pods=[app.kubernetes.io/name,app.kubernetes.io/instance]",
+        "statefulsets=[app.kubernetes.io/name,app.kubernetes.io/instance]",
+      ]
       resources = {
         requests = { cpu = "3m", memory = "50Mi" }
         limits   = { memory = "150Mi" }
@@ -264,7 +272,7 @@ resource "kubectl_manifest" "rules" {
     spec = {
       groups = [
         {
-          name = "scheduling-sanity.rules"
+          name = "skaia-scheduling-sanity"
           rules = [
             {
               alert  = "NoCPURequest"
@@ -304,6 +312,24 @@ resource "kubectl_manifest" "rules" {
                 summary     = "Container doesn't define a memory resource limit."
                 description = "Container {{$labels.container}} in pod {{$labels.pod}} in namespace {{$labels.namespace}} doesn't define a memory resource limit, so it may disrupt colocated pods and take down the hosting node if its memory use grows unbounded."
               }
+            },
+          ]
+        },
+        # Recording rules to aid label_values-type variables in Grafana dashboards (which cannot use complex expressions).
+        {
+          name = "skaia-grafana-variable-helpers"
+          rules = [
+            # A copy of kube_pod_spec_volumes_persistentvolumeclaims_info
+            # (whose instant vectors contain one instant per PVC-to-pod attachment)
+            # with additional label_app_kubernetes_io_name and label_app_kubernetes_io_instance
+            # labels sourced from the involved pod.
+            {
+              record = "skaia:kube_pod_spec_volumes_persistentvolumeclaims_info:pod_labels"
+              expr   = <<-EOF
+                kube_pod_spec_volumes_persistentvolumeclaims_info
+                * on(namespace,pod) group_left(label_app_kubernetes_io_name,label_app_kubernetes_io_instance)
+                kube_pod_labels
+              EOF
             },
           ]
         },
