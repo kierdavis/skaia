@@ -1,4 +1,4 @@
-{ callPackage, ceph-client, generatedCargoNix, lib, stamp }:
+{ callPackage, ceph, generatedCargoNix, lib, stamp }:
 
 let
   cargoNix = generatedCargoNix {
@@ -9,6 +9,6 @@ let
 in stamp.fromNix {
   name = "stamp-img-skaia-rook-ceph-imperative-config";
   entrypoint = [ "${app}/bin/rook-ceph-imperative-config" ];
-  env.PATH = lib.makeBinPath [ ceph-client ];
+  env.PATH = lib.makeBinPath [ ceph ];
   passthru = { inherit cargoNix app; };
 }
