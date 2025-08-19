@@ -284,5 +284,5 @@ stamp.installDebianPkgs {
       hash = "sha256:f60f122accb0ddaa348e3345d16816278d85ba99fa41b0a2395212d5f3e08729";
     })
   ];
-  layerHash = "sha256-cjzcSNrefqz5+qbi1nWY16S+10Y2KDeMuP0SxjABYXk=";
+  layerHash = "sha256-+MIRA71tZ71CyA5eZaDUGxx/5yH7gwIW5BpHQLLBcbM=";
 }
