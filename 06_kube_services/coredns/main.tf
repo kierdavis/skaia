@@ -28,9 +28,15 @@ resource "kubernetes_config_map" "main" {
           kubernetes kube.skaia.cloud in-addr.arpa ip6.arpa {
               pods insecure
               fallthrough in-addr.arpa ip6.arpa
+              ttl 30
           }
-          forward . /etc/resolv.conf
-          cache 30
+          forward . /etc/resolv.conf {
+             max_concurrent 1000
+          }
+          cache 30 {
+             disable success kube.skaia.cloud
+             disable denial kube.skaia.cloud
+          }
           loop
           reload
           loadbalance
