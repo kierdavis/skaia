@@ -163,5 +163,5 @@ data "kubernetes_resource" "operator_deployment" {
 }
 
 locals {
-  rook_image = "docker.io/${data.kubernetes_resource.operator_deployment.object.spec.template.spec.containers[0].image}"
+  rook_image = data.kubernetes_resource.operator_deployment.object.spec.template.spec.containers[0].image
 }
