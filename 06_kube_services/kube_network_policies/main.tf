@@ -52,6 +52,7 @@ resource "kubernetes_service_account" "main" {
 }
 
 resource "kubernetes_daemonset" "main" {
+  wait_for_rollout = false
   metadata {
     name      = "kube-network-policies"
     namespace = "system"

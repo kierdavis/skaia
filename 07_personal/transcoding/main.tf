@@ -32,6 +32,7 @@ module "image" {
 # Aim for 1.5 Mb/s bitrate - resulting video should occupy 660MB per hour of footage.
 
 resource "kubernetes_job" "hevc10_to_avc" {
+  wait_for_completion = false
   for_each = {
     #s01e01 = "/net/skaia/media/foobar/S01E01.mkv"
     #s01e02 = "/net/skaia/media/foobar/S01E02.mkv"
@@ -132,5 +133,4 @@ resource "kubernetes_job" "hevc10_to_avc" {
       }
     }
   }
-  wait_for_completion = false
 }

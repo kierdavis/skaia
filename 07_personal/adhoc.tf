@@ -324,6 +324,7 @@ resource "kubernetes_job" "sync_volumes" {
     #  dest = "storage-grafana-0"
     #}
   }
+  wait_for_completion = false
   metadata {
     name      = "sync-volumes-${each.key}"
     namespace = each.value.namespace
@@ -376,5 +377,4 @@ resource "kubernetes_job" "sync_volumes" {
       }
     }
   }
-  wait_for_completion = false
 }

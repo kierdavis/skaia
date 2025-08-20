@@ -6,7 +6,12 @@ module "imperative_config_image" {
 }
 
 resource "kubernetes_job" "imperative_config" {
-  depends_on = [kubectl_manifest.cluster]
+  depends_on          = [kubectl_manifest.cluster]
+  wait_for_completion = true
+  timeouts {
+    create = "5m"
+    update = "5m"
+  }
   metadata {
     name      = "imperative-config"
     namespace = local.namespace
@@ -82,10 +87,5 @@ resource "kubernetes_job" "imperative_config" {
         }
       }
     }
-  }
-  wait_for_completion = true
-  timeouts {
-    create = "5m"
-    update = "5m"
   }
 }

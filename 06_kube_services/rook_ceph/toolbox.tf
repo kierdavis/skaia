@@ -1,5 +1,6 @@
 resource "kubernetes_deployment" "toolbox" {
-  depends_on = [kubectl_manifest.cluster]
+  depends_on       = [kubectl_manifest.cluster]
+  wait_for_rollout = false
   metadata {
     name      = "rook-ceph-tools"
     namespace = local.namespace
