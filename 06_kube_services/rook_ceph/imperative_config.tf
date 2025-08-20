@@ -17,8 +17,8 @@ resource "kubernetes_job" "imperative_config" {
     namespace = local.namespace
     labels = {
       "app.kubernetes.io/name" = "imperative-config"
-      "ceph-version"           = local.ceph_version
-      "rook-version"           = "v${local.rook_version}"
+      "ceph-version"           = local.ceph_version_label
+      "rook-version"           = local.rook_version_label
     }
   }
   spec {
@@ -30,8 +30,8 @@ resource "kubernetes_job" "imperative_config" {
       metadata {
         labels = {
           "app.kubernetes.io/name" = "imperative-config"
-          "ceph-version"           = local.ceph_version
-          "rook-version"           = "v${local.rook_version}"
+          "ceph-version"           = local.ceph_version_label
+          "rook-version"           = local.rook_version_label
         }
       }
       spec {
