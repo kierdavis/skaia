@@ -2,8 +2,8 @@ use crate::error::Error;
 use lazy_static::lazy_static;
 use regex::Regex;
 use similar::TextDiff;
-use std::io::Write;
 use std::borrow::Cow;
+use std::io::Write;
 use std::process::{Command, Stdio};
 
 pub fn configure() -> Result<(), Error> {
