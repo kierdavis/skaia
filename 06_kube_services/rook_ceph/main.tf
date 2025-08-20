@@ -13,7 +13,9 @@ terraform {
 }
 
 locals {
+  # Choose from https://github.com/rook/rook/tags
   rook_version = "1.17.7"
+  # Choose from https://quay.io/repository/ceph/ceph?tab=tags
   ceph_version = "19.2.3-20250717"
 
   # Values that match the rook-version and ceph-version labels placed on
