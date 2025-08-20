@@ -7,6 +7,8 @@ resource "kubernetes_deployment" "toolbox" {
     labels = {
       "app.kubernetes.io/name" = "rook-ceph-tools"
       "app"                    = "rook-ceph-tools" # required by rook-ceph kubectl plugin
+      "ceph-version"           = local.ceph_version
+      "rook-version"           = "v${local.rook_version}"
     }
   }
   spec {
@@ -28,6 +30,8 @@ resource "kubernetes_deployment" "toolbox" {
         labels = {
           "app.kubernetes.io/name" = "rook-ceph-tools"
           "app"                    = "rook-ceph-tools" # required by rook-ceph kubectl plugin
+          "ceph-version"           = local.ceph_version
+          "rook-version"           = "v${local.rook_version}"
         }
       }
       spec {

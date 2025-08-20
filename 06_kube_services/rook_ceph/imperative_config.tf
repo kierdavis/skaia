@@ -15,7 +15,11 @@ resource "kubernetes_job" "imperative_config" {
   metadata {
     name      = "imperative-config"
     namespace = local.namespace
-    labels    = { "app.kubernetes.io/name" = "imperative-config" }
+    labels = {
+      "app.kubernetes.io/name" = "imperative-config"
+      "ceph-version"           = local.ceph_version
+      "rook-version"           = "v${local.rook_version}"
+    }
   }
   spec {
     backoff_limit   = 0
@@ -24,7 +28,11 @@ resource "kubernetes_job" "imperative_config" {
     parallelism     = 1
     template {
       metadata {
-        labels = { "app.kubernetes.io/name" = "imperative-config" }
+        labels = {
+          "app.kubernetes.io/name" = "imperative-config"
+          "ceph-version"           = local.ceph_version
+          "rook-version"           = "v${local.rook_version}"
+        }
       }
       spec {
         automount_service_account_token  = false
@@ -51,6 +59,16 @@ resource "kubernetes_job" "imperative_config" {
           env {
             name  = "RUST_LOG"
             value = "warn,rook_ceph_imperative_config=info"
+          }
+          # These environment variables aren't used, but are used to ensure the
+          # job gets re-run when rook or ceph are upgraded.
+          env {
+            name = "_ROOK_VERSION"
+            value = local.rook_version
+          }
+          env {
+            name = "_CEPH_VERSION"
+            value = local.ceph_version
           }
           volume_mount {
             name       = "etc-ceph"
