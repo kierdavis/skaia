@@ -14,7 +14,7 @@ terraform {
 
 locals {
   rook_version = "1.17.7"
-  ceph_version = "18.2.2"
+  ceph_version = "19.2.3-20250717"
 
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
