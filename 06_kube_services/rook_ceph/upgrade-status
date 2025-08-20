@@ -1,0 +1,18 @@
+#!/bin/bash
+
+toolbox_pod=$(kubectl -n rook-ceph get pod -l app=rook-ceph-tools -o name)
+
+echo
+echo "rook versions of live components:"
+kubectl -n rook-ceph get deployment -o jsonpath='{range .items[*]}{"  "}{.metadata.labels.rook-version}{"\n"}{end}' | sort -u | grep -E '\S'
+
+echo
+echo "ceph versions of live components:"
+kubectl -n rook-ceph get deployment -o jsonpath='{range .items[*]}{"  "}{.metadata.labels.ceph-version}{"\n"}{end}' | sort -u | grep -E '\S'
+
+echo
+echo "ceph status:"
+kubectl -n rook-ceph exec "$toolbox_pod" -- ceph -s
+
+echo
+kubectl -n rook-ceph get pod
