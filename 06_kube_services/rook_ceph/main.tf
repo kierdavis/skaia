@@ -15,6 +15,14 @@ terraform {
   }
 }
 
+variable "grafana" {
+  type = object({
+    url      = string
+    username = string
+    password = string
+  })
+}
+
 locals {
   # Choose from https://github.com/rook/rook/tags
   rook_version = "1.17.7"

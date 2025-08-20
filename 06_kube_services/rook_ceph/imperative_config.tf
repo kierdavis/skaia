@@ -5,6 +5,21 @@ module "imperative_config_image" {
   flake_output   = "./${path.module}/../..#kubeServices.rookCeph.imperativeConfigImage"
 }
 
+resource "kubernetes_secret" "imperative_config" {
+  metadata {
+    name      = "imperative-config"
+    namespace = local.namespace
+    labels = {
+      "app.kubernetes.io/name" = "imperative-config"
+    }
+  }
+  data = {
+    GRAFANA_URL      = var.grafana.url
+    GRAFANA_USERNAME = var.grafana.username
+    GRAFANA_PASSWORD = var.grafana.password
+  }
+}
+
 resource "kubernetes_job" "imperative_config" {
   depends_on          = [kubectl_manifest.cluster]
   wait_for_completion = true
@@ -59,6 +74,11 @@ resource "kubernetes_job" "imperative_config" {
           env {
             name  = "RUST_LOG"
             value = "warn,rook_ceph_imperative_config=info"
+          }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.imperative_config.metadata[0].name
+            }
           }
           volume_mount {
             name       = "etc-ceph"

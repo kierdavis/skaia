@@ -103,4 +103,9 @@ module "prometheus" {
 module "rook_ceph" {
   source     = "./rook_ceph"
   depends_on = [module.csi_addons]
+  grafana = {
+    url      = "http://grafana.prometheus.svc.kube.skaia.cloud"
+    username = local.ceph_dashboard_grafana_username
+    password = var.ceph_dashboard_grafana_password
+  }
 }

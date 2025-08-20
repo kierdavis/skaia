@@ -139,6 +139,10 @@ resource "helm_release" "main" {
     grafana = {
       admin            = { existingSecret = kubernetes_secret.grafana_admin.metadata[0].name }
       fullnameOverride = "grafana"
+      "grafana.ini" = {
+        # For ceph dashboard:
+        security = { allow_embedding = true }
+      }
       persistence = {
         accessModes      = ["ReadWriteOnce"]
         annotations      = { "reclaimspace.csiaddons.openshift.io/schedule" = "40 4 * * *" }

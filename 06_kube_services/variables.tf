@@ -18,6 +18,12 @@ variable "b2_archive_restic_password" {
   ephemeral = false # because it's persisted into a kubernetes_secret
 }
 
+variable "ceph_dashboard_grafana_password" {
+  type      = string
+  sensitive = true
+  ephemeral = false # because it's persisted into a kubernetes_secret
+}
+
 variable "docker_hub_password" {
   type      = string
   sensitive = true
