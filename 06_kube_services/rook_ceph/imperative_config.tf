@@ -60,16 +60,6 @@ resource "kubernetes_job" "imperative_config" {
             name  = "RUST_LOG"
             value = "warn,rook_ceph_imperative_config=info"
           }
-          # These environment variables aren't used, but are used to ensure the
-          # job gets re-run when rook or ceph are upgraded.
-          env {
-            name = "_ROOK_VERSION"
-            value = local.rook_version
-          }
-          env {
-            name = "_CEPH_VERSION"
-            value = local.ceph_version
-          }
           volume_mount {
             name       = "etc-ceph"
             mount_path = "/etc/ceph"
