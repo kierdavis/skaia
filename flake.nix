@@ -39,7 +39,7 @@
       kubeEssential.cni.images.routeAdvertiser = callPackage 05_kube_essential/cni/images/route_advertiser { inherit generatedCargoNix; };
       kubeEssential.debug.image = callPackage 05_kube_essential/debug/image.nix {};
       kubeServices.grafanaBackup.image = callPackage 06_kube_services/grafana_backup/image.nix {};
-      kubeServices.rookCeph.imperativeConfig.image = callPackage 06_kube_services/rook_ceph/imperative_config/image.nix { inherit generatedCargoNix; };
+      kubeServices.rookCeph.imperativeConfigImage = callPackage 06_kube_services/rook_ceph/imperative_config_image { inherit generatedCargoNix; };
       personal.backup.common.image = callPackage 07_personal/backup/common/image.nix {};
       personal.devenv.image = callPackage 07_personal/devenv/image.nix {};
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};

@@ -75,7 +75,7 @@ locals {
 }
 
 resource "kubectl_manifest" "rbd_metadata_pool" {
-  depends_on = [kubectl_manifest.cluster, module.imperative_config]
+  depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephBlockPool"
@@ -96,7 +96,7 @@ resource "kubectl_manifest" "rbd_metadata_pool" {
 
 resource "kubectl_manifest" "rbd_data_pool" {
   for_each   = local.rbd_storage_classes
-  depends_on = [kubectl_manifest.cluster, module.imperative_config]
+  depends_on = [kubectl_manifest.cluster, kubernetes_job.imperative_config]
   yaml_body = yamlencode({
     apiVersion = "ceph.rook.io/v1"
     kind       = "CephBlockPool"

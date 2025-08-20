@@ -15,6 +15,8 @@ terraform {
 locals {
   rook_version = "1.14.9"
   ceph_version = "18.2.2"
+
+  globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 
 resource "kubernetes_namespace" "main" {
@@ -33,10 +35,4 @@ resource "kubernetes_namespace" "main" {
 
 locals {
   namespace = kubernetes_namespace.main.metadata[0].name
-}
-
-module "imperative_config" {
-  source     = "./imperative_config"
-  depends_on = [kubectl_manifest.cluster]
-  namespace  = local.namespace
 }
