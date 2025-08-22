@@ -41,7 +41,7 @@
       kubeServices.grafanaBackup.image = callPackage 06_kube_services/grafana_backup/image.nix {};
       kubeServices.rookCeph.imperativeConfigImage = callPackage 06_kube_services/rook_ceph/imperative_config_image { inherit generatedCargoNix; };
       personal.backup.common.image = callPackage 07_personal/backup/common/image.nix {};
-      personal.devenv.image = callPackage 07_personal/devenv/image.nix {};
+      personal.devenv.image = callPackage 07_personal/devenv/image.nix { inherit (inputs) nixpkgs; };
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
       personal.paperless.image = callPackage 07_personal/paperless/image.nix {};
@@ -62,6 +62,7 @@
       crate2nix = builtins.elemAt (builtins.filter (x: lib.strings.hasPrefix "rust_crate2nix-" x.name) packages.kubeEssential.cni.images.routeAdvertiser.cargoNix.buildInputs) 0;
       cargoNix = getDerivAttrRecursive "cargoNix" packages;
       packingPlan = getDerivAttrRecursive "packingPlan" packages;
+      devenvPreinstalledPackages = packages.personal.devenv.image.preinstalledPackages nixpkgs;
     };
   };
 }

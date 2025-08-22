@@ -77,6 +77,7 @@ module "devenv" {
   projects_pvc_name   = module.storage.projects_pvc_name
   documents_pvc_name  = module.storage.documents_pvc_name
   archive_secret_name = module.backup_common.archive_secret_name
+  nix_cache           = module.nix_cache
 }
 
 module "git" {

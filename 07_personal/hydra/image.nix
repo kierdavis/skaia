@@ -57,7 +57,7 @@ let
     builders = @${nixMachines}
     builders-use-substitutes = true
     cores = ${builtins.toString cores}
-    extra-experimental-features = flakes nix-command
+    experimental-features = flakes nix-command
     max-jobs = ${builtins.toString maxJobs}
     require-sigs = true
     sandbox = false

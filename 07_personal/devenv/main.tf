@@ -30,6 +30,14 @@ variable "archive_secret_name" {
   type = string
 }
 
+variable "nix_cache" {
+  type = object({
+    config_map_name = string
+    secret_name     = string
+    confighash      = string
+  })
+}
+
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
@@ -82,6 +90,32 @@ resource "kubernetes_deployment" "main" {
             name  = "B2_APPLICATION_KEY"
             value = "$(B2_ACCOUNT_KEY)"
           }
+          dynamic "env" {
+            for_each = toset(["BUCKET_NAME", "BUCKET_HOST", "BUCKET_REGION"])
+            content {
+              name = "NIX_CACHE_${env.key}"
+              value_from {
+                config_map_key_ref {
+                  name     = var.nix_cache.config_map_name
+                  key      = env.key
+                  optional = true
+                }
+              }
+            }
+          }
+          dynamic "env" {
+            for_each = toset(["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+            content {
+              name = "NIX_CACHE_${env.key}"
+              value_from {
+                secret_key_ref {
+                  name     = var.nix_cache.secret_name
+                  key      = env.key
+                  optional = true
+                }
+              }
+            }
+          }
           volume_mount {
             name       = "media"
             mount_path = "/net/skaia/media"
@@ -100,7 +134,17 @@ resource "kubernetes_deployment" "main" {
           }
           resources {
             requests = { cpu = "1m", memory = "5Mi" }
-            limits   = { memory = "4Gi" }
+            limits   = { memory = "6Gi" }
+          }
+          startup_probe {
+            exec {
+              command = ["test", "-e", "/ready/ready"]
+            }
+            initial_delay_seconds = 5
+            period_seconds        = 5
+            timeout_seconds       = 1
+            success_threshold     = 1
+            failure_threshold     = 720
           }
         }
         volume {
