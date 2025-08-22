@@ -178,6 +178,7 @@ in stamp.fromNix {
     preinstalledPackages = pkgs: pkgs.stdenvNoCC.mkDerivation {
       name = "skaia-devenv-preinstalled-pkgs";
       buildCommand = "mkdir -p $out\ncd $out\n" + lib.strings.concatMapStrings (x: "ln -s ${pkgs.${x}}\n") preinstalledPackageNames;
+      preferLocalBuild = true;
     };
   };
 }
