@@ -177,7 +177,7 @@ in stamp.fromNix {
     # This derivation is built by Hydra, to ensure everything we want to install at container startup is available in the Nix cache.
     preinstalledPackages = pkgs: pkgs.stdenvNoCC.mkDerivation {
       name = "skaia-devenv-preinstalled-pkgs";
-      buildCommand = "mkdir -p $out\n" + lib.strings.concatMapStrings (x: "ln -s ${pkgs.${x}}\n") preinstalledPackageNames;
+      buildCommand = "mkdir -p $out\ncd $out\n" + lib.strings.concatMapStrings (x: "ln -s ${pkgs.${x}}\n") preinstalledPackageNames;
     };
   };
 }
