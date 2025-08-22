@@ -30,7 +30,7 @@ resource "headscale_user" "me" {
 }
 
 resource "headscale_pre_auth_key" "workstation" {
-  for_each       = toset(["coloris", "saelli"])
+  for_each       = toset(["coloris", "colorisw", "saelli"])
   user           = headscale_user.me.name
   acl_tags       = ["tag:hostname:${each.key}"]
   ephemeral      = false
