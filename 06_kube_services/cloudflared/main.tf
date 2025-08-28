@@ -3,9 +3,6 @@ terraform {
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
-    kubectl = {
-      source = "gavinbunney/kubectl"
-    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -117,27 +114,6 @@ resource "kubernetes_deployment" "main" {
       }
     }
   }
-}
-
-resource "kubectl_manifest" "pod_monitor" {
-  yaml_body = yamlencode({
-    apiVersion = "monitoring.coreos.com/v1"
-    kind       = "PodMonitor"
-    metadata = {
-      name      = "cloudflared"
-      namespace = "system"
-      labels    = { "app.kubernetes.io/name" = "cloudflared" }
-    }
-    spec = {
-      selector = {
-        matchLabels = { "app.kubernetes.io/name" = "cloudflared" }
-      }
-      podMetricsEndpoints = [{
-        port   = "metrics"
-        scheme = "http"
-      }]
-    }
-  })
 }
 
 output "ingress_hostname" {
