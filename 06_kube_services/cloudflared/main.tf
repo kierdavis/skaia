@@ -119,6 +119,10 @@ resource "kubernetes_deployment" "main" {
             container_port = 9090
             protocol       = "TCP"
           }
+          resources {
+            requests = { cpu = "5m", memory = "40Mi" }
+            limits   = { memory = "150Mi" }
+          }
         }
         volume {
           name = "secret"
