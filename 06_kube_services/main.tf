@@ -100,8 +100,7 @@ module "grafana_backup" {
 }
 
 module "kube_network_policies" {
-  source     = "./kube_network_policies"
-  depends_on = [module.prometheus]
+  source = "./kube_network_policies"
 }
 
 module "prometheus" {

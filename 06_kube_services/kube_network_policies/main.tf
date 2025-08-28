@@ -1,8 +1,5 @@
 terraform {
   required_providers {
-    kubectl = {
-      source = "gavinbunney/kubectl"
-    }
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
@@ -150,28 +147,4 @@ resource "kubernetes_service" "main" {
       target_port  = "metrics"
     }
   }
-}
-
-resource "kubectl_manifest" "service_monitor" {
-  yaml_body = yamlencode({
-    apiVersion = "monitoring.coreos.com/v1"
-    kind       = "ServiceMonitor"
-    metadata = {
-      name      = "kube-network-policies"
-      namespace = "system"
-      labels    = { "app.kubernetes.io/name" = "kube-network-policies" }
-    }
-    spec = {
-      selector = {
-        matchLabels = { "app.kubernetes.io/name" = "kube-network-policies" }
-      }
-      endpoints = [{
-        port   = "metrics"
-        scheme = "http"
-      }]
-      namespaceSelector = {
-        matchNames = ["system"]
-      }
-    }
-  })
 }
