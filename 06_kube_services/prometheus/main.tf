@@ -348,6 +348,17 @@ resource "kubectl_manifest" "rules" {
         {
           name = "skaia-grafana-variable-helpers"
           rules = [
+            # A copy of node_uname_info with nodename and instance combined
+            # into a single label. This is used by the 'instance' variable
+            # on the Node Exporter dashboard. nodename provides the human-
+            # readable text, while instance is the value that needs to be
+            # matched against other timeseries.
+            {
+              record = "skaia:node_uname_info"
+              expr   = <<-EOF
+                label_join(node_uname_info, "instance_nodename", "|", "instance", "nodename")
+              EOF
+            },
             # A copy of kube_pod_spec_volumes_persistentvolumeclaims_info
             # (whose instant vectors contain one instant per PVC-to-pod attachment)
             # with additional label_app_kubernetes_io_name and label_app_kubernetes_io_instance
