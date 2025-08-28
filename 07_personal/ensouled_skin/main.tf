@@ -116,6 +116,26 @@ resource "kubernetes_deployment" "main" {
   }
 }
 
+resource "kubernetes_network_policy" "main" {
+  metadata {
+    name      = "ensouled-skin"
+    namespace = var.namespace
+    labels    = { "app.kubernetes.io/name" = "ensouled-skin" }
+  }
+  spec {
+    policy_types = ["Ingress", "Egress"]
+    pod_selector {
+      match_labels = { "app.kubernetes.io/name" = "ensouled-skin" }
+    }
+    ingress {
+      ports {
+        port     = "main"
+        protocol = "TCP"
+      }
+    }
+  }
+}
+
 resource "kubernetes_service" "main" {
   metadata {
     name      = "ensouled-skin"
