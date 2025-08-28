@@ -86,7 +86,7 @@ resource "kubectl_manifest" "cephfs" {
           topologySpreadConstraints = [{
             maxSkew           = 1
             topologyKey       = "topology.rook.io/chassis"
-            whenUnsatisfiable = "ScheduleAnyway"
+            whenUnsatisfiable = "DoNotSchedule"
             labelSelector = {
               matchLabels = {
                 "app.kubernetes.io/name"    = "ceph-mds"
