@@ -123,6 +123,12 @@ fn generate_config(pod_cidrs: Vec<String>) -> Result<String, Error> {
     plugins: &[Plugin::Bridge {
       is_default_gateway: true,
       ip_masq: true,
+      // It would be nice to use "nftables", but that relies on the "nft"
+      // executable being present on $PATH in the Talos environment, which
+      // it currently is not. Fixing this requires writing a Talos extension
+      // (overkill), or hoping it gets added to Talos as standard in a future
+      // version.
+      ip_masq_backend: "iptables",
       ipam: IPAMPlugin::HostLocal {
         ranges: &[&ipv4_ranges, &ipv6_ranges],
       },
@@ -148,6 +154,7 @@ enum Plugin<'a> {
   Bridge {
     is_default_gateway: bool,
     ip_masq: bool,
+    ip_masq_backend: &'a str,
     ipam: IPAMPlugin<'a>,
   },
 }
