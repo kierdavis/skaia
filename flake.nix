@@ -42,6 +42,7 @@
       kubeServices.rookCeph.imperativeConfigImage = callPackage 06_kube_services/rook_ceph/imperative_config_image { inherit generatedCargoNix; };
       personal.backup.common.image = callPackage 07_personal/backup/common/image.nix {};
       personal.devenv.image = callPackage 07_personal/devenv/image.nix { inherit (inputs) nixpkgs; };
+      personal.ensouledSkin.image = callPackage 07_personal/ensouled_skin/image.nix {};
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
       personal.paperless.image = callPackage 07_personal/paperless/image.nix {};

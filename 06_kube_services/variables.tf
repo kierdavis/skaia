@@ -24,6 +24,16 @@ variable "ceph_dashboard_grafana_password" {
   ephemeral = false # because it's persisted into a kubernetes_secret
 }
 
+variable "cloudflare_account_id" {
+  type = string
+}
+
+variable "cloudflare_token" {
+  type      = string
+  sensitive = true
+  ephemeral = true
+}
+
 variable "docker_hub_password" {
   type      = string
   sensitive = true

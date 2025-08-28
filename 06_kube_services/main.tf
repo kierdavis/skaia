@@ -3,6 +3,9 @@ terraform {
     path = "/net/skaia/tfstate/skaia/06_kube_services.tfstate"
   }
   required_providers {
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
@@ -33,6 +36,10 @@ data "terraform_remote_state" "talos" {
   config = {
     path = "/net/skaia/tfstate/skaia/04_talos.tfstate"
   }
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_token
 }
 
 provider "dockerhub" {
@@ -67,6 +74,11 @@ provider "kubernetes" {
   cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
   client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+}
+
+module "cloudflared" {
+  source     = "./cloudflared"
+  account_id = var.cloudflare_account_id
 }
 
 module "coredns" {
@@ -109,4 +121,8 @@ module "rook_ceph" {
     username = local.ceph_dashboard_grafana_username
     password = var.ceph_dashboard_grafana_password
   }
+}
+
+output "cloudflare_tunnel_ingress_hostname" {
+  value = module.cloudflared.ingress_hostname
 }

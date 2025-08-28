@@ -3,6 +3,9 @@ terraform {
     path = "/net/skaia/tfstate/skaia/07_personal.tfstate"
   }
   required_providers {
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
     dockerhub = {
       source = "BarnabyShearer/dockerhub"
     }
@@ -27,6 +30,17 @@ data "terraform_remote_state" "talos" {
   config = {
     path = "/net/skaia/tfstate/skaia/04_talos.tfstate"
   }
+}
+
+data "terraform_remote_state" "kube_services" {
+  backend = "local"
+  config = {
+    path = "/net/skaia/tfstate/skaia/06_kube_services.tfstate"
+  }
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_token
 }
 
 provider "dockerhub" {
@@ -89,6 +103,13 @@ module "devenv" {
   documents_pvc_name  = module.storage.documents_pvc_name
   archive_secret_name = module.backup_common.archive_secret_name
   nix_cache           = module.nix_cache
+}
+
+module "ensouled_skin" {
+  source                             = "./ensouled_skin"
+  namespace                          = kubernetes_namespace.main.metadata[0].name
+  cloudflare_account_id              = var.cloudflare_account_id
+  cloudflare_tunnel_ingress_hostname = data.terraform_remote_state.kube_services.outputs.cloudflare_tunnel_ingress_hostname
 }
 
 module "git" {
