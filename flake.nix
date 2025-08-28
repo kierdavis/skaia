@@ -35,7 +35,6 @@
     generatedCargoNix = crate2nix.tools.${system}.generatedCargoNix;
     packages = rec {
       kubeEssential.cni.images.configWriter = callPackage 05_kube_essential/cni/images/config_writer { inherit generatedCargoNix; };
-      kubeEssential.cni.images.pluginInstaller = callPackage 05_kube_essential/cni/images/plugin_installer {};
       kubeEssential.cni.images.routeAdvertiser = callPackage 05_kube_essential/cni/images/route_advertiser { inherit generatedCargoNix; };
       kubeEssential.debug.image = callPackage 05_kube_essential/debug/image.nix {};
       kubeServices.grafanaBackup.image = callPackage 06_kube_services/grafana_backup/image.nix {};

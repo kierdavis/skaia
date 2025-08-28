@@ -14,13 +14,6 @@ locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 
-module "plugin_installer_image" {
-  source         = "../../modules/stamp_image"
-  repo_name      = "skaia-cni-plugin-installer"
-  repo_namespace = local.globals.docker_hub.username
-  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.pluginInstaller"
-}
-
 module "config_writer_image" {
   source         = "../../modules/stamp_image"
   repo_name      = "skaia-cni-config-writer"
@@ -104,14 +97,6 @@ resource "kubernetes_daemonset" "main" {
         restart_policy                   = "Always"
         service_account_name             = kubernetes_service_account.main.metadata[0].name
         termination_grace_period_seconds = 1
-        init_container {
-          name  = "plugin-installer"
-          image = module.plugin_installer_image.repo_tag
-          volume_mount {
-            name       = "cni-plugins"
-            mount_path = "/dest"
-          }
-        }
         container {
           name  = "config-writer"
           image = module.config_writer_image.repo_tag
@@ -164,12 +149,6 @@ resource "kubernetes_daemonset" "main" {
           resources {
             requests = { cpu = "1m", memory = "20Mi" }
             limits   = { memory = "100Mi" }
-          }
-        }
-        volume {
-          name = "cni-plugins"
-          host_path {
-            path = "/opt/cni/bin"
           }
         }
         volume {
