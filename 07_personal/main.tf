@@ -36,6 +36,7 @@ provider "kubectl" {
   cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
   client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+  load_config_file       = false
 }
 
 provider "kubernetes" {
