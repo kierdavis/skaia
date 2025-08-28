@@ -34,12 +34,6 @@ variable "hydra_nix_signing_secret_key" {
   ephemeral = false
 }
 
-variable "hydra_postgres_password" {
-  type      = string
-  sensitive = true
-  ephemeral = false
-}
-
 variable "refern_email" {
   type = string
 }

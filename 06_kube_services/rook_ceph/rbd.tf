@@ -20,6 +20,16 @@ locals {
         }
       }
     }
+    gp0 = {
+      data_pool_spec = {
+        replicated    = { size = 2 }
+        failureDomain = "host"
+        parameters = {
+          pg_num = "2"
+          bulk   = "1"
+        }
+      }
+    }
     hydra0 = {
       data_pool_spec = {
         replicated    = { size = 2 }

@@ -12,6 +12,9 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+    }
   }
 }
 
@@ -44,6 +47,13 @@ provider "kubernetes" {
   cluster_ca_certificate = data.terraform_remote_state.talos.outputs.kubernetes.cluster_ca_certificate
   client_certificate     = data.terraform_remote_state.talos.outputs.kubernetes.client_certificate
   client_key             = data.terraform_remote_state.talos.outputs.kubernetes.client_key
+}
+
+provider "postgresql" {
+  host     = module.postgresql.host
+  username = module.postgresql.username
+  password = module.postgresql.password
+  sslmode  = module.postgresql.sslmode
 }
 
 resource "kubernetes_namespace" "main" {
@@ -92,8 +102,8 @@ module "hydra" {
   source                 = "./hydra"
   namespace              = kubernetes_namespace.main.metadata[0].name
   nix_signing_secret_key = var.hydra_nix_signing_secret_key
-  postgres_password      = var.hydra_postgres_password
   projects_pvc_name      = module.storage.projects_pvc_name
+  postgresql             = module.postgresql
   nix_cache              = module.nix_cache
 }
 
@@ -113,6 +123,11 @@ module "paperless" {
   source    = "./paperless"
   namespace = kubernetes_namespace.main.metadata[0].name
   backup    = module.backup_common
+}
+
+module "postgresql" {
+  source    = "./postgresql"
+  namespace = kubernetes_namespace.main.metadata[0].name
 }
 
 module "refern_backup" {

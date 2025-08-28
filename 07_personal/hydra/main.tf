@@ -6,6 +6,12 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+    }
+    random = {
+      source = "hashicorp/random"
+    }
     tls = {
       source = "hashicorp/tls"
     }
@@ -22,14 +28,14 @@ variable "nix_signing_secret_key" {
   ephemeral = false
 }
 
-variable "postgres_password" {
-  type      = string
-  sensitive = true
-  ephemeral = false
-}
-
 variable "projects_pvc_name" {
   type = string
+}
+
+variable "postgresql" {
+  type = object({
+    host = string
+  })
 }
 
 variable "nix_cache" {
@@ -59,6 +65,31 @@ module "image" {
   flake_output   = "./${path.module}/../..#personal.hydra.image"
 }
 
+resource "random_password" "postgresql" {
+  length = 20
+}
+
+resource "postgresql_role" "main" {
+  name     = "hydra"
+  login    = true
+  password = random_password.postgresql.result
+}
+
+resource "postgresql_database" "main" {
+  name  = "hydra"
+  owner = postgresql_role.main.name
+}
+
+resource "postgresql_schema" "main" {
+  name     = "public"
+  database = postgresql_database.main.name
+  owner    = postgresql_role.main.name
+}
+
+locals {
+  dbi = "dbi:Pg:dbname=${postgresql_database.main.name};host=${var.postgresql.host};user=${postgresql_role.main.name};"
+}
+
 resource "kubernetes_secret" "main" {
   metadata {
     name      = "hydra"
@@ -72,7 +103,7 @@ resource "kubernetes_secret" "main" {
   data = {
     id_ed25519             = tls_private_key.ssh.private_key_openssh
     nix-signing-secret-key = var.nix_signing_secret_key
-    pgpass                 = "*:*:*:*:${var.postgres_password}\n"
+    pgpass                 = "*:*:*:*:${random_password.postgresql.result}\n"
   }
 }
 
