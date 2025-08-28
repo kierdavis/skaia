@@ -255,9 +255,11 @@ resource "kubernetes_service" "main" {
       target_port  = "ui"
     }
     port {
-      name        = "backup-sc"
-      port        = var.backup.sidecar.port
-      target_port = "backup-sc"
+      name         = "backup-sc"
+      port         = var.backup.sidecar.port
+      protocol     = "TCP"
+      app_protocol = "ssh"
+      target_port  = "backup-sc"
     }
   }
 }

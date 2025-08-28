@@ -83,6 +83,7 @@ resource "kubernetes_stateful_set" "main" {
           port {
             name           = "ssh"
             container_port = 22
+            protocol       = "TCP"
           }
           volume_mount {
             name       = "repositories"
@@ -160,14 +161,18 @@ resource "kubernetes_service" "main" {
   spec {
     selector = { "app.kubernetes.io/name" = "git" }
     port {
-      name        = "ssh"
-      port        = 22
-      target_port = "ssh"
+      name         = "ssh"
+      port         = 22
+      protocol     = "TCP"
+      app_protocol = "ssh"
+      target_port  = "ssh"
     }
     port {
-      name        = "backup-sc"
-      port        = var.backup.sidecar.port
-      target_port = "backup-sc"
+      name         = "backup-sc"
+      port         = var.backup.sidecar.port
+      protocol     = "TCP"
+      app_protocol = "ssh"
+      target_port  = "backup-sc"
     }
   }
 }
