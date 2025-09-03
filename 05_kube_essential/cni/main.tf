@@ -125,7 +125,7 @@ resource "kubernetes_daemonset" "main" {
           }
           resources {
             requests = { cpu = "1m", memory = "5Mi" }
-            limits = { memory = "50Mi" }
+            limits   = { memory = "50Mi" }
           }
         }
         volume {
