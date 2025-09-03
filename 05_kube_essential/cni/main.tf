@@ -123,6 +123,10 @@ resource "kubernetes_daemonset" "main" {
               add = ["NET_ADMIN"] # for nftables
             }
           }
+          resources {
+            requests = { cpu = "1m", memory = "5Mi" }
+            limits = { memory = "50Mi" }
+          }
         }
         volume {
           name = "cni-config"
