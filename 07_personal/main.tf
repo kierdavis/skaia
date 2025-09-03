@@ -110,6 +110,7 @@ module "ensouled_skin" {
   namespace                          = kubernetes_namespace.main.metadata[0].name
   cloudflare_account_id              = var.cloudflare_account_id
   cloudflare_tunnel_ingress_hostname = data.terraform_remote_state.kube_services.outputs.cloudflare_tunnel_ingress_hostname
+  postgresql                         = module.postgresql
 }
 
 module "git" {

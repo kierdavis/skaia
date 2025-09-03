@@ -3,15 +3,19 @@ package main
 import (
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"math/rand"
+	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
 	mediaFile   = "/secret/media.yaml"
 	tlsCertFile = "/secret/origin.crt"
 	tlsKeyFile  = "/secret/origin.key"
+
+	assignmentTTL = time.Hour * 24 * 30
 )
 
 func main() {
@@ -44,7 +48,11 @@ func app() error {
 	if err != nil {
 		return fmt.Errorf("failed to load media: %w", err)
 	}
-	handler := httpHandler{media: media}
+	db, err := initDB()
+	if err != nil {
+		return fmt.Errorf("failed to open database connection: %w", err)
+	}
+	handler := loggingHttpHandler{httpHandler{media: media, db: db}}
 	err = http.ListenAndServeTLS(":443", tlsCertFile, tlsKeyFile, handler)
 	return fmt.Errorf("failed to serve HTTPS: %w", err)
 }
@@ -62,13 +70,9 @@ func loadMedia() (items []mediaItem, err error) {
 	return items, nil
 }
 
-type mediaItem struct {
-	Id       string `yaml:"id"`
-	Redirect string `yaml:"redirect"`
-}
-
 type httpHandler struct {
 	media []mediaItem
+	db    *gorm.DB
 }
 
 func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -76,11 +80,47 @@ func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
 		return
 	}
-	item := h.chooseItem()
+	query := r.URL.Query()
+	clientFingerprint := query.Get("fp")
+	if clientFingerprint == "" {
+		serveFingerprinter(w, r)
+		return
+	}
+	h.serveAssignedMedia(w, r, clientFingerprint)
+}
+
+func (h httpHandler) serveAssignedMedia(w http.ResponseWriter, r *http.Request, clientFingerprint string) {
+	clientAddr := r.Header.Get("X-Forwarded-For")
+	db := h.db.WithContext(r.Context())
+	item, err := getAssignment(db, h.media, clientAddr, clientFingerprint)
+	if err != nil {
+		log.Printf("warning: failed to get assignment from database: %w", err)
+		item = getRandomMediaItem(h.media)
+	}
+	h.serveMedia(w, r, item)
+}
+
+func (h httpHandler) serveMedia(w http.ResponseWriter, r *http.Request, item mediaItem) {
 	w.Header().Set("Location", item.Redirect)
 	w.WriteHeader(http.StatusMovedPermanently)
 }
 
-func (h httpHandler) chooseItem() mediaItem {
-	return h.media[rand.Intn(len(h.media))]
+func serveFingerprinter(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(`
+		<html>
+			<head>
+				<title>ensouled.skin</title>
+				<script>
+					import("https://openfpcdn.io/fingerprintjs/v4")
+						.then(fjs => fjs.load())
+						.then(fp => fp.get())
+						.then(result => {
+							document.location = "/?fp=" + result.visitorId
+						})
+				</script>
+			</head>
+			<body>
+			</body>
+		</html>
+	`))
 }

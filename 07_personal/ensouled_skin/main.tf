@@ -6,6 +6,9 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+    }
     tls = {
       source = "hashicorp/tls"
     }
@@ -24,6 +27,12 @@ variable "cloudflare_tunnel_ingress_hostname" {
   type = string
 }
 
+variable "postgresql" {
+  type = object({
+    host = string
+  })
+}
+
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
@@ -33,6 +42,27 @@ module "image" {
   repo_name      = "skaia-ensouled-skin"
   repo_namespace = local.globals.docker_hub.username
   flake_output   = "./${path.module}/../..#personal.ensouledSkin.image"
+}
+
+resource "random_password" "postgresql" {
+  length = 20
+}
+
+resource "postgresql_role" "main" {
+  name     = "ensouled_skin"
+  login    = true
+  password = random_password.postgresql.result
+}
+
+resource "postgresql_database" "main" {
+  name  = "ensouled_skin"
+  owner = postgresql_role.main.name
+}
+
+resource "postgresql_schema" "main" {
+  name     = "public"
+  database = postgresql_database.main.name
+  owner    = postgresql_role.main.name
 }
 
 resource "tls_private_key" "origin" {
@@ -65,6 +95,7 @@ resource "kubernetes_secret" "main" {
     "media.yaml" = file("${path.module}/../../secret/ensouled-skin-media.yaml")
     "origin.key" = tls_private_key.origin.private_key_pem
     "origin.crt" = cloudflare_origin_ca_certificate.main.certificate
+    POSTGRES_DSN = "host=${var.postgresql.host} user=${postgresql_role.main.name} password=${random_password.postgresql.result} dbname=${postgresql_database.main.name}"
   }
 }
 
@@ -95,6 +126,15 @@ resource "kubernetes_deployment" "main" {
         container {
           name  = "main"
           image = module.image.repo_tag
+          env {
+            name = "POSTGRES_DSN"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.main.metadata[0].name
+                key  = "POSTGRES_DSN"
+              }
+            }
+          }
           volume_mount {
             name       = "secret"
             mount_path = "/secret"
@@ -169,4 +209,17 @@ resource "cloudflare_dns_record" "main" {
   content  = var.cloudflare_tunnel_ingress_hostname
   ttl      = 1 # means automatic
   proxied  = true
+}
+
+resource "cloudflare_ruleset" "main" {
+  zone_id = data.cloudflare_zones.main.result[0].id
+  name    = "main"
+  phase   = "http_request_firewall_custom"
+  kind    = "zone"
+  rules = [
+    {
+      expression = "cf.client.bot or cf.worker.upstream_zone ne \"\""
+      action     = "block"
+    },
+  ]
 }
