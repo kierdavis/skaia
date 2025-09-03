@@ -124,7 +124,7 @@ func serveFingerprinter(w http.ResponseWriter, r *http.Request) {
 						.then(fjs => fjs.load())
 						.then(fp => fp.get())
 						.then(result => {
-							document.location = "/?fp=" + result.visitorId
+							window.location = "/?fp=" + result.visitorId
 						})
 				</script>
 			</head>
