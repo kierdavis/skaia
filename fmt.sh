@@ -11,17 +11,17 @@ echo >&2
 for x in $(rg --files --glob Cargo.toml); do
   x="$(dirname "$x")"
   echo >&2 "cargo fmt in $x"
-  pushd "$x" 2>/dev/null
+  pushd "$x" &>/dev/null
   cargo fmt
-  popd 2>/dev/null
+  popd &>/dev/null
   echo >&2
 done
 
 for x in $(rg --files --glob go.mod); do
   x="$(dirname "$x")"
   echo >&2 "go fmt in $x"
-  pushd "$x" 2>/dev/null
+  pushd "$x" &>/dev/null
   go fmt .
-  popd 2>/dev/null
+  popd &>/dev/null
   echo >&2
 done
