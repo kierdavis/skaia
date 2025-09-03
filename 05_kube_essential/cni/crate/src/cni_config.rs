@@ -38,13 +38,7 @@ async fn manage_once(
     name: "skaia-cni",
     plugins: [Plugin::Bridge {
       is_default_gateway: true,
-      ip_masq: true,
-      // It would be nice to use "nftables", but that relies on the "nft"
-      // executable being present on $PATH in the Talos host system, which
-      // it currently is not. Fixing this requires writing a Talos extension
-      // (overkill), or hoping it gets added to Talos as standard in a future
-      // version.
-      ip_masq_backend: "iptables",
+      ip_masq: false,
       ipam: IPAMPlugin::HostLocal { ranges },
     }],
   })
@@ -89,7 +83,6 @@ enum Plugin {
   Bridge {
     is_default_gateway: bool,
     ip_masq: bool,
-    ip_masq_backend: &'static str,
     ipam: IPAMPlugin,
   },
 }

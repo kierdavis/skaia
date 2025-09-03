@@ -1,4 +1,4 @@
-{ callPackage, dumb-init, generatedCargoNix, lib, stamp, tailscale }:
+{ callPackage, dumb-init, generatedCargoNix, iproute2, lib, nftables, stamp, tailscale }:
 
 let
   cargoNix = generatedCargoNix {
@@ -10,6 +10,6 @@ in stamp.fromNix {
   name = "stamp-img-skaia-cni";
   entrypoint = [ "${dumb-init}/bin/dumb-init" ];
   cmd = [ "${app}/bin/skaia-cni" ];
-  env.PATH = lib.makeBinPath [ tailscale ];
+  env.PATH = lib.makeBinPath [ iproute2 nftables tailscale ];
   passthru = { inherit cargoNix app; };
 }

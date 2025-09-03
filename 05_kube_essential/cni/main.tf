@@ -117,6 +117,12 @@ resource "kubernetes_daemonset" "main" {
             name       = "tailscale-socket"
             mount_path = "/var/run/tailscale/tailscaled.sock"
           }
+          security_context {
+            privileged = true
+            capabilities {
+              add = ["NET_ADMIN"] # for nftables
+            }
+          }
         }
         volume {
           name = "cni-config"

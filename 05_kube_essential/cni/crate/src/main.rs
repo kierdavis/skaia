@@ -1,6 +1,8 @@
 mod cni_config;
 mod error;
+mod interfaces;
 mod kubernetes;
+mod masquerading;
 mod routes;
 mod util;
 
@@ -37,13 +39,14 @@ async fn app() -> Result<Never, Error> {
   let (pod_cidrs_tx, pod_cidrs_rx) = watch::channel(NotReady);
   let (endpoint_slices_tx, endpoint_slices_rx) = watch::channel(NotReady);
   let (services_tx, services_rx) = watch::channel(NotReady);
+  let (interfaces_tx, interfaces_rx) = watch::channel(NotReady);
 
   macro_rules! select_tasks {
     ($($name:literal = $fut:expr;)*) => {
       select! {
         $(
           result = tokio::spawn($fut).fuse() => {
-            result.map_err(Error::task_terminated($name))?
+            result.map_err(Error::task_terminated($name))?.map_err(Error::from)
           }
         )*
       }
@@ -53,7 +56,9 @@ async fn app() -> Result<Never, Error> {
     "kubernetes::watch_node" = kube.watch_node(node_name, pod_cidrs_tx);
     "kubernetes::watch_resource_set<EndpointSlice>" = kube.watch_resource_set(endpoint_slices_tx);
     "kubernetes::watch_resource_set<Service>" = kube.watch_resource_set(services_tx);
+    "interfaces::watch" = crate::interfaces::watch(interfaces_tx);
     "cni_config::manage" = crate::cni_config::manage(pod_cidrs_rx.clone());
+    "masquerading::manage" = crate::masquerading::manage(interfaces_rx);
     "routes::advertise" = crate::routes::advertise(
       pod_cidrs_rx,
       service_cidrs,
