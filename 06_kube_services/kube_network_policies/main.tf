@@ -82,21 +82,35 @@ resource "kubernetes_daemonset" "main" {
           effect   = "NoSchedule"
           operator = "Exists"
         }
-        volume {
-          name = "lib-modules"
-          host_path {
-            path = "/lib/modules"
-          }
-        }
         container {
           name  = "main"
-          image = "registry.k8s.io/networking/kube-network-policies:v0.4.0"
+          image = "registry.k8s.io/networking/kube-network-policies:v0.8.1"
           args = [
             "/bin/netpol",
             "--hostname-override=$(MY_NODE_NAME)",
             "--metrics-bind-address=:9080",
-            "--v=1",
+            "--nfqueue-id=98",
+            "--v=2",
           ]
+          volume_mount {
+            name       = "nri-plugin"
+            mount_path = "/var/run/nri"
+          }
+          volume_mount {
+            name              = "netns"
+            mount_path        = "/var/run/netns"
+            mount_propagation = "HostToContainer"
+          }
+          resources {
+            requests = { cpu = "1m", memory = "30Mi" }
+            limits   = { memory = "100Mi" }
+          }
+          security_context {
+            privileged = true
+            capabilities {
+              add = ["NET_ADMIN"]
+            }
+          }
           env {
             name = "MY_NODE_NAME"
             value_from {
@@ -110,41 +124,20 @@ resource "kubernetes_daemonset" "main" {
             container_port = 9080
             protocol       = "TCP"
           }
-          resources {
-            requests = { cpu = "1m", memory = "30Mi" }
-            limits   = { memory = "100Mi" }
+        }
+        volume {
+          name = "nri-plugin"
+          host_path {
+            path = "/var/run/nri"
           }
-          security_context {
-            privileged = true
-            capabilities {
-              add = ["NET_ADMIN"]
-            }
-          }
-          volume_mount {
-            name       = "lib-modules"
-            mount_path = "/lib/modules"
-            read_only  = true
+        }
+        volume {
+          name = "netns"
+          host_path {
+            path = "/var/run/netns"
           }
         }
       }
-    }
-  }
-}
-
-resource "kubernetes_service" "main" {
-  metadata {
-    name      = "kube-network-policies"
-    namespace = "system"
-    labels    = { "app.kubernetes.io/name" = "kube-network-policies" }
-  }
-  spec {
-    selector = { "app.kubernetes.io/name" = "kube-network-policies" }
-    port {
-      name         = "metrics"
-      port         = 9080
-      protocol     = "TCP"
-      app_protocol = "http"
-      target_port  = "metrics"
     }
   }
 }

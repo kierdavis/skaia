@@ -1,11 +1,11 @@
 # Placed at the top level rather than in the kube_network_policies module,
 # so that the entire kube_network_policies module isn't forced to depend on
 # the entire prometheus module.
-resource "kubectl_manifest" "kube_network_policies_service_monitor" {
+resource "kubectl_manifest" "kube_network_policies_pod_monitor" {
   depends_on = [module.prometheus]
   yaml_body = yamlencode({
     apiVersion = "monitoring.coreos.com/v1"
-    kind       = "ServiceMonitor"
+    kind       = "PodMonitor"
     metadata = {
       name      = "kube-network-policies"
       namespace = "system"
@@ -15,13 +15,10 @@ resource "kubectl_manifest" "kube_network_policies_service_monitor" {
       selector = {
         matchLabels = { "app.kubernetes.io/name" = "kube-network-policies" }
       }
-      endpoints = [{
+      podMetricsEndpoints = [{
         port   = "metrics"
         scheme = "http"
       }]
-      namespaceSelector = {
-        matchNames = ["system"]
-      }
     }
   })
 }
