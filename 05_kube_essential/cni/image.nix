@@ -2,14 +2,14 @@
 
 let
   cargoNix = generatedCargoNix {
-    name = "route-advertiser";
+    name = "skaia-cni";
     src = builtins.filterSource (path: type: baseNameOf path != "target") ./crate;
   };
   app = (callPackage cargoNix {}).rootCrate.build;
 in stamp.fromNix {
-  name = "stamp-img-skaia-route-advertiser";
+  name = "stamp-img-skaia-cni";
   entrypoint = [ "${dumb-init}/bin/dumb-init" ];
-  cmd = [ "${app}/bin/route-advertiser" ];
+  cmd = [ "${app}/bin/skaia-cni" ];
   env.PATH = lib.makeBinPath [ tailscale ];
   passthru = { inherit cargoNix app; };
 }

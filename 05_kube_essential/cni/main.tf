@@ -14,18 +14,11 @@ locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
 }
 
-module "config_writer_image" {
+module "image" {
   source         = "../../modules/stamp_image"
-  repo_name      = "skaia-cni-config-writer"
+  repo_name      = "skaia-cni"
   repo_namespace = local.globals.docker_hub.username
-  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.configWriter"
-}
-
-module "route_advertiser_image" {
-  source         = "../../modules/stamp_image"
-  repo_name      = "skaia-cni-route-advertiser"
-  repo_namespace = local.globals.docker_hub.username
-  flake_output   = "./${path.module}/../..#kubeEssential.cni.images.routeAdvertiser"
+  flake_output   = "./${path.module}/../..#kubeEssential.cni.image"
 }
 
 resource "kubernetes_service_account" "main" {
@@ -70,7 +63,6 @@ resource "kubernetes_cluster_role_binding" "main" {
   }
 }
 
-# TODO: resources
 resource "kubernetes_daemonset" "main" {
   wait_for_rollout = false
   metadata {
@@ -98,10 +90,10 @@ resource "kubernetes_daemonset" "main" {
         service_account_name             = kubernetes_service_account.main.metadata[0].name
         termination_grace_period_seconds = 1
         container {
-          name  = "config-writer"
-          image = module.config_writer_image.repo_tag
+          name  = "main"
+          image = module.image.repo_tag
           env {
-            name = "THIS_NODE_NAME"
+            name = "NODE_NAME"
             value_from {
               field_ref {
                 api_version = "v1"
@@ -110,45 +102,20 @@ resource "kubernetes_daemonset" "main" {
             }
           }
           env {
-            name  = "RUST_LOG"
-            value = "warn,config_writer=info"
-          }
-          volume_mount {
-            name       = "cni-config"
-            mount_path = "/dest"
-          }
-          resources {
-            requests = { cpu = "1m", memory = "2Mi" }
-            limits   = { memory = "100Mi" }
-          }
-        }
-        container {
-          name  = "route-advertiser"
-          image = module.route_advertiser_image.repo_tag
-          env {
-            name = "THIS_NODE_NAME"
-            value_from {
-              field_ref {
-                api_version = "v1"
-                field_path  = "spec.nodeName"
-              }
-            }
-          }
-          env {
-            name  = "SERVICE_NETWORKS"
+            name  = "SERVICE_CIDRS"
             value = "${local.globals.kubernetes.svc_net.ipv4},${local.globals.kubernetes.svc_net.ipv6}"
           }
           env {
             name  = "RUST_LOG"
-            value = "warn,route_advertiser=info"
+            value = "warn,skaia_cni=trace"
+          }
+          volume_mount {
+            name       = "cni-config"
+            mount_path = "/cni-config"
           }
           volume_mount {
             name       = "tailscale-socket"
             mount_path = "/var/run/tailscale/tailscaled.sock"
-          }
-          resources {
-            requests = { cpu = "1m", memory = "20Mi" }
-            limits   = { memory = "100Mi" }
           }
         }
         volume {
