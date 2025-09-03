@@ -4,6 +4,7 @@
 
 , coreutils-full
 , curl
+, dnsutils
 , file
 , findutils
 , fping
@@ -12,6 +13,7 @@
 , gnutar
 , gzip
 , htop
+, host
 , iana-etc
 , iftop
 , iproute2
@@ -45,6 +47,7 @@ let
   pkgs = [
     coreutils-full
     curl
+    dnsutils
     file
     findutils
     fping
@@ -53,6 +56,7 @@ let
     gnutar
     gzip
     htop
+    host
     iana-etc
     iftop
     iproute2
