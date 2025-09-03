@@ -162,7 +162,7 @@ data "cloudflare_zones" "main" {
 }
 
 resource "cloudflare_dns_record" "main" {
-  for_each = toset(["@", "www"])
+  for_each = toset(["ensouled.skin", "www.ensouled.skin"])
   zone_id  = data.cloudflare_zones.main.result[0].id
   name     = each.key
   type     = "CNAME"
