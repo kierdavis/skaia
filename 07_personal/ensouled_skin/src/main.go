@@ -94,18 +94,27 @@ func (h httpHandler) serveAssignedMedia(w http.ResponseWriter, r *http.Request, 
 	db := h.db.WithContext(r.Context())
 	item, err := getAssignment(db, h.media, clientAddr, clientFingerprint)
 	if err != nil {
-		log.Printf("warning: failed to get assignment from database: %w", err)
+		log.Printf("failed to get assignment from database: %w", err)
 		item = getRandomMediaItem(h.media)
 	}
 	h.serveMedia(w, r, item)
 }
 
 func (h httpHandler) serveMedia(w http.ResponseWriter, r *http.Request, item mediaItem) {
-	w.Header().Set("Location", item.Redirect)
-	w.WriteHeader(http.StatusMovedPermanently)
+	if item.Redirect != "" {
+		w.Header().Set("Location", item.Redirect)
+		w.WriteHeader(http.StatusMovedPermanently)
+	} else if item.Text != "" {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte(item.Text))
+	} else {
+		log.Printf("item '%s' does not have either 'redirect' or 'text' defined; don't know how to serve it", item.Id)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}
 }
 
 func serveFingerprinter(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(`
 		<html>
 			<head>

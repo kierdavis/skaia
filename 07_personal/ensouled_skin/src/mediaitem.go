@@ -7,6 +7,7 @@ import (
 type mediaItem struct {
 	Id       string `yaml:"id"`
 	Redirect string `yaml:"redirect"`
+	Text     string `yaml:"text"`
 }
 
 func getRandomMediaItem(items []mediaItem) mediaItem {
