@@ -99,6 +99,20 @@ resource "kubernetes_secret" "main" {
   }
 }
 
+resource "kubernetes_secret" "psql" {
+  metadata {
+    name      = "ensouled-skin-psql"
+    namespace = var.namespace
+    labels    = { "app.kubernetes.io/name" = "ensouled-skin" }
+  }
+  data = {
+    PGHOST     = var.postgresql.host
+    PGUSER     = postgresql_role.main.name
+    PGPASSWORD = random_password.postgresql.result
+    PGDATABASE = postgresql_database.main.name
+  }
+}
+
 resource "kubernetes_deployment" "main" {
   wait_for_rollout = false
   metadata {
