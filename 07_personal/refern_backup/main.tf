@@ -76,7 +76,7 @@ resource "kubernetes_cron_job_v1" "main" {
   spec {
     concurrency_policy            = "Forbid"
     failed_jobs_history_limit     = 1
-    schedule                      = "0 2 * * 1"
+    schedule                      = "0 2 * * *"
     starting_deadline_seconds     = 6 * 60 * 60
     successful_jobs_history_limit = 1
     job_template {
