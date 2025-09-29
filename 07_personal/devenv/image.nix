@@ -25,6 +25,7 @@ let
     "findutils"
     "fping"
     "fzf"
+    "gcc" # needed for cargo to be useful
     "git"
     "glpk"
     "gnugrep"
