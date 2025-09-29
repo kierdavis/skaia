@@ -26,7 +26,7 @@ variable "todoist_api_token" {
 
 locals {
   globals = yamldecode(file("${path.module}/../../globals.yaml"))
-  labels  = { "app.kubernetes.io/name" = "refern-backup" }
+  labels  = { "app.kubernetes.io/name" = "todoist-automation" }
 }
 
 module "image" {
