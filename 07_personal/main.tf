@@ -157,15 +157,6 @@ module "postgresql" {
   namespace = kubernetes_namespace.main.metadata[0].name
 }
 
-module "refern_backup" {
-  source                          = "./refern_backup"
-  namespace                       = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name             = module.backup_common.archive_secret_name
-  refern_email                    = var.refern_email
-  refern_identity_toolkit_api_key = var.refern_identity_toolkit_api_key
-  refern_password                 = var.refern_password
-}
-
 module "storage" {
   source    = "./storage"
   namespace = kubernetes_namespace.main.metadata[0].name

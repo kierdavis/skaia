@@ -44,22 +44,6 @@ variable "hydra_nix_signing_secret_key" {
   ephemeral = false
 }
 
-variable "refern_email" {
-  type = string
-}
-
-variable "refern_identity_toolkit_api_key" {
-  type      = string
-  sensitive = true
-  ephemeral = false # because it's persisted into a kubernetes_secret
-}
-
-variable "refern_password" {
-  type      = string
-  sensitive = true
-  ephemeral = false # because it's persisted into a kubernetes_secret
-}
-
 variable "todoist_api_token" {
   type      = string
   sensitive = true
