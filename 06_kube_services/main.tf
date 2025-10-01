@@ -79,6 +79,7 @@ provider "kubernetes" {
 module "cloudflared" {
   source     = "./cloudflared"
   account_id = var.cloudflare_account_id
+  zone_id    = var.cloudflare_zone_id
 }
 
 module "coredns" {
@@ -120,8 +121,4 @@ module "rook_ceph" {
     username = local.ceph_dashboard_grafana_username
     password = var.ceph_dashboard_grafana_password
   }
-}
-
-output "cloudflare_tunnel_ingress_hostname" {
-  value = module.cloudflared.ingress_hostname
 }

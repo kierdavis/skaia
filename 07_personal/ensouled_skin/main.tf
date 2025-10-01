@@ -23,10 +23,6 @@ variable "cloudflare_account_id" {
   type = string
 }
 
-variable "cloudflare_tunnel_ingress_hostname" {
-  type = string
-}
-
 variable "postgresql" {
   type = object({
     host = string
@@ -220,7 +216,7 @@ resource "cloudflare_dns_record" "main" {
   zone_id  = data.cloudflare_zones.main.result[0].id
   name     = each.key
   type     = "CNAME"
-  content  = var.cloudflare_tunnel_ingress_hostname
+  content  = "in.skaia.cloud"
   ttl      = 1 # means automatic
   proxied  = true
 }

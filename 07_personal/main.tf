@@ -32,13 +32,6 @@ data "terraform_remote_state" "talos" {
   }
 }
 
-data "terraform_remote_state" "kube_services" {
-  backend = "local"
-  config = {
-    path = "/net/skaia/tfstate/skaia/06_kube_services.tfstate"
-  }
-}
-
 provider "cloudflare" {
   api_token = var.cloudflare_token
 }
@@ -106,11 +99,10 @@ module "devenv" {
 }
 
 module "ensouled_skin" {
-  source                             = "./ensouled_skin"
-  namespace                          = kubernetes_namespace.main.metadata[0].name
-  cloudflare_account_id              = var.cloudflare_account_id
-  cloudflare_tunnel_ingress_hostname = data.terraform_remote_state.kube_services.outputs.cloudflare_tunnel_ingress_hostname
-  postgresql                         = module.postgresql
+  source                = "./ensouled_skin"
+  namespace             = kubernetes_namespace.main.metadata[0].name
+  cloudflare_account_id = var.cloudflare_account_id
+  postgresql            = module.postgresql
 }
 
 module "git" {

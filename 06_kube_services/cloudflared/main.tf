@@ -27,6 +27,10 @@ variable "account_id" {
   type = string
 }
 
+variable "zone_id" {
+  type = string
+}
+
 resource "cloudflare_zero_trust_tunnel_cloudflared" "main" {
   account_id = var.account_id
   name       = "skaia-0"
@@ -211,6 +215,11 @@ resource "kubernetes_network_policy" "main" {
   }
 }
 
-output "ingress_hostname" {
-  value = "${cloudflare_zero_trust_tunnel_cloudflared.main.id}.cfargotunnel.com"
+resource "cloudflare_dns_record" "main" {
+  zone_id = var.zone_id
+  name    = "in.skaia.cloud"
+  type    = "CNAME"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.main.id}.cfargotunnel.com"
+  ttl     = 1 # means automatic
+  proxied = true
 }
