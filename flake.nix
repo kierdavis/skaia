@@ -27,7 +27,10 @@
     system = "x86_64-linux";
     nixpkgs = import inputs.nixpkgs {
       inherit system;
-      overlays = [ stamp.overlays.default ];
+      overlays = [
+        stamp.overlays.default
+        (import 07_personal/redstore/overlay.nix)
+      ];
       config.allowUnfree = true; # for terraform (as used in devenv)
     };
     lib = nixpkgs.lib;
@@ -44,6 +47,7 @@
       personal.hydra.image = callPackage 07_personal/hydra/image.nix {};
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
       personal.paperless.image = callPackage 07_personal/paperless/image.nix {};
+      personal.redstore.image = callPackage 07_personal/redstore/image.nix {};
       personal.todoistAutomation.image = callPackage 07_personal/todoist_automation/image.nix {};
       personal.transcoding.image = callPackage 07_personal/transcoding/image.nix {};
       personal.valheim.common.image = callPackage 07_personal/valheim/common/image.nix {};

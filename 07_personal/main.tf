@@ -144,6 +144,12 @@ module "postgresql" {
   namespace = kubernetes_namespace.main.metadata[0].name
 }
 
+module "redstore" {
+  source     = "./redstore"
+  namespace  = kubernetes_namespace.main.metadata[0].name
+  postgresql = module.postgresql
+}
+
 module "storage" {
   source    = "./storage"
   namespace = kubernetes_namespace.main.metadata[0].name
