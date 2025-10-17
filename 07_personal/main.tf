@@ -128,11 +128,6 @@ module "jellyfin" {
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
 
-module "karakeep" {
-  source    = "./karakeep"
-  namespace = kubernetes_namespace.main.metadata[0].name
-}
-
 module "nix_cache" {
   source    = "./nix_cache"
   namespace = kubernetes_namespace.main.metadata[0].name
