@@ -116,7 +116,7 @@ resource "kubernetes_stateful_set" "main" {
           }
           env {
             name  = "ASSET_STORE_S3_REGION"
-            value = "$(BUCKET_REGION)"
+            value = "dummy"
           }
           env {
             name  = "ASSET_STORE_S3_SECRET_ACCESS_KEY"
