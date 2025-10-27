@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
@@ -113,23 +114,10 @@ func (h httpHandler) serveMedia(w http.ResponseWriter, r *http.Request, item med
 	}
 }
 
+//go:embed fingerprinter.html
+var fingerprinterHtml []byte
+
 func serveFingerprinter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(`
-		<html>
-			<head>
-				<title>ensouled.skin</title>
-				<script>
-					import("https://openfpcdn.io/fingerprintjs/v4")
-						.then(fjs => fjs.load())
-						.then(fp => fp.get())
-						.then(result => {
-							window.location = "/?fp=" + result.visitorId
-						})
-				</script>
-			</head>
-			<body>
-			</body>
-		</html>
-	`))
+	w.Write(fingerprinterHtml)
 }

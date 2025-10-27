@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <title>ensouled.skin</title>
+    <script>
+      import("https://openfpcdn.io/fingerprintjs/v4")
+        .then(fjs => fjs.load())
+        .then(fp => fp.get())
+        .then(result => {
+          window.location = "/?fp=" + result.visitorId
+        })
+    </script>
+  </head>
+  <body></body>
+</html>
