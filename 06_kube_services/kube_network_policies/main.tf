@@ -58,9 +58,6 @@ resource "kubernetes_daemonset" "main" {
   spec {
     strategy {
       type = "RollingUpdate"
-      rolling_update {
-        max_unavailable = "100%"
-      }
     }
     selector {
       match_labels = { "app.kubernetes.io/name" = "kube-network-policies" }
@@ -84,7 +81,7 @@ resource "kubernetes_daemonset" "main" {
         }
         container {
           name  = "main"
-          image = "registry.k8s.io/networking/kube-network-policies:v0.8.1"
+          image = "registry.k8s.io/networking/kube-network-policies:v0.9.2"
           args = [
             "/bin/netpol",
             "--hostname-override=$(MY_NODE_NAME)",
