@@ -51,6 +51,17 @@ resource "kubectl_manifest" "cluster" {
         enabled         = true
         metricsDisabled = false
       }
+      placement = {
+        mon = {
+          tolerations = [
+            {
+              effect = "NoSchedule"
+              key = "skaia.cloud/control-only"
+              operator = "Exists"
+            },
+          ]
+        }
+      }
       removeOSDsIfOutAndSafeToRemove = false
       resources = {
         exporter = {
