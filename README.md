@@ -8,7 +8,7 @@ This repo contains the configuration for my home Kubernetes cluster.
 * OS: [Talos Linux][talos] (a Linux distro designed solely for running Kubernetes)
   * Notably, Talos offers no shell/SSH access; instead all configuration and observation is done through a REST API.
 * Servers: Intel NUCs, Linode compute instances.
-* Networking: [tailscale][] (node agent), [headscale][] (control server), [code to glue this into Kubernetes CNI][cni-images].
+* Networking: [tailscale][] (node agent), [headscale][] (control server), [code to glue this into Kubernetes CNI][cni].
 * Ingress: [Cloudflare Tunnel][cloudflare-tunnel]
 * Storage: [rook-ceph][], Backblaze B2
 * Cluster services: [prometheus][], [grafana][], [kube-network-policies][], [generic-device-plugin][], [csi-addons][]
@@ -37,7 +37,7 @@ But, this is for my personal use alone. The only criteria are that it's secure _
 
 [becquerel-tf]: ./00_becquerel/main.tf
 [cloudflare-tunnel]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
-[cni-images]: ./05_kube_essential/cni_images
+[cni]: ./05_kube_essential/cni/crate
 [csi-addons]: https://github.com/csi-addons/kubernetes-csi-addons
 [generic-device-plugin]: https://github.com/squat/generic-device-plugin
 [grafana]: https://grafana.com/
