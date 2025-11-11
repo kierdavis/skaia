@@ -55,8 +55,8 @@ resource "kubectl_manifest" "cluster" {
         mon = {
           tolerations = [
             {
-              effect = "NoSchedule"
-              key = "skaia.cloud/control-only"
+              effect   = "NoSchedule"
+              key      = "skaia.cloud/control-only"
               operator = "Exists"
             },
           ]
