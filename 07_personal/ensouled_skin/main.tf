@@ -183,6 +183,35 @@ resource "kubernetes_network_policy" "main" {
         protocol = "TCP"
       }
     }
+    egress {
+      to {
+        namespace_selector {
+          match_labels = { "kubernetes.io/metadata.name" = "kube-system" }
+        }
+        pod_selector {
+          match_labels = { "k8s-app" = "kube-dns" }
+        }
+      }
+      ports {
+        port     = 53
+        protocol = "TCP"
+      }
+      ports {
+        port     = 53
+        protocol = "UDP"
+      }
+    }
+    egress {
+      to {
+        pod_selector {
+          match_labels = { "app.kubernetes.io/name" = "postgresql" }
+        }
+      }
+      ports {
+        port     = 5432
+        protocol = "TCP"
+      }
+    }
   }
 }
 
