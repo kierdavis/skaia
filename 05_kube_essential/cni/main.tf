@@ -106,12 +106,20 @@ resource "kubernetes_daemonset" "main" {
             value = "${local.globals.kubernetes.svc_net.ipv4},${local.globals.kubernetes.svc_net.ipv6}"
           }
           env {
+            name  = "CNI_PLUGINS_DEST"
+            value = "/cni-plugins"
+          }
+          env {
             name  = "RUST_LOG"
             value = "warn,skaia_cni=trace"
           }
           volume_mount {
             name       = "cni-config"
             mount_path = "/cni-config"
+          }
+          volume_mount {
+            name       = "cni-plugins"
+            mount_path = "/cni-plugins"
           }
           volume_mount {
             name       = "tailscale-socket"
@@ -132,6 +140,12 @@ resource "kubernetes_daemonset" "main" {
           name = "cni-config"
           host_path {
             path = "/etc/cni/net.d"
+          }
+        }
+        volume {
+          name = "cni-plugins"
+          host_path {
+            path = "/opt/cni/bin"
           }
         }
         volume {

@@ -130,16 +130,17 @@ mod sysfs {
   use crate::error::Error;
   use std::collections::HashSet;
   use std::io::ErrorKind::{NotADirectory, NotFound};
+  use std::path::Path;
   use tokio::fs::{metadata, read_dir};
 
   pub async fn poll() -> Result<Data, Error> {
-    const DIR: &'static str = "/sys/class/net";
-    let mut iface_entries = read_dir(DIR).await.map_err(Error::read_dir(DIR))?;
+    let dir = Path::new("/sys/class/net");
+    let mut iface_entries = read_dir(dir).await.map_err(Error::read_dir(dir))?;
     let mut hw_iface_names = HashSet::new();
     while let Some(iface_entry) = iface_entries
       .next_entry()
       .await
-      .map_err(Error::read_dir(DIR))?
+      .map_err(Error::read_dir(dir))?
     {
       let mut device_symlink = iface_entry.path();
       device_symlink.push("device");

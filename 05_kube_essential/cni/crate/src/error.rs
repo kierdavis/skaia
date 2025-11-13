@@ -1,5 +1,6 @@
 use crate::util::Never;
 use std::fmt;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct Error(String);
@@ -34,6 +35,17 @@ impl Error {
     move |err| Self(format!("{}: {}", ctx, err.0))
   }
 
+  pub fn copy_file<'a>(src: &'a Path, dest: &'a Path) -> impl FnOnce(std::io::Error) -> Self + 'a {
+    move |err| {
+      Self(format!(
+        "failed to copy {} to {}: {}",
+        src.display(),
+        dest.display(),
+        err
+      ))
+    }
+  }
+
   pub fn deserialize_json(err: serde_json::Error) -> Self {
     Self(format!("failed to deserialize JSON: {}", err))
   }
@@ -66,8 +78,14 @@ impl Error {
     }
   }
 
-  pub fn read_dir(path: &'static str) -> impl FnOnce(std::io::Error) -> Self {
-    move |err| Self(format!("failed to read directory {}: {}", path, err))
+  pub fn read_dir(path: &'static Path) -> impl FnOnce(std::io::Error) -> Self {
+    move |err| {
+      Self(format!(
+        "failed to read directory {}: {}",
+        path.display(),
+        err
+      ))
+    }
   }
 
   pub fn serialize_json(err: serde_json::Error) -> Self {

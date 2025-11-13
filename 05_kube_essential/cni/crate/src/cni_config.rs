@@ -36,10 +36,11 @@ async fn manage_once(
   let content = serde_json::to_string(&Config {
     cni_version: "1.0.0",
     name: "skaia-cni",
-    plugins: [Plugin::Bridge {
-      is_default_gateway: true,
-      ip_masq: false,
-      ipam: IPAMPlugin::HostLocal { ranges },
+    plugins: [Plugin::Ptp {
+      ipam: IPAMPlugin::HostLocal {
+        ranges,
+        routes: [Route { dst: "0.0.0.0/0" }, Route { dst: "::/0" }],
+      },
     }],
   })
   .map_err(Error::serialize_json)?;
@@ -80,22 +81,27 @@ struct Config {
 #[serde(tag = "type", rename_all = "kebab-case")]
 enum Plugin {
   #[serde(rename_all = "camelCase")]
-  Bridge {
-    is_default_gateway: bool,
-    ip_masq: bool,
-    ipam: IPAMPlugin,
-  },
+  Ptp { ipam: IPAMPlugin },
 }
 
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 enum IPAMPlugin {
   #[serde(rename_all = "camelCase")]
-  HostLocal { ranges: [Vec<Range>; 2] },
+  HostLocal {
+    ranges: [Vec<Range>; 2],
+    routes: [Route; 2],
+  },
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct Range {
   subnet: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Route {
+  dst: &'static str,
 }
