@@ -171,6 +171,14 @@ module "transcoding" {
   downloads_pvc_name = module.storage.downloads_pvc_name
 }
 
+module "trmnl_todoist" {
+  source                          = "./trmnl_todoist"
+  namespace                       = kubernetes_namespace.main.metadata[0].name
+  cloudflare_account_id           = var.cloudflare_account_id
+  todoist_api_token               = var.todoist_api_token
+  trmnl_private_plugin_auth_token = var.trmnl_private_plugin_auth_token
+}
+
 module "valheim_common" {
   source = "./valheim/common"
 }

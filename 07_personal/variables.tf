@@ -53,3 +53,9 @@ variable "todoist_api_token" {
 variable "todoist_email" {
   type = string
 }
+
+variable "trmnl_private_plugin_auth_token" {
+  type      = string
+  sensitive = true
+  ephemeral = false
+}
