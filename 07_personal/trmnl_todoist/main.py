@@ -35,7 +35,7 @@ def sort_key(task):
   return (
     datetime.date.fromisoformat(task["deadline"]["date"]) if task["deadline"] is not None else None,
     -task["priority"],
-    -datetime.datetime.fromisoformat(task["added_at"]).timestamp(),
+    -datetime.datetime.fromisoformat(task["updated_at"]).timestamp(),
   )
 
 def format_deadline(task):
