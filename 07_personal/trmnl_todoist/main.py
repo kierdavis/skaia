@@ -6,7 +6,7 @@ import requests
 import ssl
 
 def query_todoist():
-  params = {"query": "no date", "limit": "200"}
+  params = {"query": "no date | today | date before: today", "limit": "200"}
   headers = {"Authorization": f"Bearer {os.environ['TODOIST_API_TOKEN']}"}
   while True:
     resp = requests.get(
