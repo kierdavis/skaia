@@ -192,12 +192,12 @@ resource "kubernetes_stateful_set" "main" {
             read_only  = true
           }
           volume_mount {
-            name       = "session-data"
+            name       = "session-data-x"
             mount_path = "/var/lib/hydra/www"
             read_only  = false
           }
           volume_mount {
-            name       = "logs"
+            name       = "logs-x"
             mount_path = "/var/lib/hydra/build-logs"
             read_only  = false
           }
@@ -249,7 +249,7 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name = "session-data"
+        name = "session-data-x"
         labels = {
           "app.kubernetes.io/name"      = "hydra"
           "app.kubernetes.io/component" = "webapp"
@@ -268,7 +268,7 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name = "logs"
+        name = "logs-x"
         labels = {
           "app.kubernetes.io/name"      = "hydra"
           "app.kubernetes.io/component" = "webapp"
