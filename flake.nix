@@ -12,7 +12,7 @@
       type = "github";
       owner = "NixOS";
       repo = "nixpkgs";
-      ref = "staging-25.11"; # TODO: change to release-25.11 once available, assuming it ships with Rust >= 1.89 (for cni)
+      ref = "release-25.11";
     };
     stamp = {
       type = "github";
