@@ -54,6 +54,7 @@ let
     { url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
   ]);
   baseNixConf = writeText "nix.conf" ''
+    allow-import-from-derivation = true
     builders = @${nixMachines}
     builders-use-substitutes = true
     cores = ${builtins.toString cores}
