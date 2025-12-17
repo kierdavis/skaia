@@ -33,6 +33,11 @@ output "secret_name" {
   value = kubectl_manifest.bucket_claim.name
 }
 
+# Assign this to the http_proxy environment variable when accessing the bucket from Nix.
+output "http_proxy" {
+  value = "http://${kubernetes_service.proxy.metadata[0].name}.${kubernetes_service.proxy.metadata[0].namespace}.svc.kube.skaia.cloud:${local.proxy_service_port}"
+}
+
 output "confighash" {
   value = md5(kubectl_manifest.bucket_claim.uid)
 }

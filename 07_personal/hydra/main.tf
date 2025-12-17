@@ -42,6 +42,7 @@ variable "nix_cache" {
   type = object({
     config_map_name = string
     secret_name     = string
+    http_proxy      = string
     confighash      = string
   })
 }
@@ -162,6 +163,10 @@ resource "kubernetes_stateful_set" "main" {
           env {
             name  = "HYDRA_DBI"
             value = local.dbi
+          }
+          env {
+            name  = "http_proxy"
+            value = var.nix_cache.http_proxy
           }
           env_from {
             config_map_ref {
