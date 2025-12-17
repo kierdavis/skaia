@@ -219,11 +219,10 @@ data "cloudflare_zones" "main" {
   account = { id = var.cloudflare_account_id }
   match   = "all"
   name    = "kierdavis.com"
-  status  = "active"
 }
 
 resource "cloudflare_dns_record" "main" {
-  zone_id = data.cloudflare_zones.main.result[0].id
+  zone_id = one(data.cloudflare_zones.main.result).id
   name    = "trmnl-todoist.kierdavis.com"
   type    = "CNAME"
   content = "in.skaia.cloud"

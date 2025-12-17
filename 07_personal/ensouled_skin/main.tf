@@ -237,12 +237,11 @@ data "cloudflare_zones" "main" {
   account = { id = var.cloudflare_account_id }
   match   = "all"
   name    = "ensouled.skin"
-  status  = "active"
 }
 
 resource "cloudflare_dns_record" "main" {
   for_each = toset(["ensouled.skin", "www.ensouled.skin"])
-  zone_id  = data.cloudflare_zones.main.result[0].id
+  zone_id  = one(data.cloudflare_zones.main.result).id
   name     = each.key
   type     = "CNAME"
   content  = "in.skaia.cloud"
@@ -251,7 +250,7 @@ resource "cloudflare_dns_record" "main" {
 }
 
 resource "cloudflare_ruleset" "main" {
-  zone_id = data.cloudflare_zones.main.result[0].id
+  zone_id = one(data.cloudflare_zones.main.result).id
   name    = "main"
   phase   = "http_request_firewall_custom"
   kind    = "zone"
