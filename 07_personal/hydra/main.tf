@@ -196,11 +196,11 @@ resource "kubernetes_stateful_set" "main" {
             mount_path = "/root/.pgpass"
             read_only  = true
           }
-          volume_mount {
-            name       = "session-data-x"
-            mount_path = "/var/lib/hydra/www"
-            read_only  = false
-          }
+          #volume_mount {
+          #  name       = "session-data"
+          #  mount_path = "/var/lib/hydra/www"
+          #  read_only  = false
+          #}
           volume_mount {
             name       = "logs-x"
             mount_path = "/var/lib/hydra/build-logs"
@@ -249,25 +249,6 @@ resource "kubernetes_stateful_set" "main" {
           persistent_volume_claim {
             claim_name = var.projects_pvc_name
           }
-        }
-      }
-    }
-    volume_claim_template {
-      metadata {
-        name = "session-data-x"
-        labels = {
-          "app.kubernetes.io/name"      = "hydra"
-          "app.kubernetes.io/component" = "webapp"
-          "app.kubernetes.io/part-of"   = "hydra"
-        }
-        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "20 4 * * *" }
-      }
-      spec {
-        access_modes       = ["ReadWriteOnce"]
-        storage_class_name = "rbd-hydra0"
-        volume_mode        = "Filesystem"
-        resources {
-          requests = { storage = "10Mi" }
         }
       }
     }
