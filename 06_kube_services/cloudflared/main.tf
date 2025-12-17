@@ -10,7 +10,7 @@ terraform {
 }
 
 locals {
-  apps = {
+  apps = merge({
     ensouled_skin = {
       match_hostnames = toset(["ensouled.skin", "www.ensouled.skin"])
       origin = {
@@ -29,7 +29,7 @@ locals {
         pod_port     = "main"
       }
     }
-  }
+  }, yamldecode(file("${path.module}/../../secret/cloudflared_apps.yaml")))
 }
 
 variable "account_id" {
