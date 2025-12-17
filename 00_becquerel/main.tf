@@ -113,7 +113,7 @@ locals {
 }
 
 provider "cloudflare" {
-  api_token = var.cloudflare_token
+  api_token = var.cloudflare_token_system
 }
 
 provider "linode" {

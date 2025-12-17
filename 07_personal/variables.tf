@@ -26,7 +26,7 @@ variable "cloudflare_account_id" {
   type = string
 }
 
-variable "cloudflare_token" {
+variable "cloudflare_token_personal" {
   type      = string
   sensitive = true
   ephemeral = true

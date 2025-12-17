@@ -10,7 +10,7 @@ variable "authorized_ssh_public_keys" {
   type = set(string)
 }
 
-variable "cloudflare_token" {
+variable "cloudflare_token_system" {
   type      = string
   sensitive = true
   ephemeral = true

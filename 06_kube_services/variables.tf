@@ -32,7 +32,7 @@ variable "cloudflare_zone_id" {
   type = string
 }
 
-variable "cloudflare_token" {
+variable "cloudflare_token_system" {
   type      = string
   sensitive = true
   ephemeral = true

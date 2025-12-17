@@ -33,7 +33,7 @@ data "terraform_remote_state" "talos" {
 }
 
 provider "cloudflare" {
-  api_token = var.cloudflare_token
+  api_token = var.cloudflare_token_personal
 }
 
 provider "dockerhub" {
