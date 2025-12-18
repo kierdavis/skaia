@@ -254,7 +254,7 @@ resource "kubernetes_stateful_set" "main" {
     }
     volume_claim_template {
       metadata {
-        name = "logs-x"
+        name = "logs"
         labels = {
           "app.kubernetes.io/name"      = "hydra"
           "app.kubernetes.io/component" = "webapp"
@@ -264,7 +264,7 @@ resource "kubernetes_stateful_set" "main" {
       }
       spec {
         access_modes       = ["ReadWriteOnce"]
-        storage_class_name = "rbd-hydra0"
+        storage_class_name = "rbd-scratch0"
         volume_mode        = "Filesystem"
         resources {
           requests = { storage = "2Gi" }
