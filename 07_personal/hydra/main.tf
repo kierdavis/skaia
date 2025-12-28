@@ -202,7 +202,7 @@ resource "kubernetes_stateful_set" "main" {
           #  read_only  = false
           #}
           volume_mount {
-            name       = "logs-x"
+            name       = "logs"
             mount_path = "/var/lib/hydra/build-logs"
             read_only  = false
           }
