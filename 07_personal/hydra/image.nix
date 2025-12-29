@@ -11,6 +11,7 @@
 , stamp
 , util-linux
 , writeShellScript
+, writeShellScriptBin
 , writeText
 }:
 
@@ -51,7 +52,7 @@ let
   ]) + "\n";
   nixMachines = writeText "machines" (lib.strings.concatMapStrings nixMachinesEntry [
     { url = "ssh://localhost"; system = "x86_64-linux"; speedFactor = cores; }
-    { url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
+    #{ url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
   ]);
   baseNixConf = writeText "nix.conf" ''
     builders = @${nixMachines}
@@ -111,15 +112,22 @@ let
     stderr_logfile_backups=0
   '';
 
+  init-store = writeShellScriptBin "init-store" ''
+    cat ${baseNixConf} > ${finalNixConf}
+    echo "extra-substituters = s3://$BUCKET_NAME?endpoint=http://$BUCKET_HOST&region=$BUCKET_REGION" >> ${finalNixConf}
+
+    ${nix}/bin/nix-store --load-db < /nix-path-registration
+    ls /nix/store | ${gnused}/bin/sed s,^,/nix/store/, > store-paths
+    ${nix}/bin/nix store sign --key-file /nix-signing-secret-key --stdin < store-paths
+    ${nix}/bin/nix copy --to /persistent --stdin < store-paths
+  '';
+
   main = writeShellScript "main" ''
     cat ${baseNixConf} > ${finalNixConf}
     echo "extra-substituters = s3://$BUCKET_NAME?endpoint=http://$BUCKET_HOST&region=$BUCKET_REGION" >> ${finalNixConf}
 
     cat ${baseHydraConf} > ${finalHydraConf}
     echo "store_uri = s3://$BUCKET_NAME?compression=zstd&endpoint=http://$BUCKET_HOST&log-compression=br&ls-compression=br&parallel-compression=true&region=$BUCKET_REGION&secret-key=/nix-signing-secret-key&write-nar-listing=1" >> ${finalHydraConf}
-
-    ${nix}/bin/nix-store --load-db < /nix-path-registration
-    ls /nix/store | ${gnused}/bin/sed s,^,/nix/store/, | ${nix}/bin/nix store sign --key-file /nix-signing-secret-key --stdin
 
     exec ${python3Packages.supervisor}/bin/supervisord --configuration=${supervisorConf}
   '';
@@ -141,7 +149,7 @@ in stamp.fromNix {
     HYDRA_CONFIG = finalHydraConf;
     HYDRA_DATA = "/var/lib/hydra";
     NIX_REMOTE_SYSTEMS = "${nixMachines}";
-    PATH = lib.makeBinPath [ hydra openssh nix ];
+    PATH = lib.makeBinPath [ hydra init-store openssh nix ];
   };
   withRegistration = true;
 }

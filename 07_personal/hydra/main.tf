@@ -143,12 +143,33 @@ resource "kubernetes_stateful_set" "main" {
         restart_policy                   = "Always"
         termination_grace_period_seconds = 30
         init_container {
-          name  = "init"
+          name  = "init-store"
+          image = module.image.repo_tag
+          args  = ["init-store"]
+          volume_mount {
+            name = "persistent-store"
+            mount_path = "/persistent/nix"
+            read_only = false
+          }
+          volume_mount {
+            name       = "secret"
+            sub_path   = "nix-signing-secret-key"
+            mount_path = "/nix-signing-secret-key"
+            read_only  = true
+          }
+        }
+        init_container {
+          name  = "init-hydra"
           image = module.image.repo_tag
           args  = ["hydra-init"]
           env {
             name  = "HYDRA_DBI"
             value = local.dbi
+          }
+          volume_mount {
+            name = "persistent-store"
+            mount_path = "/nix"
+            read_only = false
           }
           volume_mount {
             name       = "secret"
@@ -179,6 +200,11 @@ resource "kubernetes_stateful_set" "main" {
             }
           }
           volume_mount {
+            name = "persistent-store"
+            mount_path = "/nix"
+            read_only = false
+          }
+          volume_mount {
             name       = "secret"
             sub_path   = "id_ed25519"
             mount_path = "/root/.ssh/id_ed25519"
@@ -186,14 +212,14 @@ resource "kubernetes_stateful_set" "main" {
           }
           volume_mount {
             name       = "secret"
-            sub_path   = "nix-signing-secret-key"
-            mount_path = "/nix-signing-secret-key"
+            sub_path   = "pgpass"
+            mount_path = "/root/.pgpass"
             read_only  = true
           }
           volume_mount {
             name       = "secret"
-            sub_path   = "pgpass"
-            mount_path = "/root/.pgpass"
+            sub_path   = "nix-signing-secret-key"
+            mount_path = "/nix-signing-secret-key"
             read_only  = true
           }
           #volume_mount {
@@ -268,6 +294,25 @@ resource "kubernetes_stateful_set" "main" {
         volume_mode        = "Filesystem"
         resources {
           requests = { storage = "2Gi" }
+        }
+      }
+    }
+    volume_claim_template {
+      metadata {
+        name = "persistent-store"
+        labels = {
+          "app.kubernetes.io/name"      = "hydra"
+          "app.kubernetes.io/component" = "webapp"
+          "app.kubernetes.io/part-of"   = "hydra"
+        }
+        annotations = { "reclaimspace.csiaddons.openshift.io/schedule" = "25 4 * * *" }
+      }
+      spec {
+        access_modes       = ["ReadWriteOnce"]
+        storage_class_name = "rbd-scratch0"
+        volume_mode        = "Filesystem"
+        resources {
+          requests = { storage = "100Gi" }
         }
       }
     }
