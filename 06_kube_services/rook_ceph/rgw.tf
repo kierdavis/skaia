@@ -1,15 +1,5 @@
 locals {
   rgw_storage_classes = {
-    gp0 = {
-      data_pool_spec = {
-        replicated    = { size = 2 }
-        failureDomain = "host"
-        parameters = {
-          pg_num = "2"
-          bulk   = "1"
-        }
-      }
-    }
     nix0 = {
       data_pool_spec = {
         replicated    = { size = 2 }
