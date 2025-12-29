@@ -52,7 +52,7 @@ locals {
     }
     scratch0 = {
       data_pool_spec = {
-        replicated    = { size = 2 }
+        replicated    = { size = 4 }
         failureDomain = "host"
         parameters = {
           pg_num = "2"
@@ -62,7 +62,7 @@ locals {
     }
     video0 = {
       data_pool_spec = {
-        replicated    = { size = 2 }
+        replicated    = { size = 8 }
         failureDomain = "host"
         crushRoot     = "z-adw"
         parameters = {
