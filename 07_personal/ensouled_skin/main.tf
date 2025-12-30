@@ -249,16 +249,3 @@ resource "cloudflare_dns_record" "main" {
   proxied  = true
   comment = "managed by skaia terraform"
 }
-
-resource "cloudflare_ruleset" "main" {
-  zone_id = one(data.cloudflare_zones.main.result).id
-  name    = "main"
-  phase   = "http_request_firewall_custom"
-  kind    = "zone"
-  rules = [
-    {
-      expression = "cf.client.bot or cf.worker.upstream_zone ne \"\""
-      action     = "block"
-    },
-  ]
-}
