@@ -231,4 +231,5 @@ resource "cloudflare_dns_record" "main" {
   content = "${cloudflare_zero_trust_tunnel_cloudflared.main.id}.cfargotunnel.com"
   ttl     = 1 # means automatic
   proxied = true
+  comment = "managed by skaia terraform"
 }
