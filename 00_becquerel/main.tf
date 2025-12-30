@@ -319,6 +319,7 @@ resource "cloudflare_dns_record" "main" {
   content = linode_instance.main.ip_address
   ttl     = 1 # means automatic
   proxied = false
+  comment = "managed by skaia terraform"
 }
 
 resource "cloudflare_dns_record" "headscale" {
@@ -328,6 +329,7 @@ resource "cloudflare_dns_record" "headscale" {
   content = cloudflare_dns_record.main.name
   ttl     = 1 # means automatic
   proxied = false
+  comment = "managed by skaia terraform"
 }
 
 resource "time_sleep" "boot" {
