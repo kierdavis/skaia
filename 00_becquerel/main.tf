@@ -312,19 +312,21 @@ resource "linode_firewall" "main" {
   }
 }
 
-resource "cloudflare_record" "main" {
+resource "cloudflare_dns_record" "main" {
   zone_id = var.cloudflare_zone_id
-  name    = "becquerel"
+  name    = "becquerel.skaia.cloud"
   type    = "A"
-  value   = linode_instance.main.ip_address
+  content = linode_instance.main.ip_address
+  ttl     = 1 # means automatic
   proxied = false
 }
 
-resource "cloudflare_record" "headscale" {
+resource "cloudflare_dns_record" "headscale" {
   zone_id = var.cloudflare_zone_id
-  name    = "headscale"
+  name    = "headscale.skaia.cloud"
   type    = "CNAME"
-  value   = "${cloudflare_record.main.name}.skaia.cloud"
+  content = cloudflare_dns_record.main.name
+  ttl     = 1 # means automatic
   proxied = false
 }
 
@@ -348,7 +350,7 @@ data "remote_file" "api_key" {
 
 output "headscale" {
   value = {
-    endpoint = "https://${cloudflare_record.headscale.name}.skaia.cloud/"
+    endpoint = "https://${cloudflare_dns_record.headscale.name}.skaia.cloud/"
     api_key  = trimspace(sensitive(data.remote_file.api_key.content))
   }
   sensitive = true
