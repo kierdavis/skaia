@@ -247,5 +247,5 @@ resource "cloudflare_dns_record" "main" {
   content  = "in.skaia.cloud"
   ttl      = 1 # means automatic
   proxied  = true
-  comment = "managed by skaia terraform"
+  comment  = "managed by skaia terraform"
 }

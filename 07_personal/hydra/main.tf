@@ -147,9 +147,9 @@ resource "kubernetes_stateful_set" "main" {
           image = module.image.repo_tag
           args  = ["init-store"]
           volume_mount {
-            name = "persistent-store"
+            name       = "persistent-store"
             mount_path = "/persistent/nix"
-            read_only = false
+            read_only  = false
           }
           volume_mount {
             name       = "secret"
@@ -167,9 +167,9 @@ resource "kubernetes_stateful_set" "main" {
             value = local.dbi
           }
           volume_mount {
-            name = "persistent-store"
+            name       = "persistent-store"
             mount_path = "/nix"
-            read_only = false
+            read_only  = false
           }
           volume_mount {
             name       = "secret"
@@ -200,9 +200,9 @@ resource "kubernetes_stateful_set" "main" {
             }
           }
           volume_mount {
-            name = "persistent-store"
+            name       = "persistent-store"
             mount_path = "/nix"
-            read_only = false
+            read_only  = false
           }
           volume_mount {
             name       = "secret"
