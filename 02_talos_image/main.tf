@@ -20,8 +20,27 @@ provider "linode" {
 locals {
   instances = {
     "1.10.4" = {
-      platforms = toset(["linode", "pc"])
+      platforms = toset(["pc"])
       version   = "1.10.4"
+      schematic = {
+        customization = {
+          systemExtensions = {
+            officialExtensions = [
+              "siderolabs/i915",
+              "siderolabs/tailscale",
+            ]
+          }
+          extraKernelArgs = [
+            "-console",              # Remove any console= arguments from the default command line.
+            "console=ttyS0,19200n8", # Linode
+            "console=tty1",          # Bare metal
+          ]
+        }
+      }
+    }
+    "1.12.2" = {
+      platforms = toset(["linode", "pc"])
+      version   = "1.12.2"
       schematic = {
         customization = {
           systemExtensions = {
