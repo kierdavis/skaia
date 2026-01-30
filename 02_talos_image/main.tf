@@ -118,12 +118,12 @@ resource "terraform_data" "convert_for_linode" {
   provisioner "local-exec" {
     command = <<EOF
       mkdir -p "$(dirname "$dest")"
-      curl --silent --show-error --fail "$src" \
-        | unxz --stdout \
+      curl --silent --show-error --fail --location "$src" \
+        | unzstd --stdout \
         | pigz --stdout > "$dest"
     EOF
     environment = {
-      src  = "https://factory.talos.dev/image/${local.instances2[each.key].schematic_id}/v${local.instances2[each.key].version}/metal-amd64.raw.xz"
+      src  = "https://factory.talos.dev/image/${local.instances2[each.key].schematic_id}/v${local.instances2[each.key].version}/metal-amd64.raw.zst"
       dest = each.value
     }
   }
