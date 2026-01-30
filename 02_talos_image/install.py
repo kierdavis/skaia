@@ -58,7 +58,7 @@ def main():
   assert disk["physical-sector-size"] == sector_size
   sector_align = 4
 
-  preserve_parts = [p for p in disk["partitions"] if p["name"].startswith("OSD")]
+  preserve_parts = [p for p in disk.get("partitions", []) if p["name"].startswith("OSD")]
   is_part_number_preserved = lambda n: any(p["number"] == n for p in preserve_parts)
   if preserve_parts:
     print("Will preserve these partitions:")
@@ -77,7 +77,7 @@ def main():
         log_and_run(["wipefs", "--all", part_device(args.target, part["number"])], check=True)
         log_and_run(["blkdiscard", "--force", part_device(args.target, part["number"])], check=True)
   else:
-    for part in disk["partitions"]:
+    for part in disk.get("partitions", []):
       log_and_run(["wipefs", "--all", part_device(args.target, part["number"])], check=True)
     log_and_run(["wipefs", "--all", args.target], check=True)
     log_and_run(["blkdiscard", "--force", args.target], check=True)
@@ -106,7 +106,7 @@ def main():
     unalloc_start_sector = ((unalloc_start_sector + sector_align - 1) // sector_align) * sector_align
     osd_start_sector = unalloc_start_sector + (50*1024*1024*1024) // sector_size
     osd_start_sector = ((osd_start_sector + sector_align - 1) // sector_align) * sector_align
-    gpt_mirror_start_sector = size_sectors_to_str(disk["size"]) - 33
+    gpt_mirror_start_sector = size_str_to_sectors(disk["size"]) - 33
     gpt_mirror_start_sector = (gpt_mirror_start_sector // sector_align) * sector_align
     if gpt_mirror_start_sector - osd_start_sector >= (10*1024*1024*1024)//sector_size:
       osd_end_sector = gpt_mirror_start_sector - 1
