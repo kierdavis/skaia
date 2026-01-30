@@ -42,6 +42,18 @@ locals {
         "topology.rook.io/chassis"      = "c-pyrope"
       }
     }
+    serket = {
+      role                     = "controlplane"
+      boot_disk                = "/dev/nvme0n1"
+      bootstrap_endpoint       = "192.168.178.233"
+      force_bootstrap_endpoint = false # set to true if tailscaled is broken
+      labels = {
+        "hwcaps.skaia.cloud/qsv"        = "broadwell"
+        "topology.kubernetes.io/region" = "r-man"
+        "topology.kubernetes.io/zone"   = "z-adw"
+        "topology.rook.io/chassis"      = "c-serket"
+      }
+    }
     # Temporary master for upgrades.
     #nitram = {
     #  role                     = "controlplane"
