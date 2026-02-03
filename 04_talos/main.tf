@@ -21,7 +21,7 @@ locals {
     vantas = {
       role                     = "controlplane"
       boot_disk                = "/dev/nvme0n1"
-      bootstrap_endpoint       = "192.168.178.154"
+      bootstrap_endpoint       = "192.168.178.235"
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
         "hwcaps.skaia.cloud/qsv"        = "skylake"
@@ -33,7 +33,7 @@ locals {
     pyrope = {
       role                     = "controlplane"
       boot_disk                = "/dev/nvme0n1"
-      bootstrap_endpoint       = "192.168.178.164"
+      bootstrap_endpoint       = "192.168.178.236"
       force_bootstrap_endpoint = false # set to true if tailscaled is broken
       labels = {
         "hwcaps.skaia.cloud/qsv"        = "broadwell"
