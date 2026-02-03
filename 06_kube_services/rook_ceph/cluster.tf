@@ -44,7 +44,7 @@ resource "kubectl_manifest" "cluster" {
         ]
       }
       mon = {
-        allowMultiplePerNode = true
+        allowMultiplePerNode = false
         count                = 3
       }
       monitoring = {
