@@ -36,3 +36,7 @@ output "projects_pvc_name" {
 output "documents_pvc_name" {
   value = kubernetes_persistent_volume_claim.documents.metadata[0].name
 }
+
+output "scratch_pvc_name" {
+  value = kubernetes_persistent_volume_claim.scratch.metadata[0].name
+}

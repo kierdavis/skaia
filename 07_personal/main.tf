@@ -156,6 +156,13 @@ module "storage" {
   backup    = module.backup_common
 }
 
+module "takeout" {
+  source           = "./takeout"
+  namespace        = kubernetes_namespace.main.metadata[0].name
+  scratch_pvc_name = module.storage.scratch_pvc_name
+  backup           = module.backup_common
+}
+
 module "todoist_automation" {
   source              = "./todoist_automation"
   namespace           = kubernetes_namespace.main.metadata[0].name
