@@ -178,3 +178,57 @@ resource "kubernetes_job" "upload" {
     }
   }
 }
+
+resource "kubernetes_job" "cleanup" {
+  count = 0
+  wait_for_completion = false
+  metadata {
+    name      = "takeout-cleanup"
+    namespace = var.namespace
+    labels    = { app = "takeout-cleanup" }
+  }
+  spec {
+    backoff_limit = 0
+    template {
+      metadata {
+        labels    = { app = "takeout-cleanup" }
+      }
+      spec {
+        restart_policy = "Never"
+        affinity {
+          node_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 50
+              preference {
+                match_expressions {
+                  key      = "topology.kubernetes.io/zone"
+                  operator = "In"
+                  values   = ["z-adw"]
+                }
+              }
+            }
+          }
+        }
+        volume {
+          name = "scratch"
+          persistent_volume_claim {
+            claim_name = var.scratch_pvc_name
+          }
+        }
+        container {
+          name  = "main"
+          image = "docker.io/library/alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659"
+          args = ["rm", "-rf", "/scratch/takeout"]
+          volume_mount {
+            name       = "scratch"
+            mount_path = "/scratch"
+          }
+          security_context {
+            run_as_user  = local.globals.personal_uid
+            run_as_group = local.globals.personal_uid
+          }
+        }
+      }
+    }
+  }
+}
