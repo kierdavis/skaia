@@ -118,6 +118,21 @@ resource "kubernetes_persistent_volume_claim" "tfstate" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "accounts" {
+  metadata {
+    name      = "accounts"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes       = ["ReadWriteMany"]
+    storage_class_name = "cephfs-documents0"
+    volume_mode        = "Filesystem"
+    resources {
+      requests = { storage = "1Gi" }
+    }
+  }
+}
+
 resource "kubernetes_persistent_volume_claim" "scratch" {
   metadata {
     name      = "scratch"

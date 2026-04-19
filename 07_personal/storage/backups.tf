@@ -57,3 +57,13 @@ module "tfstate_backup" {
   mount_path = "/data/services/tfstate"
   common     = var.backup
 }
+
+module "accounts_backup" {
+  source     = "../backup/direct_cron_job"
+  name       = "accounts-backup"
+  namespace  = var.namespace
+  schedule   = "0 2 * * 0"
+  pvc_name   = kubernetes_persistent_volume_claim.accounts.metadata[0].name
+  mount_path = "/data/documents/accounts"
+  common     = var.backup
+}
