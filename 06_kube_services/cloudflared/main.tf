@@ -11,15 +11,15 @@ terraform {
 
 locals {
   apps = merge({
-    ensouled_skin = {
-      match_hostnames = toset(["ensouled.skin", "www.ensouled.skin"])
-      origin = {
-        namespace    = "personal"
-        url          = "https://ensouled-skin.personal.svc.kube.skaia.cloud"
-        pod_selector = { "app.kubernetes.io/name" = "ensouled-skin" }
-        pod_port     = "main"
-      }
-    }
+    #ensouled_skin = {
+    #  match_hostnames = toset(["ensouled.skin", "www.ensouled.skin"])
+    #  origin = {
+    #    namespace    = "personal"
+    #    url          = "https://ensouled-skin.personal.svc.kube.skaia.cloud"
+    #    pod_selector = { "app.kubernetes.io/name" = "ensouled-skin" }
+    #    pod_port     = "main"
+    #  }
+    #}
   }, yamldecode(file("${path.module}/../../secret/cloudflared_apps.yaml")))
 }
 
@@ -41,8 +41,8 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "main" {
   account_id = var.account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.main.id
   config = {
-    ingress = concat(
-      concat([
+    ingress = concat(concat(
+      [
         for app_name, app in local.apps :
         [
           for hostname in app.match_hostnames :
@@ -52,9 +52,9 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "main" {
             origin_request = { origin_server_name = hostname }
           }
         ]
-      ]...),
-      [{ service = "http_status:404" }],
-    )
+      ],
+      [[{ service = "http_status:404" }]]
+    )...)
     origin_request = {
       connect_timeout = 10
       http2_origin    = true
