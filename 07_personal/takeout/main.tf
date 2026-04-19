@@ -27,7 +27,7 @@ locals {
   accounts = tomap({
     kier = {
       email     = "me@kierdavis.com"
-      timestamp = "2026-02-17 18:56:51"
+      timestamp = "2026-04-17 18:50:22"
       extract   = false
       upload    = false
     }
@@ -82,7 +82,7 @@ resource "kubernetes_job" "extract" {
             "-c",
             <<-EOF
               cd /scratch
-              for i in part*/*.tgz; do
+              for i in */*.tgz; do
                 echo "$i..."
                 tar -xzf "$i"
               done
