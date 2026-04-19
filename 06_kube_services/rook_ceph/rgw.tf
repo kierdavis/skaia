@@ -89,7 +89,7 @@ resource "kubectl_manifest" "object_store" {
         preserveRadosNamespaceDataOnDelete = true
       }
       gateway = {
-        instances = 1
+        instances = 2
         port      = 80
         resources = {
           requests = { cpu = "20m", memory = "200Mi" }
