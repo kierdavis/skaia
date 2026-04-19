@@ -163,27 +163,11 @@ module "takeout" {
   backup           = module.backup_common
 }
 
-module "todoist_automation" {
-  source              = "./todoist_automation"
-  namespace           = kubernetes_namespace.main.metadata[0].name
-  archive_secret_name = module.backup_common.archive_secret_name
-  todoist_email       = var.todoist_email
-  todoist_api_token   = var.todoist_api_token
-}
-
 module "transcoding" {
   source             = "./transcoding"
   namespace          = kubernetes_namespace.main.metadata[0].name
   media_pvc_name     = module.storage.media_pvc_name
   downloads_pvc_name = module.storage.downloads_pvc_name
-}
-
-module "trmnl_todoist" {
-  source                          = "./trmnl_todoist"
-  namespace                       = kubernetes_namespace.main.metadata[0].name
-  cloudflare_account_id           = var.cloudflare_account_id
-  todoist_api_token               = var.todoist_api_token
-  trmnl_private_plugin_auth_token = var.trmnl_private_plugin_auth_token
 }
 
 module "valheim_common" {

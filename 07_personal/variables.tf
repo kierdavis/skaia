@@ -43,19 +43,3 @@ variable "hydra_nix_signing_secret_key" {
   sensitive = true
   ephemeral = false
 }
-
-variable "todoist_api_token" {
-  type      = string
-  sensitive = true
-  ephemeral = false # because it's persisted into a kubernetes_secret
-}
-
-variable "todoist_email" {
-  type = string
-}
-
-variable "trmnl_private_plugin_auth_token" {
-  type      = string
-  sensitive = true
-  ephemeral = false
-}

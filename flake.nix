@@ -48,9 +48,7 @@
       personal.jellyfin.image = callPackage 07_personal/jellyfin/image.nix {};
       personal.paperless.image = callPackage 07_personal/paperless/image.nix {};
       personal.redstore.image = callPackage 07_personal/redstore/image.nix {};
-      personal.todoistAutomation.image = callPackage 07_personal/todoist_automation/image.nix {};
       personal.transcoding.image = callPackage 07_personal/transcoding/image.nix {};
-      personal.trmnlTodoist.image = callPackage 07_personal/trmnl_todoist/image.nix {};
       personal.valheim.common.image = callPackage 07_personal/valheim/common/image.nix {};
       secret = import secret/packages.nix { inherit nixpkgs; };
     };

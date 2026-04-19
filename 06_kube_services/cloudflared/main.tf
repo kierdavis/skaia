@@ -20,15 +20,6 @@ locals {
         pod_port     = "main"
       }
     }
-    trmnl_todoist = {
-      match_hostnames = toset(["trmnl-todoist.kierdavis.com"])
-      origin = {
-        namespace    = "personal"
-        url          = "https://trmnl-todoist.personal.svc.kube.skaia.cloud"
-        pod_selector = { "app.kubernetes.io/name" = "trmnl-todoist" }
-        pod_port     = "main"
-      }
-    }
   }, yamldecode(file("${path.module}/../../secret/cloudflared_apps.yaml")))
 }
 
