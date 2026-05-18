@@ -4,8 +4,8 @@ stamp.installDebianPkgs {
   name = "stamp-img-skaia-jellyfin";
   base = stamp.fetch {
     repository = "docker.io/linuxserver/jellyfin";
-    digest = "sha256:a893c3ca1c0ff89f13a0877c6e8caf285a482aa188c6ee20e1cfdfdb6d52e906";
-    hash = "sha256-XnSgx18nslDvBcGMQbO+mNwFB1fNGsYv8SayWwXrVnU=";
+    digest = "sha256:e622a48adf7193c7d626c2325a40f9b01c932c8e7bf3f50ffa40e7e9b6ce1d39";
+    hash = "sha256-yW9L321Hi+wTOcPJGO3pCU2Uwm6YpzmQDhml/J7lQ3Q=";
   };
   pkgs = [
     # Top-level packages to install: intel-opencl-icd
@@ -44,5 +44,5 @@ stamp.installDebianPkgs {
       hash = "sha512:1b8c2ebdc724e365896a6766504b01b84cb7ac6e5a358cf069411b5cf32735df7c90f3c9f27dd44fb08a23b986bf3a10bd9a6ea60ebfe181642c2ce9006b7173";
     })
   ];
-  layerHash = "sha256-XGE+UULEdCjy6ivYUISWLiBrR6fpL1GdF/XRgmGPsQc=";
+  layerHash = "sha256-8q+gJuDKEh9BcLwUlcESk5Ht22swMvwwoS0yRq2iacI=";
 }
