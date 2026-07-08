@@ -12,7 +12,7 @@
       type = "github";
       owner = "NixOS";
       repo = "nixpkgs";
-      ref = "release-25.11";
+      ref = "release-26.05";
     };
     stamp = {
       type = "github";
