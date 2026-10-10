@@ -8,7 +8,7 @@ resource "kubernetes_persistent_volume_claim" "downloads" {
     storage_class_name = "cephfs-video0"
     volume_mode        = "Filesystem"
     resources {
-      requests = { storage = "1.25Ti" }
+      requests = { storage = "1.75Ti" }
     }
   }
 }
@@ -68,7 +68,7 @@ resource "kubernetes_persistent_volume_claim" "photography" {
     storage_class_name = "cephfs-photography0"
     volume_mode        = "Filesystem"
     resources {
-      requests = { storage = "100Gi" }
+      requests = { storage = "400Gi" }
     }
   }
 }
