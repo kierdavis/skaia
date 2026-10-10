@@ -15,7 +15,7 @@ resource "kubectl_manifest" "bucket_claim" {
     apiVersion = "objectbucket.io/v1alpha1"
     kind       = "ObjectBucketClaim"
     metadata = {
-      name      = "nix-cache"
+      name      = "nix-cache-x"
       namespace = var.namespace
     }
     spec = {
