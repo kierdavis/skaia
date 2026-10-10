@@ -51,8 +51,8 @@ let
     (m.sshHostKeyBase64 or "-")
   ]) + "\n";
   nixMachines = writeText "machines" (lib.strings.concatMapStrings nixMachinesEntry [
-    { url = "ssh://localhost"; system = "x86_64-linux"; speedFactor = cores; }
-    #{ url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
+    { url = "ssh://localhost"; system = "x86_64-linux,i686-linux"; speedFactor = cores; }
+    #{ url = "ssh://nixremotebuild@coloris.tail.skaia.cloud"; system = "x86_64-linux,i686-linux"; speedFactor = 4; supportedFeatures = ["kvm"]; }
   ]);
   baseNixConf = writeText "nix.conf" ''
     builders = @${nixMachines}
